@@ -221,7 +221,8 @@ with model:
 
 with model:
     model.medium = {"r_1714": 10.0, "r_1992": 1000.0}   # only glucose and oxygen
-    print(f"glucose and oxygen alone:  {model.slim_optimize():.4f} /h")
+    growth = round(model.slim_optimize(), 4) + 0.0      # + 0.0 turns solver noise -0.0 into 0.0
+    print(f"glucose and oxygen alone:  {growth:.4f} /h")
 
 model.medium = {**shipped, "r_1714": 10.0}        # the shipped recipe, more glucose
 print(f"complete medium:           {model.slim_optimize():.4f} /h")

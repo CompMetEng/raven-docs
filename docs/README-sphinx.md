@@ -87,11 +87,9 @@ python -m venv .venv-sphinx
   `check_names.py`'s identifier validation is still valuable and doesn't
   need to be a live hook; it can run as a standalone pre-build check either
   way, but re-wiring it wasn't done as part of this exploration.
-- **`scripts/run_examples.py`.** Parses MkDocs/pymdownx fence syntax
-  (` ```text title="Output" ` in particular) to find and check expected
-  output blocks. That fence shape changed here (see "Admonitions, content
-  tabs..." above); the script would need to read MyST's fence conventions
-  instead before it could check this branch's pages.
+- **`scripts/run_examples.py`.** Treats a bare ` ```text ` fence directly
+  below a code block as that block's expected output, and `--update` writes
+  that fence shape.
 - **`.readthedocs.yaml`.** Still points at the `mkdocs:` build. The target
   block for a real switch:
 

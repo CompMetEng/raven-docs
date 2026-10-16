@@ -14,8 +14,8 @@ This script closes that gap, for **both** language tabs. For every page it
   workspace), in a scratch directory seeded with a copy of ``docs/data/``, so the
   snippets can use the short relative paths the reader sees,
 * captures what the block prints -- plus the repr of a trailing expression, the
-  way a notebook or the REPL would -- and compares it with the ``title="Output"``
-  block that follows,
+  way a notebook or the REPL would -- and compares it with the plain ``text`` block
+  that follows,
 * reports every mismatch as a unified diff and exits non-zero.
 
 MATLAB needs a MATLAB runtime on the PATH (or ``RAVEN_DOCS_MATLAB`` pointing at
@@ -92,6 +92,11 @@ DEFAULT_SOLVER = "glpk"
 RAVEN_DIR = Path(os.environ.get("RAVEN_DOCS_RAVEN_SRC", ROOT / "RAVEN"))
 MATLAB_SOLVER = "glpk"
 LANGUAGES = ("python", "matlab")
+
+# The info string of an expected-output fence: a bare ```text directly below the
+# code block. A titled text fence (```text title="tasks.txt") is an input shown
+# to the reader, not output.
+OUTPUT_INFO = "text"
 
 SKIP_FILE = "run-examples: skip-file"
 SKIP_BLOCK = "run-examples: skip"
@@ -248,7 +253,7 @@ def collect_examples(page: Path, language: str = "python") -> PageResult:
         if index + 1 < len(fences):
             nxt = fences[index + 1]
             gap = lines[fence.end + 1 : nxt.start]
-            if all(not line.strip() for line in gap) and 'title="Output"' in nxt.info:
+            if all(not line.strip() for line in gap) and nxt.info.strip() == OUTPUT_INFO:
                 output = nxt
         result.examples.append(
             Example(
@@ -738,7 +743,7 @@ def update_page(result: PageResult) -> bool:
         actual = normalise(example.actual)
         indent = example.code_fence.indent
         if actual:
-            block = [f'{indent}```text title="Output"']
+            block = [f"{indent}```{OUTPUT_INFO}"]
             block += [f"{indent}{line}".rstrip() for line in actual.split("\n")]
             block += [f"{indent}```"]
         else:
