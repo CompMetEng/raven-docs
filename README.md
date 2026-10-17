@@ -42,6 +42,9 @@ The API reference pages are generated at the start of each build by
 from `docs/conf.py`, which walks the two toolbox submodules and pairs their
 functions. No MATLAB runtime or installed Python package is required;
 docstrings are collected statically from source.
+[`scripts/autolink.py`](scripts/autolink.py) then links the function names on
+the guide pages to those reference pages, and cobrapy names to cobrapy's
+documentation through its intersphinx inventory.
 
 ## Checking the guide examples
 

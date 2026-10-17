@@ -14,7 +14,12 @@ extensions = [
     "myst_parser",
     "sphinx_design",
     "sphinx_copybutton",
+    "sphinx.ext.intersphinx",
 ]
+
+# cobrapy's inventory, which scripts/autolink.py uses to link cobrapy names on
+# the guide pages to their entries in cobrapy's documentation.
+intersphinx_mapping = {"cobra": ("https://cobrapy.readthedocs.io/en/latest/", None)}
 
 source_suffix = {".md": "markdown"}
 root_doc = "index"
@@ -91,15 +96,18 @@ html_context = {
 
 
 def setup(app):
-    """Run the API-reference generator before Sphinx reads the source tree.
+    """Generate the API reference and link the guide pages to it.
 
-    It collects from the tracked RAVEN / raven-toolbox submodules and writes
-    static pages, before Sphinx's own file discovery runs.
+    The generator collects from the tracked RAVEN / raven-toolbox submodules
+    and writes static pages before Sphinx's own file discovery runs;
+    scripts/autolink.py then links function names on the guide pages.
     """
     from pathlib import Path
     import sys
 
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+    import autolink
     import gen_api_pages
 
     gen_api_pages.generate(Path(__file__).resolve().parent)
+    return autolink.setup(app)
