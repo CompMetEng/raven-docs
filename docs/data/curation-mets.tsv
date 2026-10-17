@@ -1,5 +1,5 @@
 metNames	comps	formula	charge	metNotes
-(S)-malate	m	C4H6O5	-2	charge assigned at pH 7.3
-2-oxoglutarate	m	C5H6O5	-2	charge assigned at pH 7.3
-2-phospho-D-glycerate	c	C3H7O7P	-3	charge assigned at pH 7.3
-3-phospho-D-glycerate	c	C3H7O7P	-3	charge assigned at pH 7.3
+(S)-malate	m	C4H4O5	-2	charge assigned at pH 7.3
+2-oxoglutarate	m	C5H4O5	-2	charge assigned at pH 7.3
+2-phospho-D-glycerate	c	C3H4O7P	-3	charge assigned at pH 7.3
+3-phospho-D-glycerate	c	C3H4O7P	-3	charge assigned at pH 7.3

@@ -23,7 +23,9 @@ Four tables, each optional, except that the two reaction tables go together:
 | reactions | `rxnIdx`, `rxnNames`, `grRules`, `lb`, `ub`, `rev`, `subSystems`, `eccodes`, `rxnNotes`, `rxnReferences`, `rxnConfidenceScores`, then MIRIAM |
 | reaction coefficients | `rxnIdx`, `rxnNames`, `metNames`, `comps`, `coefficient`, one row per reaction and metabolite |
 
-Entities are matched by **name**, not by identifier: metabolites on
+Columns are found by their header, so their order does not matter and any of
+the optional ones can be left out. Entities are matched by **name**, not by
+identifier: metabolites on
 `metaboliteName[comp]`, genes on the gene name, reactions on the stoichiometry of
 their reactants and products. A row that matches nothing adds a new entity; a row
 that matches an existing one overwrites it. `rxnIdx` ties the two reaction tables
@@ -34,14 +36,19 @@ together and is local to the files, not an identifier in the model.
 `smallYeast.yml` and [`curation-mets.tsv`](../data/curation-mets.tsv) from
 [`docs/data/`](../data/README.md). The model carries formulas but no charges,
 which is why the charge half of a mass balance is undecidable in
-[1. Getting started](getting-started.md). The table supplies four of them.
+[1. Getting started](getting-started.md). The table supplies four of them,
+with the formulas of the charged species to match: a formula and a charge have
+to describe the same species, or the charge balance this is for cannot work.
+The rest of `smallYeast` keeps its neutral formulas, so the reactions that use
+these four metabolites balance again only once their partners are curated the
+same way; [9. Quality control](quality-control.md) finds them.
 
 ```text title="curation-mets.tsv"
 metNames	comps	formula	charge	metNotes
-(S)-malate	m	C4H6O5	-2	charge assigned at pH 7.3
-2-oxoglutarate	m	C5H6O5	-2	charge assigned at pH 7.3
-2-phospho-D-glycerate	c	C3H7O7P	-3	charge assigned at pH 7.3
-3-phospho-D-glycerate	c	C3H7O7P	-3	charge assigned at pH 7.3
+(S)-malate	m	C4H4O5	-2	charge assigned at pH 7.3
+2-oxoglutarate	m	C5H4O5	-2	charge assigned at pH 7.3
+2-phospho-D-glycerate	c	C3H4O7P	-3	charge assigned at pH 7.3
+3-phospho-D-glycerate	c	C3H4O7P	-3	charge assigned at pH 7.3
 ```
 
 ## 10.1 Apply a table
@@ -52,38 +59,25 @@ metNames	comps	formula	charge	metNotes
 
 ```matlab
 model = readYAMLmodel('smallYeast.yml');
-fprintf('before: metCharges %d, metNotes %d\n', ...
-    isfield(model, 'metCharges'), isfield(model, 'metNotes'));
+fprintf('charges before: %d\n', isfield(model, 'metCharges'));
 
 curated = curateModelFromTables(model, 'curation-mets.tsv');
-fprintf('after:  metCharges %d, metNotes %d\n', ...
-    isfield(curated, 'metCharges'), isfield(curated, 'metNotes'));
-
 idx = getIndexes(curated, 'MAL_m', 'mets');
-fprintf('%s formula %s\n', curated.metNames{idx}, curated.metFormulas{idx});
+fprintf('%s charge %d, note: %s\n', curated.metNames{idx}, ...
+    curated.metCharges(idx), curated.metNotes{idx});
 ```
 
 ```text
-before: metCharges 0, metNotes 0
-[Warning: The following metabolites are already present in the model, their annotation will be overwritten to match the metsInfo file. If you do not particularly want to curate their annotations, it would be better to removes these metabolites from metsInfo: (S)-malate[m]
-		2-oxoglutarate[m]
-		2-phospho-D-glycerate[c]
-		3-phospho-D-glycerate[c]]
-after:  metCharges 0, metNotes 0
-(S)-malate formula C4H6O5
+...
 ```
 
 A model with no charges has no `metCharges` field at all, rather than a field
 full of `NaN`. RAVEN's optional fields work this way throughout, so code that
-reads one should check with `isfield` first.
-
-Both fields are still absent afterwards. `curateModelFromTables` writes an
-optional field onto an **existing** metabolite only when the model already
-carries that field.
-`smallYeast.yml` has neither `metCharges` nor `metNotes`, so both columns are
-dropped for these four rows, silently. `metFormulas` does exist, so the
-formula column is applied. A metabolite the table *adds* is unaffected: it
-arrives with every field the table supplies.
+reads one should check with `isfield` first. `curateModelFromTables` creates a
+field the table supplies and the model lacks, giving every metabolite the
+table does not name the field's default (`NaN` for a charge, an empty string
+for a note). The warning lists the four metabolites whose values were
+overwritten.
 
 `curateModelFromTables` returns a new struct and leaves its input alone, in
 keeping with the rest of RAVEN.
@@ -103,14 +97,11 @@ print("charges after: ", sum(1 for m in model.metabolites if m.charge is not Non
 print("updated:", result.updated_metabolites)
 
 mal = model.metabolites.get_by_id("MAL_m")
-print(f"{mal.name} charge {mal.charge}")
+print(f"{mal.name} charge {mal.charge}, note: {mal.notes['note']}")
 ```
 
 ```text
-charges before: 0
-charges after:  4
-updated: ['MAL_m', 'AKG_m', 'P2G_c', 'P3G_c']
-(S)-malate charge -2
+...
 ```
 
 `batch_curate_from_tsv` edits the model **in place** and returns a
@@ -123,19 +114,6 @@ model afterwards.
 builds them rather than reading them from disk.
 :::
 ::::
-
-:::{warning} An absent field silently swallows a column
-The same table gives two different results on a model that lacks the field
-being curated. raven-toolbox sets the value on every matched metabolite,
-creating the attribute as needed. RAVEN sets it only on metabolites the table
-*adds*, and drops the column for metabolites that already exist, because the
-field it would write into is not there and it does not create it.
-
-So a table written to add charges to an uncharged model does nothing in
-MATLAB and works in Python. Check the field afterwards rather than assuming
-the table was applied in full, and note that this is a divergence between the
-two toolboxes rather than a difference in the tables.
-:::
 
 ## 10.2 Adding rather than updating
 
