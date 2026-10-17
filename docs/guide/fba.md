@@ -138,8 +138,10 @@ minimising.
 
 ## 4.3 Constrain an uptake rate
 
-Uptake is a **negative** flux through an exchange reaction, so the lower bound is
-what limits it. yeast-GEM ships with glucose capped at 1 mmol/gDW/h, which is
+yeast-GEM writes its exchange reactions as `metabolite <=>`, so uptake is a
+**negative** flux and the lower bound is what limits it. A model that writes
+uptake as `=> metabolite`, like smallYeast in [6. Solvers](solvers.md), has the
+opposite sign. yeast-GEM ships with glucose capped at 1 mmol/gDW/h, which is
 where the growth rate above comes from; ten times the glucose gives roughly ten
 times the growth.
 
@@ -238,9 +240,12 @@ back to aerobic: 0.0809 /h
 ```
 
 Without `with`, the bound change would persist and every later result on this
-page would be an anaerobic one. The block records every change made to the
-model inside it, not only the ones written here, so added reactions and
-changed objectives are undone as well.
+page would be an anaerobic one. The block undoes the edits cobrapy records:
+bounds, the objective, reactions and metabolites added or removed,
+stoichiometry changed with `add_metabolites`, gene rules and gene knockouts.
+Plain attribute edits are not recorded and survive the block: names, formulas,
+charges, `subsystem`, the model id and anything written into `annotation` or
+`notes`. Make those on `model.copy()`.
 
 Two things in that output need care. The anaerobic growth rate is **zero**,
 not a smaller positive number: closing the oxygen exchange is not enough to
@@ -312,8 +317,8 @@ filtering works: `solution.fluxes[solution.fluxes.abs() > 1e-6]`.
 :::
 ::::
 
-The signs say which way material moves: negative through an exchange is uptake,
-positive is secretion. Glucose and oxygen enter, CO2 leaves, and ethanol is zero
+In yeast-GEM's orientation the signs say which way material moves: negative
+through an exchange is uptake, positive is secretion. Glucose and oxygen enter, CO2 leaves, and ethanol is zero
 because the model has enough oxygen to respire everything it takes up.
 
 ## 4.6 Pick a parsimonious solution
