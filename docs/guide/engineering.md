@@ -203,21 +203,19 @@ for i = 1:numel(model.genes)
 end
 
 repMets = reporterMetabolites(model, model.genes, pvalues);
-[~, order] = sort(repMets(1).metPValues);
-for i = 1:5
-    j = order(i);
-    fprintf('  %-8s z %6.3f  p %.4f  genes %d\n', repMets(1).mets{j}, ...
-        repMets(1).metZScores(j), repMets(1).metPValues(j), ...
-        repMets(1).metNGenes(j));
+for i = 1:5   % sorted by z-score, highest first
+    fprintf('  %-8s z %6.3f  p %.4f  genes %d\n', repMets(1).mets{i}, ...
+        repMets(1).metZScores(i), repMets(1).metPValues(i), ...
+        repMets(1).metNGenes(i));
 end
 ```
 
 ```text
-  GA3P_c   z  1.484  p 0.0689  genes 8
-  X5P_c    z  1.241  p 0.1073  genes 3
-  F6P_c    z  1.186  p 0.1179  genes 7
-  PI_c     z  1.170  p 0.1210  genes 12
-  F16P_c   z  1.117  p 0.1320  genes 4
+  GA3P_c   z  1.496  p 0.0673  genes 8
+  X5P_c    z  1.251  p 0.1054  genes 3
+  F6P_c    z  1.196  p 0.1159  genes 7
+  PI_c     z  1.180  p 0.1191  genes 12
+  F16P_c   z  1.126  p 0.1301  genes 4
 ```
 
 `printResults` prints the top 20 instead, and `outputFile` writes them.
@@ -261,18 +259,10 @@ otherwise turn the whole result into `NaN`.
 :::
 ::::
 
-:::{note} Why the two tabs agree to three decimals and not four
-The same five metabolites come out in the same order, with z-scores of
-1.484 against 1.496 and 1.241 against 1.251. Both toolboxes implement the
-same algorithm and the same background correction, but RAVEN estimates the
-correction by Monte-Carlo sampling while raven-toolbox evaluates it in
-closed form, so RAVEN's figures carry sampling noise and shift slightly
-between runs. The ranking is the result; the third decimal is not.
-
-The two also organise the output differently. raven-toolbox reports the
-one-sided enrichment p-value and sorts by z-score; RAVEN reports both tails
-and sorts by p-value. With a single gene set the orderings coincide, as
-above.
+:::{note} Same scores, different layout
+Both toolboxes compute the background correction in closed form and report
+the same z-scores and one-sided p-values, sorted by z-score. RAVEN returns
+them as parallel arrays in a struct, raven-toolbox as one table per gene set.
 :::
 
 :::{warning} What can go wrong
