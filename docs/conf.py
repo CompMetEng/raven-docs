@@ -10,7 +10,7 @@ Python dependencies this build needs.
 from __future__ import annotations
 
 project = "RAVEN"
-copyright = "SysBioChalmers"
+copyright = "CompMetEng"
 author = "Wang, Marcisauskas, Sanchez, Domenzain, Hermansson, Agren, Nielsen, Kerkhoven et al."
 
 extensions = [
