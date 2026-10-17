@@ -1,7 +1,3 @@
----
-icon: material/folder-open
----
-
 # Legacy tutorials
 
 These five hands-on tutorials were part of the original **RAVEN 1** paper

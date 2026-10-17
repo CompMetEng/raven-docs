@@ -1,6 +1,6 @@
 """Shared index of the two toolboxes' public APIs, collected from submodule source.
 
-Both the API-reference generator (``gen_api_pages_sphinx.py``) and the name checker
+Both the API-reference generator (``gen_api_pages.py``) and the name checker
 (``check_names.py``) need to know which functions actually exist in RAVEN
 (MATLAB) and raven-toolbox (Python). Collecting that in one place means the
 prose can be validated against exactly the same index the reference pages are
@@ -35,8 +35,8 @@ PYPKG = Path(
 )
 
 # RAVEN top-level categories to document, in nav order: (folder, page title).
-# Pruned to existing folders at build time by scripts/build_hooks.py / the
-# matlab handler; legacy/ and external/ are intentionally excluded.
+# Folders missing from the tracked branch are skipped; legacy/ and external/
+# are intentionally excluded.
 MATLAB_CATEGORIES = [
     ("analysis", "Analysis"),
     ("annotation", "Annotation"),

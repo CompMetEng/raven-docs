@@ -1,7 +1,3 @@
----
-icon: material/folder-open
----
-
 # GEM reconstruction protocol: *Hansenula polymorpha*
 
 A complete homology-based reconstruction of `hanpo-GEM`, followed from start to

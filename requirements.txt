@@ -1,8 +1,6 @@
-mkdocs>=1.6
-mkdocs-material>=9.5
-pymdown-extensions>=10.0
-mkdocstrings[python]>=0.26
-mkdocstrings-matlab>=2.0
-mkdocs-gen-files>=0.5
-mkdocs-literate-nav>=0.6
-black>=24
+sphinx>=7.3
+pydata-sphinx-theme>=0.15
+myst-parser>=3.0
+sphinx-design>=0.6
+sphinx-copybutton>=0.5
+pyyaml>=6

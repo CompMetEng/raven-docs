@@ -1,7 +1,3 @@
----
-icon: material/folder-open
----
-
 # Guide
 
 Short, task-focused pages: one job per page, three to eight functions, in

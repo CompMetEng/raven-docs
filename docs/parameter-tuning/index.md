@@ -1,7 +1,3 @@
----
-icon: material/folder-open
----
-
 # Parameter tuning
 
 RAVEN, both the MATLAB toolbox and raven-toolbox (Python), ships many

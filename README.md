@@ -32,13 +32,13 @@ cd raven-docs
 
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements-sphinx.txt
+pip install -r requirements.txt
 
 sphinx-build -b html docs docs/_build/html
 ```
 
 The API reference pages are generated at the start of each build by
-[`scripts/gen_api_pages_sphinx.py`](scripts/gen_api_pages_sphinx.py), called
+[`scripts/gen_api_pages.py`](scripts/gen_api_pages.py), called
 from `docs/conf.py`, which walks the two toolbox submodules and pairs their
 functions. No MATLAB runtime or installed Python package is required;
 docstrings are collected statically from source.

@@ -1,7 +1,3 @@
----
-icon: material/folder-open
----
-
 # API reference
 
 RAVEN ships in two implementations that build the **same** genome-scale
