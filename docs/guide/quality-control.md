@@ -11,9 +11,9 @@ nothing.
 |---|---|---|
 | `checkModelStruct` | `check_model` | structural problems |
 | `getElementalBalance` | `get_elemental_balance` | mass balance, reaction by reaction |
-| `haveFlux` | `find_blocked_reactions` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | reactions that can never carry flux |
+| `haveFlux` | `find_blocked_reactions` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | reactions that cannot carry flux under the current bounds |
 | `canExchange` | `analyse_topology` | which metabolites the model can make, or consume, given its medium |
-| `findLeakMetabolite` | `Model.optimize` on a demand {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | can the model make something from **nothing** |
+| `findLeakMetabolite` | `find_leak_metabolite`, `gap_report` | can the model make something from **nothing** |
 | `gapReport` | `check_model` + `analyse_topology` | one summary of the gaps |
 
 ## Setup
@@ -176,10 +176,12 @@ one that is undecidable. `rxns` restricts the check to a subset.
 :::
 ::::
 
-## 9.3 What can never carry flux?
+## 9.3 What cannot carry flux?
 
-A reaction that cannot carry flux under any conditions is either a gap or a
-mistake. It is also the cheapest of these checks to run.
+A reaction that cannot carry flux under the model's current bounds is either a
+gap, a mistake, or waiting for a medium that is not open. Both functions test
+the bounds as they are; neither explores other media. It is also the cheapest
+of these checks to run.
 
 `haveFlux` counts a reaction as active once it carries more than its `cutOff`,
 `1e-6` by default, which keeps solver noise from reading as flux. It shuffles
@@ -218,6 +220,12 @@ blocked: ['ACO', 'ACS', 'ADH1', 'ADH2', 'ALD6']
 :::
 ::::
 
+`smallYeastBad` has glucose and oxygen uptake open, and the same test on
+`smallYeast` with that medium finds 52 of 53 reactions active: the 52 blocked
+here are blocked by the errors this page goes on to find. The two that do carry
+flux, `SDH` and `FRDS2`, are each other's reverse and only cycle (see
+[18.3](fva.md)).
+
 ## 9.4 Can the model make something from nothing?
 
 With every uptake closed, a correct model can produce nothing at all. If it still
@@ -230,8 +238,10 @@ source.
 :sync: matlab
 
 ```matlab
-exchangeRxns = getExchangeRxns(model);
+exchangeRxns = getExchangeRxns(model);   % exchanges, sinks and demands
 closed = setParam(model, 'eq', exchangeRxns, 0);
+sol = solveLP(closed);
+fprintf('closed model feasible: %d\n', ~isempty(sol.x));   % if not, it tests nothing
 
 produced = canExchange(closed, 'produce');
 fprintf('%d of %d metabolites producible from nothing\n', ...
@@ -242,11 +252,16 @@ fprintf('one leak: %s\n', strjoin(closed.mets(metabolite), ', '));
 ```
 
 ```text
+closed model feasible: 1
 33 of 52 metabolites producible from nothing
 one leak: F6P_c
 ```
 
-`canExchange` counts them; `findLeakMetabolite` finds one, using as few
+`getExchangeRxns` returns every reaction with metabolites on one side only,
+so sinks and demands are closed along with the exchanges. A model that is
+infeasible once closed, for instance because of a forced maintenance flux,
+cannot show a leak, so check that first. `canExchange` counts the leaks;
+`findLeakMetabolite` finds one, using as few
 reactions as possible, so you have somewhere to start. Both take the
 direction as their second argument, and `'consume'` asks the mirror-image
 question: what this model can take up without limit.
@@ -255,46 +270,47 @@ question: what this model can take up without limit.
 :sync: python
 
 ```python
-with model:
-    for exchange in model.exchanges:
-        exchange.bounds = (0, 0)
+from raven_toolbox.gapfilling import find_leak_metabolite, gap_report
 
-    # a demand for every metabolite, so by-products can leave: the same
-    # assumption findLeakMetabolite makes with allowExcretion
-    demands = {
-        metabolite.id: model.add_boundary(metabolite, type="demand")
-        for metabolite in list(model.metabolites)
-    }
+closed = model.copy()
+for reaction in closed.boundary:      # exchanges, sinks and demands
+    reaction.bounds = (0, 0)
+closed.slim_optimize()
+print("closed model:", closed.solver.status)   # if not optimal, it tests nothing
 
-    leaks = []
-    for met_id, demand in demands.items():
-        model.objective = demand
-        if (model.slim_optimize() or 0) > 1e-6:
-            leaks.append(met_id)
-    print(f"{len(leaks)} metabolite(s) producible from nothing: {sorted(leaks)[:5]}")
+produced = gap_report(model).can_produce_without_input
+print(f"{len(produced)} metabolite(s) producible from nothing: {sorted(produced)[:5]}")
+print("one leak:", find_leak_metabolite(closed, "produce").metabolites)
 ```
 
 ```text
+closed model: optimal
 33 metabolite(s) producible from nothing: ['ACA_c', 'AC_c', 'AKG_m', 'BIOMASS_c', 'CI_m']
+one leak: ['F6P_c', 'GP_c', 'PYR_c']
 ```
 
-raven-toolbox has no single call for this. The loop is what it amounts to:
-close everything, let every metabolite leave, then maximise each one in turn
-and see whether anything comes out. That last assumption matters: without a
-way for by-products to leave, a leaking reaction is blocked by its own
-stoichiometry and the test finds nothing. `analyse_topology` answers the
-connectivity half of the same question without solving an LP.
+`gap_report` closes every boundary reaction itself, adds an output for every
+metabolite, and lists in `can_produce_without_input` the ones whose output can
+carry flux, as `canExchange` does. `find_leak_metabolite` is the port of
+`findLeakMetabolite` and does not close anything, so give it the closed copy.
+It returns a list: more than one id means those metabolites could only be
+exchanged together.
+Close `model.boundary` rather than `model.exchanges` when you do it by hand:
+cobrapy does not count sinks and demands as exchanges, and an open sink is
+an input. `analyse_topology` answers the connectivity half of the same question
+without solving an LP.
 :::
 ::::
 
 :::{note} Give by-products a way out, or you will find nothing
-Both RAVEN functions assume every metabolite can be excreted while the test
-runs: `canExchange` adds an output reaction for each metabolite it checks,
-and `findLeakMetabolite` takes `allowExcretion` as true by default. The Python
-loop has to do it explicitly, and the difference is not subtle: testing one
-demand reaction at a time, with no outlet for the by-products, reports **zero**
-leaks in this model instead of 33, because a leaking reaction is then blocked
-by its own stoichiometry.
+The functions above assume every metabolite can be excreted while the test
+runs: `canExchange` and `gap_report` add an output reaction for each metabolite
+they check, and `findLeakMetabolite` and `find_leak_metabolite` take
+`allowExcretion` / `allow_excretion` as true by default. A hand-written loop
+has to do it explicitly, and the difference is not subtle: testing one demand
+reaction at a time, with no outlet for the by-products, reports **zero** leaks
+in this model instead of 33, because a leaking reaction is then blocked by its
+own stoichiometry.
 :::
 
 ## 9.5 Compare against a model you trust
