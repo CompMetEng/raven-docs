@@ -68,7 +68,12 @@ fprintf('%s charge %d, note: %s\n', curated.metNames{idx}, ...
 ```
 
 ```text
-...
+charges before: 0
+[Warning: The following metabolites are already present in the model, their annotation will be overwritten to match the metsInfo file. If you do not particularly want to curate their annotations, it would be better to removes these metabolites from metsInfo: (S)-malate[m]
+		2-oxoglutarate[m]
+		2-phospho-D-glycerate[c]
+		3-phospho-D-glycerate[c]]
+(S)-malate charge -2, note: charge assigned at pH 7.3
 ```
 
 A model with no charges has no `metCharges` field at all, rather than a field
@@ -101,7 +106,10 @@ print(f"{mal.name} charge {mal.charge}, note: {mal.notes['note']}")
 ```
 
 ```text
-...
+charges before: 0
+charges after:  4
+updated: ['MAL_m', 'AKG_m', 'P2G_c', 'P3G_c']
+(S)-malate charge -2, note: charge assigned at pH 7.3
 ```
 
 `batch_curate_from_tsv` edits the model **in place** and returns a

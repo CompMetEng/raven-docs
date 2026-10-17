@@ -355,15 +355,15 @@ gap-filled reaction produces it internally.
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
-<!-- run-examples: needs-gurobi -->
-
 ```matlab
-setRavenSolver('gurobi');   % getMinimalMedium solves a MILP; Gurobi is faster than GLPK
+% getMinimalMedium solves a MILP: GLPK warns and solves it, setRavenSolver('gurobi') is faster
 sol = solveLP(model);
 medium = getMinimalMedium(model, 'minGrowth', 0.9 * sol.f);
 ```
 
 ```text
+[Warning: Solving a MILP with GLPK. This works for small problems, but for larger problems Gurobi is much faster and more reliable; select it with setRavenSolver('gurobi'). Silence this warning with warning('off','RAVEN:glpkMILP').]
+
 ==============================================================
   Minimal medium  (14 of 16 candidate uptake reactions)
   Target growth: 0.7533

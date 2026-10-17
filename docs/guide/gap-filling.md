@@ -114,16 +114,15 @@ connectivity.
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
-<!-- run-examples: needs-gurobi -->
-
 ```matlab
-setRavenSolver('gurobi');   % fillGaps is a MILP; Gurobi is faster than GLPK
+% fillGaps solves a MILP: GLPK warns and solves it, setRavenSolver('gurobi') is faster
 [newConnected, cannotConnect, addedRxns] = fillGaps(draft, {template}, ...
     'allowNetProduction', true, 'useModelConstraints', false);
 fprintf('%d added: %s\n', numel(addedRxns), strjoin(addedRxns, ', '));
 ```
 
 ```text
+[Warning: Solving a MILP with GLPK. This works for small problems, but for larger problems Gurobi is much faster and more reliable; select it with setRavenSolver('gurobi'). Silence this warning with warning('off','RAVEN:glpkMILP').]
 1 added: ADH1
 ```
 :::
@@ -187,8 +186,8 @@ gapFillFastLP: 2 blocked reaction(s) found in draft model.
 
 gapFillFastLP: 1 reaction(s) cannot be rescued by the universal database.
 gapFillFastLP: 1/2 blocked reaction(s) are rescuable; running fast...
-gapFillFastLP: added 8 reaction(s) from universal database.
-8 reactions added
+gapFillFastLP: added 5 reaction(s) from universal database.
+5 reactions added
 ```
 :::
 :::{tab-item} 🐍 Python
@@ -205,7 +204,8 @@ print(f"{len(result.added_reactions)} reactions added")
 1 reactions added
 ```
 
-The two tabs add 8 and 1. They are solving the same idea with different
+The two tabs add 5 and 1 (MATLAB adds 8 with Gurobi: the LP has alternative
+optima, and the solver picks one). They are solving the same idea with different
 inputs: the MATLAB call merges the whole template into the draft first,
 renaming every id it already has, which is what the rename warning above
 lists. Its universal database therefore holds a second copy of the
@@ -228,13 +228,8 @@ is slower by a wide margin, and Gurobi is the better choice.
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
-<!-- run-examples: needs-gurobi -->
-
 ```matlab
-setRavenSolver('gurobi');
-params.OutputFlag = 0;   % the solver log is long, and machine-specific
-[addedRxns, reversedRxns, outModel] = gapFillMILP(draft, template, ...
-    'params', params);
+[addedRxns, reversedRxns, outModel] = gapFillMILP(draft, template);
 fprintf('%d reactions added\n', numel(addedRxns));
 ```
 
@@ -281,14 +276,12 @@ growth needs, such as hexokinase:
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
-<!-- run-examples: needs-gurobi -->
-
 ```matlab
 draft2 = removeReactions(template, {'HXK'});   % hexokinase
 draft2.id = 'draft2';
 sol = solveLP(draft2);
 fprintf('draft growth %.4f\n', sol.f);
-[addedRxns, reversedRxns] = gapFillMILP(draft2, template, 'params', params);
+[addedRxns, reversedRxns] = gapFillMILP(draft2, template);
 fprintf('added: %s; reversed: %s\n', strjoin(addedRxns, ', '), strjoin(reversedRxns, ', '));
 ```
 
