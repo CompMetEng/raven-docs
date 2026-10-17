@@ -9,7 +9,7 @@ Most of it is open source or available under an academic license.
 | Software | Dependency | Source |
 |---|---|---|
 | MATLAB | License | <https://mathworks.com/products/matlab.html> |
-| RAVEN | libSBML, solver | <https://github.com/SysBioChalmers/RAVEN> |
+| RAVEN | libSBML, solver | <https://github.com/CompMetEng/RAVEN> |
 | COBRA | MATLAB | <https://github.com/opencobra/cobratoolbox> |
 | Gurobi | License | <https://www.gurobi.com/products/gurobi-optimizer/> |
 | libSBML | MATLAB | <http://sbml.org/Software/libSBML> |
@@ -78,5 +78,5 @@ successful run looks like.
 If `checkRaven` reports that importing SBML format **failed**, uninstall
 MATLAB's **Text Analytics Toolbox**, which conflicts with RAVEN's Excel
 parser. For support, see the
-[RAVEN issues](https://github.com/SysBioChalmers/RAVEN/issues) page.
+[RAVEN issues](https://github.com/CompMetEng/RAVEN/issues) page.
 :::

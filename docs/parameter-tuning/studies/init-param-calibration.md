@@ -200,7 +200,7 @@ nothing to reconcile, but the values rest on convention rather than evidence.
 ## 4. Cross-solver portability
 
 See [init-solver-benchmark.md](init-solver-benchmark.md) for the genome-scale
-solver comparison (Gurobi/HiGHS/GLPK) and [tests/test_init_solvers.py](https://github.com/SysBioChalmers/raven-toolbox/blob/develop/tests/test_init_solvers.py)
+solver comparison (Gurobi/HiGHS/GLPK) and [tests/test_init_solvers.py](https://github.com/CompMetEng/raven-toolbox/blob/develop/tests/test_init_solvers.py)
 for CI parameterised over installed MILP backends. Summary: at genome scale only Gurobi
 is viable today; HiGHS fails on an upstream optlang `hybrid_interface.clone()` bug; GLPK
 ignores `configuration.timeout` on MIP and ran 1 h+ without converging. Toy-scale

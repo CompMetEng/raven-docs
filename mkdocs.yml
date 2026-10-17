@@ -4,8 +4,8 @@ site_description: >-
   Toolbox (MATLAB) and raven-toolbox, documented side by side.
 site_author: Wang, Marcisauskas, Sanchez, Domenzain, Hermansson, Agren, Nielsen, Kerkhoven et al.
 site_url: https://raven-docs.readthedocs.io/en/latest/
-repo_url: https://github.com/SysBioChalmers/RAVEN
-repo_name: SysBioChalmers/RAVEN
+repo_url: https://github.com/CompMetEng/RAVEN
+repo_name: CompMetEng/RAVEN
 edit_uri: ""
 
 # Build-time hooks that keep the site resilient to structural changes in the

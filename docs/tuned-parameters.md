@@ -175,7 +175,7 @@ still changing.
 **Full detail:** the measurements behind these values (the yeast-GEM benchmark,
 the head-to-head against MATLAB's `predictLocalization`, the predictor
 benchmarks across four organisms, and the design documents) are in
-[raven-gecko-parity](https://github.com/SysBioChalmers/raven-gecko-parity/tree/develop/docs/localization),
+[raven-gecko-parity](https://github.com/CompMetEng/raven-gecko-parity/tree/develop/docs/localization),
 with the rest of the work in progress on this method.
 
 ## Model manipulation
