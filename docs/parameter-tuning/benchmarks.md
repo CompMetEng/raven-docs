@@ -71,6 +71,5 @@ is no longer taken on trust.
 | `connect_blocked_reactions.eps` | `1.0` | Correct for RAVEN-convention models, where exchanges carry ±1000 bounds |
 | `connect_blocked_reactions.allow_net_production` | `False` | The stricter question, and the one the function exists to ask |
 | `fill_gaps_fast_lp.epsilon` | `1e-4` | The fastGapFill paper's value |
-| `fill_gaps_kumar_milp.weights` | `(1.0, 2.0)` | Implements Kumar 2007's preference for reversal over addition |
 | `fill_gaps_kumar_milp.big_m` | `1000.0` | Matches RAVEN-convention bounds |
 | `check_tasks.close_boundaries` | `False` | Matches RAVEN's `checkTasks`, which published task lists were curated against; `True` closes the model's own exchanges so that the task is the whole boundary |

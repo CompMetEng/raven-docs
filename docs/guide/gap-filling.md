@@ -229,7 +229,7 @@ is slower by a wide margin, and Gurobi is the better choice.
 :sync: matlab
 
 ```matlab
-[addedRxns, reversedRxns, outModel] = gapFillMILP(draft, template);
+[addedRxns, outModel] = gapFillMILP(draft, template);
 fprintf('%d reactions added\n', numel(addedRxns));
 ```
 
@@ -237,10 +237,11 @@ fprintf('%d reactions added\n', numel(addedRxns));
 [Warning: The following reaction IDs in smallYeast are already present in the model and were renamed: Old: acOUT New: acOUT_smallYeast Old: biomassOUT New: biomassOUT_smallYeast Old: co2OUT New: co2OUT_smallYeast Old: ethOUT New: ethOUT_smallYeast Old: glyOUT New: glyOUT_smallYeast Old: glcIN New: glcIN_smallYeast Old: o2IN New: o2IN_smallYeast Old: ethIN New: ethIN_smallYeast Old: HXK New: HXK_smallYeast ...and 43 more]
 
 gapFillMILP: merged model has 52 mets, 105 rxns (52 draft, 52 universal).
-gapFillMILP: 35 reversal candidates, 52 database candidates.
+gapFillMILP: 52 database candidates.
 gapFillMILP: setting minGrowth = 0.02443 (10% of max 0.2443).
-gapFillMILP: solving MILP (192 vars, 87 binary, 192 constraints)...
-gapFillMILP: reversed 0 draft reaction(s), added 0 universal reaction(s).
+gapFillMILP: solving MILP (157 vars, 52 binary, 157 constraints)...
+[Warning: Solving a MILP with GLPK. This works for small problems, but for larger problems Gurobi is much faster and more reliable; select it with setRavenSolver('gurobi'). Silence this warning with warning('off','RAVEN:glpkMILP').]
+gapFillMILP: added 0 universal reaction(s).
 0 reactions added
 ```
 :::
@@ -257,8 +258,8 @@ print(f"{len(result.added_reactions)} reactions added")
 ```text
 fill_gaps_kumar_milp: merged model has 53 reactions (52 draft, 1 template).
 fill_gaps_kumar_milp: setting min_growth = 0.01222 (10% of FBA max 0.1222).
-fill_gaps_kumar_milp: solving MILP (35 reversal, 1 database candidates)...
-fill_gaps_kumar_milp: reversed 0 reaction(s), added 0 template reaction(s).
+fill_gaps_kumar_milp: solving MILP (1 database candidates)...
+fill_gaps_kumar_milp: added 0 template reaction(s).
 0 reactions added
 ```
 :::
@@ -281,8 +282,8 @@ draft2 = removeReactions(template, {'HXK'});   % hexokinase
 draft2.id = 'draft2';
 sol = solveLP(draft2);
 fprintf('draft growth %.4f\n', sol.f);
-[addedRxns, reversedRxns] = gapFillMILP(draft2, template);
-fprintf('added: %s; reversed: %s\n', strjoin(addedRxns, ', '), strjoin(reversedRxns, ', '));
+addedRxns = gapFillMILP(draft2, template);
+fprintf('added: %s\n', strjoin(addedRxns, ', '));
 ```
 
 ```text
@@ -290,11 +291,12 @@ draft growth -0.0000
 [Warning: The following reaction IDs in smallYeast are already present in the model and were renamed: Old: acOUT New: acOUT_smallYeast Old: biomassOUT New: biomassOUT_smallYeast Old: co2OUT New: co2OUT_smallYeast Old: ethOUT New: ethOUT_smallYeast Old: glyOUT New: glyOUT_smallYeast Old: glcIN New: glcIN_smallYeast Old: o2IN New: o2IN_smallYeast Old: ethIN New: ethIN_smallYeast Old: PGI New: PGI_smallYeast ...and 43 more]
 
 gapFillMILP: merged model has 52 mets, 105 rxns (52 draft, 52 universal).
-gapFillMILP: 34 reversal candidates, 52 database candidates.
+gapFillMILP: 52 database candidates.
 gapFillMILP: setting minGrowth = 0.02443 (10% of max 0.2443).
-gapFillMILP: solving MILP (191 vars, 86 binary, 191 constraints)...
-gapFillMILP: reversed 0 draft reaction(s), added 1 universal reaction(s).
-added: HXK; reversed:
+gapFillMILP: solving MILP (157 vars, 52 binary, 157 constraints)...
+[Warning: Solving a MILP with GLPK. This works for small problems, but for larger problems Gurobi is much faster and more reliable; select it with setRavenSolver('gurobi'). Silence this warning with warning('off','RAVEN:glpkMILP').]
+gapFillMILP: added 1 universal reaction(s).
+added: HXK
 ```
 :::
 :::{tab-item} 🐍 Python
@@ -305,24 +307,23 @@ draft2 = template.copy()
 draft2.remove_reactions([draft2.reactions.get_by_id("HXK")])   # hexokinase
 print(f"draft growth {draft2.slim_optimize():.4f}")
 result = fill_gaps_kumar_milp(draft2, template, verbose=False)
-print(f"added: {result.added_reactions}; reversed: {result.reversed_reactions}")
+print(f"added: {result.added_reactions}")
 print(f"filled growth {result.model.slim_optimize():.4f}")
 ```
 
 ```text
 draft growth 0.0000
-added: ['HXK']; reversed: []
+added: ['HXK']
 filled growth 0.1222
 ```
 :::
 ::::
 
-Hexokinase comes back, and nothing is reversed. That is not guaranteed: by
-default a reversal costs half as much as an addition, and every irreversible
-draft reaction is a reversal candidate, boundary reactions and the ATP drain
-included. Removing `PFK` instead makes the MILP reverse `FBP` rather than add
-`PFK` back, and for an anaerobic draft without `ADH1` it reverses `ATPX`, which
-makes ATP from nothing. Read the reversed reactions before accepting a fill.
+Hexokinase comes back. Both functions only add template reactions: the
+draft's own reactions keep their bounds, forced fluxes such as ATP maintenance
+included. A draft reaction that runs in the wrong direction is therefore not
+reversed to close a gap; it is a curation finding, so correct its bounds in the
+draft (see [8. Editing an existing model](editing.md)) and fill again.
 
 ## 17.5 Filling towards a task, not a hole
 
@@ -380,9 +381,9 @@ already contains the draft, which is the form ftINIT passes.
   misleading later.
 - **MILP on a genome-scale model.** Expect it to be slow, on GLPK most of
   all, and give it a time limit; see [6. Solvers and configuration](solvers.md).
-- **Accepting reversals unread.** `gapFillMILP` and `fill_gaps_kumar_milp`
-  prefer reversing a draft reaction to adding one, and a reversed exchange or
-  ATP drain is a leak, not a repair.
+- **A draft reaction in the wrong direction.** `gapFillMILP` and
+  `fill_gaps_kumar_milp` do not change the draft's own reactions, so a wrong
+  direction shows up as a fill that fails or adds a detour around it.
 - **Comparing added-reaction counts across toolboxes.** The two sides
   differ in what they treat as a candidate, so the counts are only
   comparable when the template genuinely holds reactions the draft lacks.
