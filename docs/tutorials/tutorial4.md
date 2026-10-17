@@ -147,6 +147,6 @@ to connect the remaining gaps.
 
 ## Full script
 
-```{literalinclude} ../../RAVEN/tutorial/tutorial4.m
+```{literalinclude} ../../RAVEN/tutorials/tutorial4.m
 :language: matlab
 ```

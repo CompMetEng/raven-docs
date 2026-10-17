@@ -79,6 +79,6 @@ for more details and the worked answer.
 
 ## Full script
 
-```{literalinclude} ../../RAVEN/tutorial/tutorial2.m
+```{literalinclude} ../../RAVEN/tutorials/tutorial2.m
 :language: matlab
 ```

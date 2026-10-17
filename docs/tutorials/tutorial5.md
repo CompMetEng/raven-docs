@@ -213,6 +213,6 @@ sufficient quality.
 
 ## Full script
 
-```{literalinclude} ../../RAVEN/tutorial/tutorial5.m
+```{literalinclude} ../../RAVEN/tutorials/tutorial5.m
 :language: matlab
 ```

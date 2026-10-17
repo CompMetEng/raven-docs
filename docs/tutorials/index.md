@@ -10,7 +10,7 @@ the exercises themselves are otherwise unchanged. They use the **MATLAB**
 toolbox and build up from running a simulation on an existing model to
 reconstructing a genome-scale model from sequence data. The scripts and all the
 data files they use live in the
-[`tutorial/`](https://github.com/CompMetEng/RAVEN/tree/develop/tutorial)
+[`tutorials/`](https://github.com/CompMetEng/RAVEN/tree/develop/tutorials)
 folder of the RAVEN repository.
 
 | # | Tutorial | What you learn |

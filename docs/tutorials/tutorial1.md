@@ -116,6 +116,6 @@ whereas on ethanol it involves acetate.
 
 ## Full script
 
-```{literalinclude} ../../RAVEN/tutorial/tutorial1.m
+```{literalinclude} ../../RAVEN/tutorials/tutorial1.m
 :language: matlab
 ```
