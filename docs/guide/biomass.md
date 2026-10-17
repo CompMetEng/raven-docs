@@ -222,9 +222,13 @@ protein 0.5000, carbohydrate 0.3384, total 1.0000
 the same split as in [20. Combining and simplifying](combining.md), and it is why
 the Python tab copies the model first.
 
-`balanceOut` names the component that absorbs the change, so the total stays
-where it was. Omit it and the component is rescaled on its own, which is correct
-only if some other step restores the total.
+`balanceOut` names the component that absorbs the change: it is rescaled so the
+components sum to exactly 1 g/gDW, whatever the total was before (1.0051 above
+becomes 1.0000). The balancing component must be large enough to absorb the
+difference; if it would have to go negative, both functions raise an error
+rather than turn its pseudoreaction around. Omit `balanceOut` and the component
+is rescaled on its own, which is correct only if some other step restores the
+total.
 
 `scaleBiomassPseudoreaction` and `rescale_pseudoreaction` work one level down, on
 a single pseudoreaction rather than a named component, and rebalance the protons
@@ -244,12 +248,20 @@ everything that reads a model afterwards does not.
 ```matlab
 small = readYAMLmodel('smallYeast.yml');
 annotated = assignSBOterms(small);
-fprintf('rxnSBOs present: %d\n', isfield(annotated, 'rxnSBOs'));
+idx = getIndexes(annotated, {'glcIN', 'PGI'}, 'rxns');
+sbo = extractMiriam(annotated.rxnMiriams(idx), 'sbo');
+fprintf('%s: %s\n', annotated.rxns{idx(1)}, sbo{1});
+fprintf('%s: %s\n', annotated.rxns{idx(2)}, sbo{2});
 ```
 
 ```text
-rxnSBOs present: 0
+glcIN: SBO:0000628
+PGI: SBO:0000176
 ```
+
+RAVEN keeps the term as a MIRIAM entry with namespace `sbo` in `rxnMiriams`
+and `metMiriams`, so `extractMiriam` reads it out, and `exportModel` writes it
+to SBML as the `sboTerm` attribute.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -259,19 +271,31 @@ from raven_toolbox.annotation import add_sbo_terms
 
 small = read_yaml_model("smallYeast.yml")
 add_sbo_terms(small)
-labelled = sum(1 for r in small.reactions if "sbo" in r.annotation)
-print(f"{labelled} of {len(small.reactions)} reactions labelled")
+for rid in ("glcIN", "PGI"):
+    print(f"{rid}: {small.reactions.get_by_id(rid).annotation['sbo']}")
 ```
 
 ```text
-53 of 53 reactions labelled
+glcIN: SBO:0000628
+PGI: SBO:0000176
 ```
+
+cobrapy keeps the term in each object's `annotation["sbo"]`, as a string, and
+writes it to SBML as `sboTerm` too.
 :::
 ::::
 
-The terms are assigned from what the model already says: a reaction with one
-metabolite and a boundary is an exchange, a reaction whose metabolites differ
-only by compartment is a transport, and so on. Nothing is inferred that the
+The terms are assigned from what the model already says. A reaction with
+metabolites on one side only is an exchange (SBO:0000627) when its metabolite is
+in an extracellular compartment (`e`, or one named `extracellular`), and
+otherwise a sink (SBO:0000632) when it consumes the metabolite or a demand
+(SBO:0000628) when it produces it; smallYeast has no extracellular compartment,
+so its uptakes are demands and its outputs sinks. A reaction in which one
+metabolite name occurs in more than one compartment is a transport
+(SBO:0000655), which is why `GROWTH`, which uses acetyl-CoA in both `c` and
+`m`, is labelled one. Everything else is a metabolic reaction (SBO:0000176),
+unless its name marks it as the biomass, maintenance or another
+pseudoreaction. Nothing is inferred that the
 stoichiometry does not already support, so running it on a model with mislabelled
 compartments propagates that mistake rather than catching it.
 
