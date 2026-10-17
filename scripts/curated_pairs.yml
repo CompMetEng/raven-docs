@@ -78,7 +78,7 @@ aliases:
   getEssentialRxns: find_task_essential_reactions
   deleteUnusedGenes: remove_genes
   gapFillFastLP: fill_gaps_fast_lp
-  gapFillMILP: fill_gaps_kumar_milp
+  gapFillMILP: fill_gaps_milp
   gapFillTopological: analyse_topology
   makeFakeBlastStructure: make_ortholog_hits
   getModelFromKEGG: build_reference_model

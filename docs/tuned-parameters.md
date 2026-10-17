@@ -98,7 +98,7 @@ essential-gene drift, measured) ·
 ## Gap-filling
 
 RAVEN MATLAB: `fillGaps` (connectivity mode), ported as `connect_blocked_reactions`.
-`fill_gaps_fast_lp` and `fill_gaps_kumar_milp` are the counterparts of RAVEN's
+`fill_gaps_fast_lp` and `fill_gaps_milp` are the counterparts of RAVEN's
 `gapFillFastLP` and `gapFillMILP`.
 
 | Parameter | Default | How determined |
@@ -106,7 +106,7 @@ RAVEN MATLAB: `fillGaps` (connectivity mode), ported as `connect_blocked_reactio
 | `epsilon` (in `fill_gaps_fast_lp`) | `0.0001` | Literature: [Thiele et al. 2014](https://doi.org/10.1093/bioinformatics/btu321) (the fastGapFill paper). |
 | `eps` (in `connect_blocked_reactions`) | `1.0` | Measured on a synthetic supply-limited model; reliable noise filter for RAVEN-convention (±1000-bound) models; lower it for tightly-constrained exchanges. |
 | `penalty`, `allow_net_production` (in `connect_blocked_reactions`) | `1.0`, `False` | Measured / standard practice for reconstruction (vs. curation) use. |
-| `big_m` (in `fill_gaps_kumar_milp`) | `1000.0` | Matches RAVEN's ±1000 bound convention. It caps an unbounded template reaction only when the merged model has no finite bound; otherwise the largest finite bound does. |
+| `big_m` (in `fill_gaps_milp`) | `1000.0` | Matches RAVEN's ±1000 bound convention. It caps an unbounded template reaction only when the merged model has no finite bound; otherwise the largest finite bound does. |
 
 **Full detail:** [Parameter benchmarks](parameter-tuning/benchmarks.md)
 

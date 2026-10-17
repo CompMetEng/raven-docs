@@ -184,7 +184,7 @@ prod_weight                    # run_init / get_init_model argument
 allow_excretion                # run_init / get_init_model / run_ftinit argument
 mip_gap                        # run_init / run_ftinit / predict_localization argument
 force_on                       # run_ftinit argument
-big_m                          # run_ftinit / fill_gaps_kumar_milp argument
+big_m                          # run_ftinit / fill_gaps_milp argument
 max_score                      # gene_scores_from_expression argument
 min_score                      # gene_scores_from_expression argument
 min_identity                   # get_model_from_homology argument

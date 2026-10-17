@@ -12,7 +12,7 @@ holes close, and the judgement is in deciding which holes are worth closing.
 | `gapReport` | `check_model`, `analyse_topology` | find the holes first |
 | `fillGaps` | `connect_blocked_reactions` | add template reactions so blocked reactions can carry flux |
 | `gapFillFastLP` | `fill_gaps_fast_lp` | the LP formulation (fastGapFill / swiftGapFill) |
-| `gapFillMILP` | `fill_gaps_kumar_milp` | the MILP formulation, when the LP is not enough |
+| `gapFillMILP` | `fill_gaps_milp` | the MILP formulation, when the LP is not enough |
 | `gapFillTopological` | `analyse_topology` | connectivity, without solving an LP |
 | `fitTasks` | `fill_tasks` | fill until a task passes; see [15. Metabolic tasks](tasks.md) |
 
@@ -249,17 +249,17 @@ gapFillMILP: added 0 universal reaction(s).
 :sync: python
 
 ```python
-from raven_toolbox.gapfilling import fill_gaps_kumar_milp
+from raven_toolbox.gapfilling import fill_gaps_milp
 
-result = fill_gaps_kumar_milp(draft, template)
+result = fill_gaps_milp(draft, template)
 print(f"{len(result.added_reactions)} reactions added")
 ```
 
 ```text
-fill_gaps_kumar_milp: merged model has 53 reactions (52 draft, 1 template).
-fill_gaps_kumar_milp: setting min_growth = 0.01222 (10% of FBA max 0.1222).
-fill_gaps_kumar_milp: solving MILP (1 database candidates)...
-fill_gaps_kumar_milp: added 0 template reaction(s).
+fill_gaps_milp: merged model has 53 reactions (52 draft, 1 template).
+fill_gaps_milp: setting min_growth = 0.01222 (10% of FBA max 0.1222).
+fill_gaps_milp: solving MILP (1 database candidates)...
+fill_gaps_milp: added 0 template reaction(s).
 0 reactions added
 ```
 :::
@@ -306,7 +306,7 @@ added: HXK
 draft2 = template.copy()
 draft2.remove_reactions([draft2.reactions.get_by_id("HXK")])   # hexokinase
 print(f"draft growth {draft2.slim_optimize():.4f}")
-result = fill_gaps_kumar_milp(draft2, template, verbose=False)
+result = fill_gaps_milp(draft2, template, verbose=False)
 print(f"added: {result.added_reactions}")
 print(f"filled growth {result.model.slim_optimize():.4f}")
 ```
@@ -382,7 +382,7 @@ already contains the draft, which is the form ftINIT passes.
 - **MILP on a genome-scale model.** Expect it to be slow, on GLPK most of
   all, and give it a time limit; see [6. Solvers and configuration](solvers.md).
 - **A draft reaction in the wrong direction.** `gapFillMILP` and
-  `fill_gaps_kumar_milp` do not change the draft's own reactions, so a wrong
+  `fill_gaps_milp` do not change the draft's own reactions, so a wrong
   direction shows up as a fill that fails or adds a detour around it.
 - **Comparing added-reaction counts across toolboxes.** The two sides
   differ in what they treat as a candidate, so the counts are only
