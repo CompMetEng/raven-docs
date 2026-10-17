@@ -1,10 +1,11 @@
 # Sphinx / pydata-sphinx-theme exploration
 
-Not part of the site. This is a working note for the `explore/pydata-sphinx-theme`
-branch, read by nobody but a maintainer deciding whether to pursue the migration
-for real. `mkdocs.yml` and the live MkDocs build are untouched and still what
-CI and Read the Docs use; this branch adds a second, parallel toolchain over
-the same `docs/` content.
+Not part of the site. This note records the migration from MkDocs to Sphinx
+(#78, #80). Sphinx is the live build: `.readthedocs.yaml` builds from
+`docs/conf.py`. `mkdocs.yml`, `requirements.txt`, `scripts/gen_api_pages.py`
+and `scripts/build_hooks.py` belong to the retired MkDocs build and are no
+longer used. The sections below describe the state at the time of the
+migration.
 
 ## Building it
 
