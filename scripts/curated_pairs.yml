@@ -72,7 +72,6 @@ aliases:
 
   # Comparison and queries
   compareMultipleModels: compare_models
-  getIndexes: parse_name_comp
   exportToExcelFormat: export_to_excel
 
   # Gap-filling and analysis
@@ -92,6 +91,7 @@ aliases:
 cobrapy:
   # RAVEN function -> the cobrapy object or function that replaces it.
   importModel: cobra.io.read_sbml_model
+  getIndexes: cobra.DictList.get_by_id
   exportModel: cobra.io.write_sbml_model
   solveLP: cobra.Model.optimize
   setParam: cobra.Reaction.bounds

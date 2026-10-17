@@ -10,7 +10,8 @@ of what you need to translate a script between the two.
 |---|---|---|
 | `checkModelStruct` | `check_model` | report problems in a model |
 | `sortIdentifiers` | `sort_identifiers` | sort reactions, metabolites and genes by id |
-| `getIndexes` | `parse_name_comp` | split a `name[comp]` token |
+| `getIndexes` | `DictList.get_by_id` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | look up a reaction, metabolite or gene by id |
+| `getIndexes` (`'metcomps'`) | `parse_name_comp`, then a name and compartment filter | resolve a `name[comp]` token |
 | no equivalent | `subsystem_to_str` | one subsystem string, whatever the source stored |
 | `addIdentifierPrefix`, `removeIdentifierPrefix` | handled on read/write {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | SBML identifier prefixes |
 | `ravenCobraWrapper` | not needed | convert between RAVEN and COBRA structs |
@@ -96,7 +97,9 @@ A miss is an error rather than a zero: `getIndexes` raises
 `Could not find object 'X' in the model` in every mode except `'metnames'`,
 which returns an empty vector instead. That exception exists because a
 metabolite *name* can occur in several compartments, so `'metnames'` returns
-every matching index rather than one. Asking for several names at once gives
+every matching index rather than one. In `'metcomps'` mode a token that
+matches more than one metabolite (the same name twice in one compartment) is
+an error as well, naming how many it matched. Asking for several names at once gives
 back a cell array with one index vector per name; asking for exactly one name
 unwraps that to a plain vector.
 :::
@@ -195,16 +198,24 @@ from raven_toolbox.utils.parse import parse_name_comp
 
 print(parse_name_comp("alpha-D-glucose 6-phosphate[c]"))
 print(parse_name_comp("ATP"))
+
+name, comp = parse_name_comp("alpha-D-glucose 6-phosphate[c]")
+matches = model.metabolites.query(lambda m: m.name == name and m.compartment == comp, None)
+print([m.id for m in matches])
 ```
 
 ```text
 ('alpha-D-glucose 6-phosphate', 'c')
 ('ATP', None)
+['G6P_c']
 ```
 
 `parse_name_comp` returns the compartment as `None` when there is no trailing
 bracket, so one call handles both forms and the caller decides what a missing
-compartment means. Note the import path: it is in
+compartment means. It only splits the string and never sees a model; the
+`query` after it is the lookup that `getIndexes` performs. An empty list is a
+miss, and more than one entry means the name is duplicated in that
+compartment. Note the import path: it is in
 `raven_toolbox.utils.parse`, not in the `raven_toolbox.utils` package
 namespace, which re-exports only the curation helpers.
 :::
@@ -223,6 +234,7 @@ whichever form a model arrived with.
 :sync: matlab
 
 ```matlab
+idx = getIndexes(model, 'PGI', 'rxns');
 % nest every entry before nesting one, so the field keeps a single shape
 model.subSystems = cellfun(@cellstr, model.subSystems, 'UniformOutput', false);
 model.subSystems{idx} = {'Glycolysis', 'Pentose phosphate pathway'};
@@ -239,6 +251,7 @@ Glycolysis; Pentose phosphate pathway
 ```python
 from raven_toolbox.utils.parse import subsystem_to_str
 
+rxn = model.reactions.get_by_id("PGI")
 rxn.subsystem = ["Glycolysis", "Pentose phosphate pathway"]
 print(subsystem_to_str(rxn.subsystem))
 print(subsystem_to_str("Glycolysis"))
