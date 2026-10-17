@@ -15,10 +15,10 @@ The site combines:
 - a complete, worked **GEM reconstruction protocol** (the *Hansenula
   polymorpha* `hanpo-GEM` example).
 
-The source repositories are tracked as git submodules pinned to their `main`
-branches: [`RAVEN`](https://github.com/SysBioChalmers/RAVEN),
-[`raven-toolbox`](https://github.com/SysBioChalmers/raven-toolbox) and
-[`hanpo-GEM`](https://github.com/SysBioChalmers/hanpo-GEM).
+The source repositories are tracked as git submodules that follow the branches
+set in `.gitmodules`: [`RAVEN`](https://github.com/CompMetEng/RAVEN) and
+[`raven-toolbox`](https://github.com/CompMetEng/raven-toolbox) at `develop`, and
+[`hanpo-GEM`](https://github.com/SysBioChalmers/hanpo-GEM) at `main`.
 
 ## Building locally
 

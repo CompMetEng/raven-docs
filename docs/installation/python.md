@@ -40,7 +40,7 @@ pip install raven-toolbox
 For the latest unreleased code or to contribute:
 
 ```bash
-git clone https://github.com/SysBioChalmers/raven-toolbox.git
+git clone https://github.com/CompMetEng/raven-toolbox.git
 cd raven-toolbox
 pip install -e .
 ```

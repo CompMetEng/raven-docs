@@ -44,7 +44,7 @@ convergence threshold) or > 1.01 (the stricter one used in published MCMC
 work) flags a reaction whose distribution still depends on where its chain
 started.
 
-* Driver: [`scripts/analyze_sampling_convergence.py`](https://github.com/SysBioChalmers/raven-toolbox/blob/docs/parameter-defaults/scripts/analyze_sampling_convergence.py)
+* Driver: [`scripts/analyze_sampling_convergence.py`](https://github.com/CompMetEng/raven-toolbox/blob/docs/parameter-defaults/scripts/analyze_sampling_convergence.py)
 * Settings matched to the existing single-chain study for direct comparison:
   `n_samples=300`, `thinning=100`, `warmup=1000` (cobrapy/RAVEN defaults).
 * `n_chains=4`, run in parallel via `ProcessPoolExecutor` (one process per

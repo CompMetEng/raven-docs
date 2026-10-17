@@ -27,14 +27,14 @@ Then run `checkRaven` to verify.
 :::{tab-item} Python (git)
 
 ```bash
-git clone --depth=1 https://github.com/SysBioChalmers/raven-toolbox.git
+git clone --depth=1 https://github.com/CompMetEng/raven-toolbox.git
 pip install -e raven-toolbox/
 ```
 :::
 :::{tab-item} MATLAB (git)
 
 ```bash
-git clone --depth=1 https://github.com/SysBioChalmers/RAVEN.git
+git clone --depth=1 https://github.com/CompMetEng/RAVEN.git
 ```
 
 Add the folder to the MATLAB path, then run `checkRaven` to verify.
@@ -171,20 +171,20 @@ RAVEN paper and the GEM reconstruction protocol.
 ## Source code
 
 RAVEN is publicly available under the GPLv3 license at
-[SysBioChalmers/RAVEN](https://github.com/SysBioChalmers/RAVEN){.github},
+[CompMetEng/RAVEN](https://github.com/CompMetEng/RAVEN){.github},
 archived at
 [https://doi.org/10.5281/zenodo.3689518](https://doi.org/10.5281/zenodo.3689518).
 raven-toolbox, the Python port, is under the MIT license at
-[SysBioChalmers/raven-toolbox](https://github.com/SysBioChalmers/raven-toolbox){.github}.
+[CompMetEng/raven-toolbox](https://github.com/CompMetEng/raven-toolbox){.github}.
 
 ## Issues and discussions
 
 Report a bug or request a feature on the tracker for the toolbox it concerns:
-[RAVEN issues](https://github.com/SysBioChalmers/RAVEN/issues){.github} for the
-MATLAB toolbox, [raven-toolbox issues](https://github.com/SysBioChalmers/raven-toolbox/issues){.github}
+[RAVEN issues](https://github.com/CompMetEng/RAVEN/issues){.github} for the
+MATLAB toolbox, [raven-toolbox issues](https://github.com/CompMetEng/raven-toolbox/issues){.github}
 for the Python package. For questions and general discussion, use
-[RAVEN discussions](https://github.com/SysBioChalmers/RAVEN/discussions){.github}
-or [raven-toolbox discussions](https://github.com/SysBioChalmers/raven-toolbox/discussions){.github}.
+[RAVEN discussions](https://github.com/CompMetEng/RAVEN/discussions){.github}
+or [raven-toolbox discussions](https://github.com/CompMetEng/raven-toolbox/discussions){.github}.
 
 ```{toctree}
 :hidden:

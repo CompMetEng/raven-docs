@@ -1,9 +1,7 @@
 # RAVEN (MATLAB)
 
 The RAVEN Toolbox runs in MATLAB and works completely independently; it does
-not require the COBRA Toolbox, although it can interoperate with it. The
-canonical reference is the
-[RAVEN installation wiki](https://github.com/SysBioChalmers/RAVEN/wiki/Installation).
+not require the COBRA Toolbox, although it can interoperate with it.
 
 ## Requirements
 
@@ -103,12 +101,12 @@ If MATLAB does not pick up the toolbox after step 2, run
 :::{tab-item} {octicon}`download;1em` Release download
 
 Good for offline or managed environments. **The
-[RAVEN releases page](https://github.com/SysBioChalmers/RAVEN/releases)
+[RAVEN releases page](https://github.com/CompMetEng/RAVEN/releases)
 itself only lists stable releases**; 3.0.0b1 is a git tag with no packaged
 release, so download it directly instead:
 
 1. Download
-   [the 3.0.0b1 archive](https://github.com/SysBioChalmers/RAVEN/archive/refs/tags/3.0.0b1.zip)
+   [the 3.0.0b1 archive](https://github.com/CompMetEng/RAVEN/archive/refs/tags/3.0.0b1.zip)
    directly (this works without git).
 2. Extract it to a location of your choice.
 3. In MATLAB, add the RAVEN folder to the path (`pathtool`), then
@@ -117,11 +115,11 @@ release, so download it directly instead:
 :::{tab-item} {octicon}`git-branch;1em` Clone with git
 
 Clones the repository, then checks out the `3.0.0b1` tag specifically: a
-plain `git clone` alone tracks the `main` branch (stable RAVEN 2), not this
-site's pre-release.
+plain `git clone` alone tracks the `develop` branch, which can contain changes
+made after this site's pre-release.
 
 ```bash
-git clone --depth=1 https://github.com/SysBioChalmers/RAVEN.git
+git clone --depth=1 https://github.com/CompMetEng/RAVEN.git
 cd RAVEN
 git fetch --depth=1 origin tag 3.0.0b1
 git checkout 3.0.0b1
@@ -253,6 +251,5 @@ Then delete the cloned RAVEN folder from disk.
 
 ## Getting help
 
-For installation problems, consult the
-[RAVEN wiki](https://github.com/SysBioChalmers/RAVEN/wiki/Installation) or
-open an issue on [GitHub](https://github.com/SysBioChalmers/RAVEN/issues).
+For installation problems, open an issue on
+[GitHub](https://github.com/CompMetEng/RAVEN/issues).

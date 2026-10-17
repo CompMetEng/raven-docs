@@ -6,7 +6,7 @@ fetched on first use from a shared, checksummed release and cached locally. This
 page covers what is fetched, where it is kept, and how to override each step.
 
 Both toolboxes read from the same
-[`raven-data`](https://github.com/SysBioChalmers/raven-data) repository, so the
+[`toolbox-assets`](https://github.com/CompMetEng/toolbox-assets) repository, so the
 files RAVEN downloads and the files raven-toolbox downloads are the same files.
 
 ## What gets downloaded

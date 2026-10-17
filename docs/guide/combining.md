@@ -285,7 +285,7 @@ information and should go; an **exchange** had a single metabolite all along
 (`=> glucose`) and must be kept. raven-toolbox used to delete those too,
 along with the objective, taking this model from growth `0.1222` to `0.0000`
 with no error and no warning. Fixed in
-[raven-toolbox#96](https://github.com/SysBioChalmers/raven-toolbox/pull/96);
+[raven-toolbox#96](https://github.com/CompMetEng/raven-toolbox/pull/96);
 if a flattened model comes back with no boundary reactions, update
 raven-toolbox.
 :::

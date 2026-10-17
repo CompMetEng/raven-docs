@@ -10,7 +10,7 @@ Python dependencies this build needs.
 from __future__ import annotations
 
 project = "RAVEN"
-copyright = "SysBioChalmers"
+copyright = "CompMetEng"
 author = "Wang, Marcisauskas, Sanchez, Domenzain, Hermansson, Agren, Nielsen, Kerkhoven et al."
 
 extensions = [
@@ -60,13 +60,13 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "RAVEN (MATLAB) on GitHub",
-            "url": "https://github.com/SysBioChalmers/RAVEN",
+            "url": "https://github.com/CompMetEng/RAVEN",
             "icon": "fa-brands fa-github",
             "type": "fontawesome",
         },
         {
             "name": "raven-toolbox (Python) on GitHub",
-            "url": "https://github.com/SysBioChalmers/raven-toolbox",
+            "url": "https://github.com/CompMetEng/raven-toolbox",
             "icon": "fa-brands fa-github",
             "type": "fontawesome",
         },

@@ -1,11 +1,11 @@
 [submodule "RAVEN"]
 	path = RAVEN
-	url = https://github.com/SysBioChalmers/RAVEN.git
-	branch = develop3
+	url = https://github.com/CompMetEng/RAVEN.git
+	branch = develop
 	shallow = true
 [submodule "raven-toolbox"]
 	path = raven-toolbox
-	url = https://github.com/SysBioChalmers/raven-toolbox.git
+	url = https://github.com/CompMetEng/raven-toolbox.git
 	branch = develop
 	shallow = true
 [submodule "hanpo-GEM"]

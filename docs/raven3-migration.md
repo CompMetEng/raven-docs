@@ -28,7 +28,7 @@ RAVEN 3 is a deliberate breaking release: the codebase was reorganized, a large
 number of low-value or duplicate functions were removed, several external
 dependencies were dropped, and the calling convention for optional function
 arguments changed almost everywhere. None of this was accidental; see the
-project's [v3 development review](https://github.com/SysBioChalmers/RAVEN/blob/develop3/docs/v3_review.md)
+project's [v3 development review](https://github.com/CompMetEng/RAVEN/blob/develop/docs/v3_review.md)
 for the rationale, but it means that **most non-trivial RAVEN 2 scripts need to
 be checked**, even though the core reconstruction and analysis behavior is
 mostly the same.

@@ -4,7 +4,7 @@ This document describes the YAML format produced and consumed by
 
 - **cobrapy** ([`cobra.io.{load,save}_yaml_model`](https://github.com/opencobra/cobrapy))
 - **raven-toolbox** (`raven_toolbox.io.yaml.{read,write}_yaml_model`, see [API](api/index.md))
-- **RAVEN MATLAB** (`readYAMLmodel.m` / `writeYAMLmodel.m` in the [RAVEN repo](https://github.com/SysBioChalmers/RAVEN/tree/develop3/io))
+- **RAVEN MATLAB** (`readYAMLmodel.m` / `writeYAMLmodel.m` in the [RAVEN repo](https://github.com/CompMetEng/RAVEN/tree/develop/io))
 
 The same file can be round-tripped through any of the three. cobrapy is the canonical core; raven-toolbox and RAVEN MATLAB add namespaced extensions (RAVEN curation fields, MIRIAM cross-refs already covered by cobrapy's `annotation`, and the GECKO `ec-*` sections) without disturbing the cobra-known shape.
 
@@ -296,7 +296,7 @@ In a double-quoted string, only `\` and `"` are escaped. Other characters (inclu
 
 "Full" = every field read back into its canonical position on the model object; "core" = cobrapy-known fields, RAVEN extensions ignored or kept on the object as attribute fall-through (`reaction.eccodes` etc., not re-emitted on save). A round-trip through cobrapy is therefore **lossy for RAVEN extensions**: only the core fields survive `cobrapy.load → cobrapy.save`. Round-trips through raven-toolbox or RAVEN MATLAB are lossless.
 
-Neither writer reproduces cobrapy's own `ruamel`-default layout byte-for-byte (indentation, quoting style, line folding); RAVEN and raven-toolbox instead share a layout with each other, close to cobrapy's structural shape but not identical to it. See [raven-gecko-parity's reconciliation record](https://github.com/SysBioChalmers/raven-gecko-parity/blob/develop/docs/yaml-reconciliation.md) for why, and for the one scenario (`yaml_roundtrip_smallyeast`) that continuously checks the two writers agree.
+Neither writer reproduces cobrapy's own `ruamel`-default layout byte-for-byte (indentation, quoting style, line folding); RAVEN and raven-toolbox instead share a layout with each other, close to cobrapy's structural shape but not identical to it. See [raven-gecko-parity's reconciliation record](https://github.com/CompMetEng/raven-gecko-parity/blob/develop/docs/yaml-reconciliation.md) for why, and for the one scenario (`yaml_roundtrip_smallyeast`) that continuously checks the two writers agree.
 
 ---
 
