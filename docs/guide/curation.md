@@ -69,7 +69,7 @@ fprintf('%s charge %d, note: %s\n', curated.metNames{idx}, ...
 
 ```text
 charges before: 0
-[Warning: The following metabolites are already present in the model, their annotation will be overwritten to match the metsInfo file. If you do not particularly want to curate their annotations, it would be better to removes these metabolites from metsInfo: (S)-malate[m]
+[Warning: The following metabolites are already present in the model, their annotation will be overwritten to match the metsInfo file. If you do not particularly want to curate their annotations, it would be better to remove these metabolites from metsInfo: (S)-malate[m]
 		2-oxoglutarate[m]
 		2-phospho-D-glycerate[c]
 		3-phospho-D-glycerate[c]]
