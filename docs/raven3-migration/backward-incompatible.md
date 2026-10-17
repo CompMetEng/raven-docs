@@ -1,50 +1,11 @@
-# Backward-incompatible changes
-
-## 1. Calling convention: positional or named arguments
-
-RAVEN 2 functions took optional arguments strictly positionally
-(`f(model, a, b, c)`), which made it easy to lose track of argument order and
-impossible to skip an early optional argument to set a later one without also
-specifying all of the ones in between.
-
-RAVEN 3 introduces `utils/parseRAVENargs.m`, used by 112 functions across the
-toolbox. Required leading arguments stay as explicit, positional parameters;
-everything optional is collected into `varargin` and can be supplied three ways,
-interchangeably:
-
-```matlab
-removeReactions(model, rxnList, true, true, true)                       % positional (RAVEN 2 style, still works)
-removeReactions(model, rxnList, "removeUnusedGenes", true)              % named
-removeReactions(model, rxnList, true, "removeUnusedComps", true)        % hybrid
-```
-
-The rule: parsing scans for the first argument that is a string matching a known
-parameter name. Everything before that point is assigned positionally, in the
-order the function's `parseRAVENargs` specification declares; everything from
-that point on must be valid name-value pairs.
-
-**This means old positional calls keep working, if the function's new
-parameter order still matches the old positional order.** In every function
-spot-checked for this guide (`importModel`, `exportModel`,
-`exportToExcelFormat`, `removeReactions`, `ftINIT`, `fillGaps`, `fitTasks`,
-`getModelFromHomology`, `addIdentifierPrefix`/`removeIdentifierPrefix`, and
-`exportForGit`), new optional parameters were appended at the end of the list,
-so old positional calls keep working unchanged.
-
-One caveat from the parser's own documentation: if a positional argument you're
-passing is itself a string that happens to match one of the function's parameter
-names, use the explicit name-value form for that argument to avoid ambiguity.
-
----
-
 (backward-incompatible-changes)=
-## 2. Backward-incompatible changes
+# Backward-incompatible changes
 
 This is the consolidated list of everything a RAVEN 2 script could plausibly
 break on, or silently produce different output from, when run against RAVEN 3.
 Items are grouped by how they manifest.
 
-### Will error / undefined function
+## Will error / undefined function
 
 | RAVEN 2 usage | What happens in RAVEN 3 |
 |---|---|
@@ -60,7 +21,7 @@ Items are grouped by how they manifest.
 | `getGenesFromKEGG`, `getMetsFromKEGG`, `getRxnsFromKEGG`, `constructMultiFasta`, `getWSLpath`, `getBlastFromExcel` | Removed along with the old local-KEGG-FTP-dump workflow (see [§7](../raven3-migration/formats-and-reconstruction.md#kegg-reconstruction)). |
 | `getToolboxVersion(...)` | Removed as a standalone function; folded into an internal helper of `exportForGit`. |
 
-### Will silently produce different results
+## Will silently produce different results
 
 Same call, same input model, different output. Grouped by function; see the
 linked section for the full explanation of each.
@@ -82,7 +43,7 @@ linked section for the full explanation of each.
 None of these are API changes; the same call with the same arguments now
 returns a different, corrected result.
 
-### Will warn, but keep working
+## Will warn, but keep working
 
 - **Error/warning identifiers changed.** `dispEM` (RAVEN 2's universal
   error/warning function) always raised errors with an **empty** identifier
@@ -114,7 +75,7 @@ returns a different, corrected result.
   `RAVEN:deprecated` warning naming `checkRaven`. It is on the same removal
   track as the `deprecated/` functions above, so switch at the next opportunity.
 
-### Environment / installation changes
+## Environment / installation changes
 
 KEGG HMM libraries and external command-line binaries (BLAST+, DIAMOND, HMMER,
 cd-hit, MAFFT, WoLF PSORT) are no longer committed to the repository. RAVEN 3
