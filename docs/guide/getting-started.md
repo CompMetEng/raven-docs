@@ -21,6 +21,12 @@ that ships with RAVEN. Download it from
 [`docs/data/smallYeast.yml`](../data/smallYeast.yml) and run everything from the
 directory you put it in.
 
+Install one of the toolboxes first ([Installation](../installation/index.md)).
+Every page lists the files it needs under *Setup*; they are all in
+[`docs/data/`](../data/README.md), or clone the repository and work in
+`raven-docs/docs/data`. The blocks on a page build on each other: run them in
+order in one MATLAB or Python session.
+
 ## 1.1 Load the model
 
 ::::{tab-set}

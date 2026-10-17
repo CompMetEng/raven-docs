@@ -7,11 +7,15 @@ downloads the file and for the example runner in CI.
 
 | File | Size | Source | Used by |
 |---|---|---|---|
-| `smallYeast.yml` | 45 kB | `RAVEN/tutorial/smallYeast.yml` | the default example model for most guide pages |
-| `empty.xml` | 4 kB | `RAVEN/tutorial/empty.xml` | an empty SBML model with compartments defined, to build a model from scratch |
-| `smallYeastBad.yml` | 45 kB | `RAVEN/tutorial/smallYeastBad.yml` | the quality-control and gap-filling pages, which need a model with known errors |
-| `yeast-GEM.yml` | 3.6 MB | yeast-GEM **v9.1.0**, `model/yeast-GEM.yml` | pages that need a genome-scale model: sampling, deletions, ftINIT, gap-filling |
-| `yeast-GEM.xml` | 11.6 MB | yeast-GEM **v9.1.0**, `model/yeast-GEM.xml` | the same model as SBML, for the pages about SBML I/O and annotations |
+| [`smallYeast.yml`](smallYeast.yml) | 45 kB | `RAVEN/tutorials/data/models/smallYeast.yml` | the default example model for most guide pages |
+| [`empty.xml`](empty.xml) | 4 kB | `RAVEN/tutorials/data/empty.xml` | [7. Building](../guide/building.md): an empty SBML model with compartments defined, to build a model from scratch |
+| [`smallYeastBad.yml`](smallYeastBad.yml) | 45 kB | `RAVEN/tutorials/data/models/smallYeastBad.yml` | [9. Quality control](../guide/quality-control.md) and [21. Comparing](../guide/comparing.md), which need a model with known errors |
+| [`yeast-GEM.yml`](yeast-GEM.yml) | 3.6 MB | yeast-GEM **v9.1.0**, `model/yeast-GEM.yml` | pages that need a genome-scale model: [3. I/O](../guide/io.md), [4. FBA](../guide/fba.md), [5. Media](../guide/media.md), [11. Biomass](../guide/biomass.md) |
+| [`yeast-GEM.xml`](yeast-GEM.xml) | 11.6 MB | yeast-GEM **v9.1.0**, `model/yeast-GEM.xml` | the same model as SBML, for [3. I/O](../guide/io.md) |
+| [`anaerobic.yml`](anaerobic.yml) | 2 kB | transcribed from yeast-GEM's `anaerobicModel.m` | [5. Media](../guide/media.md): a condition file, yeast-GEM under anaerobic conditions |
+| [`tasks.txt`](tasks.txt) | 0.5 kB | written for this guide | [15. Metabolic tasks](../guide/tasks.md) and [17. Gap-filling](../guide/gap-filling.md): a task list for `smallYeast.yml` |
+| [`curation-mets.tsv`](curation-mets.tsv) | 0.3 kB | written for this guide | [10. Table-driven curation](../guide/curation.md): a metabolite curation table |
+| [`hpa-sample.tsv`](hpa-sample.tsv) | 1 kB | a ten-row excerpt in Human Protein Atlas format | [14. Context-specific models](../guide/init.md) |
 
 The two small yeast models are part of the RAVEN Toolbox (MIT licence).
 yeast-GEM is the consensus genome-scale model of *Saccharomyces cerevisiae*
@@ -30,9 +34,9 @@ The two RAVEN tutorial copies are deliberate duplicates, so they do not follow t
 model, refresh them and re-run the examples:
 
 ```bash
-cp "RAVEN/tutorial/smallYeast.yml" docs/data/smallYeast.yml
-cp "RAVEN/tutorial/empty.xml" docs/data/empty.xml
-cp "RAVEN/tutorial/smallYeastBad.yml" docs/data/smallYeastBad.yml
+cp "RAVEN/tutorials/data/models/smallYeast.yml" docs/data/smallYeast.yml
+cp "RAVEN/tutorials/data/empty.xml" docs/data/empty.xml
+cp "RAVEN/tutorials/data/models/smallYeastBad.yml" docs/data/smallYeastBad.yml
 python scripts/run_examples.py
 ```
 
@@ -57,8 +61,8 @@ homology](../guide/homology.md).
 
 | file | what it is |
 |---|---|
-| `hanpo.faa` | the *Hansenula polymorpha* proteome, 5177 sequences, copied unchanged from the `hanpo-GEM` submodule (`data/genomes/hanpo.faa`) |
-| `sce-template.faa` | 61 *S. cerevisiae* sequences (exactly the genes of `smallYeast.yml`) extracted from the same submodule's `data/genomes/sce.faa` |
+| [`hanpo.faa`](hanpo.faa) | the *Hansenula polymorpha* proteome, 5177 sequences, copied unchanged from the `hanpo-GEM` submodule (`data/genomes/hanpo.faa`) |
+| [`sce-template.faa`](sce-template.faa) | 61 *S. cerevisiae* sequences (exactly the genes of `smallYeast.yml`) extracted from the same submodule's `data/genomes/sce.faa` |
 
 The template proteome is cut down to the model's own genes on purpose: BLAST
 against 61 subjects instead of a whole proteome is what keeps the page's example
