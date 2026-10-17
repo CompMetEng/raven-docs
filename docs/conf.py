@@ -2,9 +2,8 @@
 
 `.readthedocs.yaml` builds from this file. `mkdocs.yml` is retired but not
 yet removed; see docs/README-sphinx.md for what still needs following up
-(scripts/check_names.py and scripts/run_examples.py both still assume the
-old MkDocs plugin API and fence syntax) and requirements-sphinx.txt for the
-Python dependencies this build needs.
+(scripts/check_names.py still assumes the old MkDocs plugin API) and
+requirements-sphinx.txt for the Python dependencies this build needs.
 """
 
 from __future__ import annotations
@@ -29,6 +28,9 @@ myst_enable_extensions = [
     "dollarmath",
 ]
 myst_heading_anchors = 4
+# Straight quotes stay straight: the API pages quote MATLAB and Python
+# literals such as 'rxns', which must paste back into code unchanged.
+smartquotes = False
 
 exclude_patterns = [
     "_build",

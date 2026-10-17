@@ -33,56 +33,27 @@ from api_index import (  # noqa: E402
     RAVEN as MATLAB,
     cell,
     is_matlab_function,
+    matlab_help_block,
+    matlab_summary_and_body,
     module_dotted,
     norm,
     slug,
 )
 
 import ast
+import re
+import textwrap
 
 
 # --------------------------------------------------------------------------- #
 # Full-text collection (api_index.py's matlab_summary / py_summary keep only
 # the first line; these keep everything).                                    #
 # --------------------------------------------------------------------------- #
-def matlab_help(path: Path, fname: str) -> tuple[str, str]:
-    """(summary, full help text) for one MATLAB function."""
-    try:
-        lines = path.read_text(encoding="utf-8-sig", errors="ignore").splitlines()
-    except OSError:
-        return "", ""
-
-    help_lines: list[str] = []
-    started = False
-    for line in lines:
-        stripped = line.strip()
-        if not started:
-            if stripped.startswith("function"):
-                started = True
-            continue
-        if stripped.startswith("%"):
-            help_lines.append(stripped.lstrip("%").strip())
-        elif stripped == "" and not help_lines:
-            continue
-        else:
-            break
-
-    cleaned = [h for h in help_lines if h]
-    if not cleaned:
-        return "", ""
-    first = cleaned[0]
-    if first.lower().startswith(fname.lower()):
-        rest = first[len(fname):].strip(" -:\t")
-        if rest:
-            summary, body = rest, cleaned[1:]
-        elif len(cleaned) > 1:
-            summary, body = cleaned[1], cleaned[2:]
-        else:
-            summary, body = "", []
-    else:
-        summary = first
-        body = cleaned[1:]
-    return summary, "\n".join(body)
+def matlab_help(path: Path, fname: str) -> tuple[str, str, str]:
+    """(signature, summary, rest of the help text) for one MATLAB function."""
+    signature, _lines = matlab_help_block(path)
+    summary, body = matlab_summary_and_body(path, fname)
+    return signature, summary, "\n".join(body)
 
 
 def py_help(node: ast.AST) -> tuple[str, str]:
@@ -112,8 +83,11 @@ def collect_matlab_full() -> dict[str, list[dict]]:
         for m in base.rglob("*.m"):
             if m.stem == "Contents" or not is_matlab_function(m):
                 continue
-            summary, body = matlab_help(m, m.stem)
-            funcs.setdefault(m.stem, {"name": m.stem, "summary": summary, "body": body, "path": m})
+            signature, summary, body = matlab_help(m, m.stem)
+            funcs.setdefault(
+                m.stem,
+                {"name": m.stem, "signature": signature, "summary": summary, "body": body, "path": m},
+            )
         cats[folder] = [funcs[n] for n in sorted(funcs, key=str.lower)]
     return cats
 
@@ -154,13 +128,90 @@ def collect_python_full() -> list[dict]:
 
 
 # --------------------------------------------------------------------------- #
+# Help-text rendering                                                         #
+# --------------------------------------------------------------------------- #
+# RAVEN's % help blocks and the structured raven-toolbox docstrings both use
+# numpydoc section headers ("Parameters" over a dashed underline), so one
+# parser serves both. Parameter sections become definition lists, Examples a
+# code block, and anything else passes through as prose. Help text without any
+# section header is kept as the author laid it out: in a text block for MATLAB,
+# whose help is written for the command window, and as prose for Python.
+PARAM_SECTIONS = {
+    "Parameters", "Name-Value Arguments", "Other Parameters", "Returns",
+    "Yields", "Raises", "Attributes",
+}
+_SECTION_HEADER = re.compile(r"^([A-Z][A-Za-z -]+)\n(-{3,})$", re.M)
+_RST_ROLE = re.compile(r":(?:py:)?(?:func|class|meth|attr|mod|data|obj|exc):`~?([^`]+)`")
+
+
+def myst_inline(text: str) -> str:
+    """RST roles and double-backtick literals as MyST code spans."""
+    text = _RST_ROLE.sub(lambda m: f"`{m.group(1)}`", text)
+    return re.sub(r"``([^`]+)``", r"`\1`", text)
+
+
+def split_sections(doc: str) -> list[tuple[str | None, str]]:
+    parts: list[tuple[str | None, str]] = []
+    pos, title = 0, None
+    for m in _SECTION_HEADER.finditer(doc):
+        if len(m.group(2)) < len(m.group(1).strip()) - 1:
+            continue  # a dashed line too short to underline this title
+        parts.append((title, doc[pos:m.start()]))
+        title, pos = m.group(1).strip(), m.end()
+    parts.append((title, doc[pos:]))
+    return parts
+
+
+def param_entries(body: str) -> list[tuple[str, str, str]]:
+    entries: list[list] = []
+    for line in body.strip("\n").splitlines():
+        if line and not line[0].isspace():
+            name, _, typ = line.partition(" : ")
+            entries.append([name.strip(), typ.strip(), []])
+        elif entries:
+            entries[-1][2].append(line)
+    return [(n, t, textwrap.dedent("\n".join(d)).strip()) for n, t, d in entries]
+
+
+def render_help(doc: str, lang: str) -> list[str]:
+    """Markdown lines for a help text's body (everything after the summary)."""
+    doc = textwrap.dedent(doc).strip("\n")
+    if not doc.strip():
+        return []
+    sections = split_sections(doc)
+    if all(title is None for title, _ in sections):
+        if lang == "matlab":
+            return ["```text", doc, "```", ""]
+        return [myst_inline(doc), ""]
+    out: list[str] = []
+    for title, body in sections:
+        body = textwrap.dedent(body).strip("\n")
+        if title is None:
+            if body.strip():
+                out += [myst_inline(body), ""]
+            continue
+        out += [f":::{{rubric}} {title}", ":::", ""]
+        if title in PARAM_SECTIONS:
+            for name, typ, desc in param_entries(body):
+                term = f"`{name}`" + (f" : *{typ}*" if typ else "")
+                lines = myst_inline(desc).splitlines() or [""]
+                out += [term, f": {lines[0]}"] + [f"  {line}" if line else "" for line in lines[1:]] + [""]
+        elif title == "Examples":
+            fence = "pycon" if ">>>" in body else lang
+            out += [f"```{fence}", body, "```", ""]
+        else:
+            out += [myst_inline(body), ""]
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Page rendering                                                              #
 # --------------------------------------------------------------------------- #
 def render_matlab_page(title: str, folder: str, funcs: list[dict]) -> str:
     out = [f"# {title}", "", f"MATLAB functions in `RAVEN/src/{folder}` of the RAVEN toolbox.", "",
            "## Functions", "", "| Function | Summary |", "|---|---|"]
     for f in funcs:
-        out.append(f"| [`{f['name']}`](#{slug(f['name'])}) | {cell(f['summary'])} |")
+        out.append(f"| [`{f['name']}`](#{slug(f['name'])}) | {cell(myst_inline(f['summary']))} |")
     out += ["", "## Reference", ""]
     for f in funcs:
         # A cross-document markdown link with a #fragment resolves against
@@ -168,10 +219,11 @@ def render_matlab_page(title: str, folder: str, funcs: list[dict]) -> str:
         # must auto-slug to exactly `slug(name)` -- true here since it is a
         # bare MATLAB identifier, nothing an explicit target would improve.
         out += [f"### {f['name']}", ""]
+        if f["signature"]:
+            out += ["```matlab", f["signature"], "```", ""]
         if f["summary"]:
-            out += [f["summary"], ""]
-        if f["body"]:
-            out += ["```text", f["body"], "```", ""]
+            out += [myst_inline(f["summary"]), ""]
+        out += render_help(f["body"], "matlab")
     return "\n".join(out) + "\n"
 
 
@@ -179,7 +231,7 @@ def render_python_page(title: str, dotted: str, objs: list[dict]) -> str:
     out = [f"# {title} (Python)", "", f"`raven-toolbox` objects in `{dotted}`.", "",
            "## Functions", "", "| Function | Summary |", "|---|---|"]
     for o in objs:
-        out.append(f"| [`{o['name']}`](#{slug(o['name'])}) | {cell(o['summary'])} |")
+        out.append(f"| [`{o['name']}`](#{slug(o['name'])}) | {cell(myst_inline(o['summary']))} |")
     out += ["", "## Reference", ""]
     for o in objs:
         # The heading is the bare name, not name+signature: a cross-document
@@ -191,9 +243,8 @@ def render_python_page(title: str, dotted: str, objs: list[dict]) -> str:
         if o["signature"]:
             out += [f"`{o['name']}{o['signature']}`", ""]
         if o["summary"]:
-            out += [o["summary"], ""]
-        if o["body"]:
-            out += ["```text", o["body"], "```", ""]
+            out += [myst_inline(o["summary"]), ""]
+        out += render_help(o["body"], "python")
     return "\n".join(out) + "\n"
 
 
