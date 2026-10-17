@@ -73,5 +73,4 @@ is no longer taken on trust.
 | `fill_gaps_fast_lp.epsilon` | `1e-4` | The fastGapFill paper's value |
 | `fill_gaps_kumar_milp.weights` | `(1.0, 2.0)` | Implements Kumar 2007's preference for reversal over addition |
 | `fill_gaps_kumar_milp.big_m` | `1000.0` | Matches RAVEN-convention bounds |
-| `check_tasks.close_boundaries` | `True` | The only correct value: with exchanges open, a task is satisfied by importing its own products |
-| `find_task_essential_reactions.tol` | `1e-8` | Gurobi's primal feasibility tolerance; a looser value calls a reaction non-essential while its task still carries a trace flux |
+| `check_tasks.close_boundaries` | `False` | Matches RAVEN's `checkTasks`, which published task lists were curated against; `True` closes the model's own exchanges so that the task is the whole boundary |

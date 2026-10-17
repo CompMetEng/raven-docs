@@ -200,8 +200,7 @@ RAVEN MATLAB: `checkTasks`. raven-toolbox: `check_tasks`, `find_task_essential_r
 
 | Parameter | Default | How determined |
 |---|---|---|
-| `close_boundaries` (both functions) | `True` | Matches RAVEN's implied behaviour. |
-| `tol` (in `find_task_essential_reactions`) | `1e-8` | Python-side-only parameter. |
+| `close_boundaries` (both functions) | `False` | Matches RAVEN's `checkTasks`, which leaves the model's own exchange reactions open; published task lists were curated against that. `True` makes the task the whole boundary, as `closeModel` does in RAVEN. |
 
 **Full detail:** [Parameter benchmarks](parameter-tuning/benchmarks.md)
 
