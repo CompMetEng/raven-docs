@@ -202,17 +202,15 @@ release, and run `checkRaven`.
 :::{tab-item} {octicon}`git-branch;1em` Clone with git
 
 The `3.0.0b1` tag does not move, so there is nothing to pull while staying on
-it. To move past this site's documented snapshot onto the actively-developed
-branch:
+it. To follow the development branch instead:
 
 ```bash
-git checkout develop3
-git pull origin develop3
+git checkout develop
+git pull origin develop
 ```
 
-`develop3` can be ahead of what this page describes; see
-[RAVEN 2 to RAVEN 3](../raven3-migration.md) for what changed and when this
-document was last checked against it. Then run `checkRaven`.
+`develop` can contain changes that are not yet released. Then run
+`checkRaven`.
 :::
 ::::
 

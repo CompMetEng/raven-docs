@@ -1,6 +1,6 @@
 /* ===== RAVEN brand palette (navy) ===================================== */
 :root {
-  /* Sampled from RAVEN.png on RAVEN's develop3 branch -- the bird and
+  /* Sampled from RAVEN.png in the RAVEN repository -- the bird and
      wordmark are one flat navy, RGB(12, 29, 56). The site icons in
      docs/assets are cut from that same file; shades below are HSL
      adjustments of it, not eyeballed. */

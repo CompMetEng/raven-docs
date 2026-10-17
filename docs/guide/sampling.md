@@ -186,11 +186,6 @@ fprintf('chrr: %d dimensions, MVE converged: %d, %d fixed\n', ...
 chrr: 9 dimensions, MVE converged: 0, 1 fixed
 ```
 
-On RAVEN before [#696](https://github.com/SysBioChalmers/RAVEN/pull/696) this
-call failed on `smallYeast` with `sampleChebyshevCenter: LP infeasible - flux
-polytope has empty interior`. The polytope was fine; the equality system is
-square and rank-deficient there, and the particular solution came back `NaN`.
-If you see that error, update RAVEN.
 :::
 :::{tab-item} 🐍 Python
 :sync: python

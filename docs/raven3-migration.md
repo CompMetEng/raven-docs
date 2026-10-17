@@ -17,12 +17,7 @@ for existing RAVEN 2 users who need to know what will break in their scripts,
 what moved, what was removed outright, and what new capabilities are
 available.
 
-**Versions covered:** the latest released RAVEN 2 is **2.11.3**. RAVEN 3 is
-unreleased; it is being developed on the `develop3` branch and is targeting
-version **3.0.0**. This guide compares `develop3` against RAVEN 2's `develop`
-branch (functionally identical to the 2.11.3 release; the commits between
-them are only version-bump/tag merges). **This document will be frozen once
-3.0.0 is tagged**; until then, `develop3` can still change.
+**Versions covered:** RAVEN 2 as of its last release, **2.11.3**, and RAVEN 3.
 
 RAVEN 3 is a deliberate breaking release: the codebase was reorganized, a large
 number of low-value or duplicate functions were removed, several external

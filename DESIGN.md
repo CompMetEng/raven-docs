@@ -37,7 +37,7 @@ the Docs.
   function help in each toolbox's source (via `mkdocstrings`), so it never
   drifts from the code. The source repos are tracked as **git submodules**.
 - **Source of truth follows the active branch.** The RAVEN submodule tracks
-  **`develop3`** and raven-toolbox tracks **`develop`**. develop3's modular
+  **`develop`** and raven-toolbox tracks **`develop`**. RAVEN's modular
   folder layout (`reconstruction`, `manipulation`, `analysis`, …) mirrors
   raven-toolbox's package structure, so the two line up by category.
 - **Don't reinvent cobrapy.** Where the Python version intentionally relies on
@@ -61,7 +61,7 @@ the Docs.
 - The API reference is **generated at build time** (`mkdocs-gen-files` +
   `mkdocs-literate-nav`): a cobrapy-style autoapi, one page per category, with
   MATLAB and Python paired by name.
-- Submodules: `RAVEN` (branch `develop3`), **raven-toolbox** (branch
+- Submodules: `RAVEN` (branch `develop`), **raven-toolbox** (branch
   `develop`), `hanpo-GEM` (branch `main`).
 
 ## 4. Site structure
@@ -83,10 +83,9 @@ the Docs.
 An **Installation** section with an overview page and a **separate page per
 version**:
 
-- **RAVEN (MATLAB).** Requirements, then the **three install methods** from the
-  [wiki](https://github.com/SysBioChalmers/RAVEN/wiki/Installation), the
+- **RAVEN (MATLAB).** Requirements, then the **three install methods**: the
   MATLAB Add-Ons manager, a release download, and `git clone`, plus
-  verifying (`checkInstallation`), **upgrading** (per method) and **removing**
+  verifying (`checkRaven`), **upgrading** (per method) and **removing**
   (`removeRavenFromPath`).
 - **Python (raven-toolbox).** Requirements, `pip install raven-toolbox`,
   development install, verifying, **upgrading** and **removing**, and solver
@@ -221,7 +220,7 @@ Generated from source, organised so each function is shown for both languages.
   <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html> and a
   function page like
   <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/flux_analysis/parsimonious/index.html#cobra.flux_analysis.parsimonious.pfba>.
-- **MATLAB**: functions organised **by subfolder** (the `develop3` modular
+- **MATLAB**: functions organised **by subfolder** (RAVEN's modular
   categories: `reconstruction`, `manipulation`, `analysis`, …).
 
 ## 5. Conventions
@@ -247,7 +246,7 @@ into the relevant section above.)*
 *(Append decisions here as they are made.)*
 
 - Build stack: MkDocs + Material + `mkdocstrings` (Python + MATLAB handlers).
-- Source via git submodules: RAVEN tracks `develop3`, **raven-toolbox tracks
+- Source via git submodules: RAVEN tracks `develop`, **raven-toolbox tracks
   `develop`**, hanpo-GEM tracks `main`.
 - The Python package is named **raven-toolbox**.
 - Function help reformatted to NumPy-style docstrings (renders as tables).
