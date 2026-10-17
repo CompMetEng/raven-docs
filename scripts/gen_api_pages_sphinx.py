@@ -157,7 +157,7 @@ def collect_python_full() -> list[dict]:
 # Page rendering                                                              #
 # --------------------------------------------------------------------------- #
 def render_matlab_page(title: str, folder: str, funcs: list[dict]) -> str:
-    out = [f"# {title}", "", f"MATLAB functions in `RAVEN/{folder}` of the RAVEN toolbox.", "",
+    out = [f"# {title}", "", f"MATLAB functions in `RAVEN/src/{folder}` of the RAVEN toolbox.", "",
            "## Functions", "", "| Function | Summary |", "|---|---|"]
     for f in funcs:
         out.append(f"| [`{f['name']}`](#{slug(f['name'])}) | {cell(f['summary'])} |")

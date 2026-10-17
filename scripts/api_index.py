@@ -25,6 +25,9 @@ ROOT = Path(__file__).resolve().parent.parent
 # can be pointed elsewhere -- e.g. at a working checkout of either toolbox --
 # which is useful when a submodule cannot be moved to the tracked commit.
 RAVEN = Path(os.environ.get("RAVEN_DOCS_RAVEN_SRC", ROOT / "RAVEN"))
+# RAVEN keeps its MATLAB functions under src/; older checkouts have them at the root.
+if (RAVEN / "src").is_dir():
+    RAVEN = RAVEN / "src"
 PYPKG = Path(
     os.environ.get(
         "RAVEN_DOCS_PYTHON_SRC", ROOT / "raven-toolbox" / "src" / "raven_toolbox"
