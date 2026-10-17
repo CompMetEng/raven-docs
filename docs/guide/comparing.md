@@ -14,7 +14,7 @@ the same organism at all.
 |---|---|---|
 | `diffModels` | `diff_models` | every semantic difference between two models |
 | `compareMultipleModels` | `compare_models` | overlap in reactions, metabolites, genes, across two or more models |
-| `compareFluxes` | `compare_fluxes` | which fluxes changed between two solutions |
+| `compareFluxes` | `compare_fluxes` | which fluxes changed between two solutions of the same model |
 
 ## Setup
 
@@ -168,8 +168,10 @@ grouping models, not for validating one.
 ## 21.3 Compare what they do, not what they contain
 
 Two models with the same reactions can behave differently, and two models with
-different reactions can behave identically. The comparison that settles it is of
-the fluxes.
+different reactions can behave identically. What settles it is a simulation of
+both under the same constraints: growth first, then flux ranges or tasks, not a
+single flux vector, which is one optimum among many (see
+[18. Flux variability](fva.md)).
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -235,6 +237,11 @@ answer the same question, but you index them in opposite directions.
   [20. Combining and simplifying](combining.md), where merging matches on
   names instead.
 - **Reading similarity as quality.** It measures overlap, not correctness.
+- **Comparing one flux vector per model.** An FBA solution is one of many
+  optima, so two models, or two solvers on one model, can return different
+  vectors with the same growth. Check that both solves succeeded and compare
+  growth first, then ranges or tasks. `compareFluxes` and `compare_fluxes`
+  compare two solutions of one model, so they need every reaction in both.
 - **Forgetting the medium.** A flux comparison compares conditions as much as
   models. Set the same bounds on both, explicitly, before drawing any
   conclusion.
