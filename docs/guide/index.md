@@ -25,15 +25,20 @@ the cobrapy documentation. The
 
 :::{admonition} Executed examples
 :class: info
-Every snippet on the nineteen numbered pages is run on each commit and
-checked against the output shown beneath it, in both languages. Two pages
-cannot be: [14. Context-specific models](init.md), whose steps take hours on
-Human-GEM, and [13. Reconstruction from KEGG](kegg.md), which downloads
-tens of megabytes and takes minutes. Both say so at the top and quote the
-wall-clock of the run their numbers came from.
+The code on the numbered pages is run, MATLAB and Python separately, by the
+[Guide examples](https://github.com/CompMetEng/raven-docs/actions/workflows/examples.yml)
+workflow whenever a guide page, the example data or the runner changes, and once
+a week against the latest RAVEN and raven-toolbox. A run fails when a block errors
+or prints something other than the output shown beneath it. The blocks on a page
+run in order in one session, so later blocks use what earlier ones made: start
+from the page's *Setup*.
 
-That guarantee covers the numbered pages only. The protocol and the legacy
-tutorials at the end of this section are MATLAB-only and are not executed.
+Not executed: [13. Reconstruction from KEGG](kegg.md), which downloads tens of
+megabytes and takes minutes, and the Human-GEM steps of
+[14. Context-specific models](init.md), which take hours. A few other blocks are
+marked on their page as not run, with the reason. Both pages quote the run their
+numbers came from. The protocol and the legacy tutorials at the end of this
+section are MATLAB-only and are not executed.
 :::
 
 ## Example data

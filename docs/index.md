@@ -127,8 +127,8 @@ fprintf('Growth rate: %.4f h-1\n', sol.f);
 :link: guide/index
 :link-type: doc
 
-Nineteen task-focused pages, MATLAB and Python side by side, every example
-executed and checked on each commit.
+Twenty-two task-focused pages, MATLAB and Python side by side, with the
+examples executed and their output checked.
 :::
 
 :::{grid-item-card} API reference
