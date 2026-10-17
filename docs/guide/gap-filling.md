@@ -117,7 +117,7 @@ connectivity.
 <!-- run-examples: needs-gurobi -->
 
 ```matlab
-setRavenSolver('gurobi');   % fillGaps is a MILP
+setRavenSolver('gurobi');   % fillGaps is a MILP; Gurobi is faster than GLPK
 [newConnected, cannotConnect, addedRxns] = fillGaps(draft, {template}, ...
     'allowNetProduction', true, 'useModelConstraints', false);
 fprintf('%d added: %s\n', numel(addedRxns), strjoin(addedRxns, ', '));
@@ -149,10 +149,9 @@ those are not stable: it solves a MILP, several solutions are equally
 optimal, and which one comes back can change with the machine or the thread
 count. Two CI runs on identical input reported 11 and 9 newly connected.
 
-**The two are not the same algorithm.** RAVEN's `fillGaps` solves a MILP, so
-it needs Gurobi and reports `glpk is not suitable for solving MILPs`
-otherwise. raven-toolbox's `connect_blocked_reactions` is an LP and runs on
-the GLPK that ships with cobrapy.
+Both are MILPs. `connect_blocked_reactions` runs on the GLPK that ships with
+cobrapy; `fillGaps` runs on RAVEN's bundled GLPK too, with a warning that
+recommends Gurobi, which is the solver this tab selects.
 
 `allow_net_production` decides how strict the test is. A reaction can be
 blocked because a substrate is unavailable *or* because a product has nowhere
@@ -220,9 +219,10 @@ the gap between the counts closes.
 
 ## 17.4 The MILP formulation
 
-When the LP relaxation adds too much, or you want the provably smallest set,
-the mixed-integer formulation is the alternative. It needs a MILP solver, and it
-is slower by a wide margin on anything genome-scale.
+When the LP formulation adds too much, or you want the provably smallest set,
+the mixed-integer formulation is the alternative. GLPK solves it at this size in
+both toolboxes (RAVEN warns and recommends Gurobi); on anything genome-scale it
+is slower by a wide margin, and Gurobi is the better choice.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -252,12 +252,9 @@ gapFillMILP: reversed 0 draft reaction(s), added 0 universal reaction(s).
 :::{tab-item} 🐍 Python
 :sync: python
 
-<!-- run-examples: needs-gurobi -->
-
 ```python
 from raven_toolbox.gapfilling import fill_gaps_kumar_milp
 
-draft.solver = "gurobi"
 result = fill_gaps_kumar_milp(draft, template)
 print(f"{len(result.added_reactions)} reactions added")
 ```
@@ -271,6 +268,68 @@ fill_gaps_kumar_milp: reversed 0 reaction(s), added 0 template reaction(s).
 ```
 :::
 ::::
+
+Zero is the right answer here: without `ADH1` the draft still grows at the
+full 0.1222 /h, so it already meets the default floor (10 % of the merged
+model's maximum) and the MILP has nothing to buy. In MATLAB that floor is twice
+as high, 0.02443 against 0.01222, because `gapFillMILP` merges the template's
+duplicates of the draft's reactions, its uptake reactions included, so the
+merged model can take up twice the glucose. To see a repair, remove a reaction
+growth needs, such as hexokinase:
+
+::::{tab-set}
+:::{tab-item} Ⓜ️ MATLAB
+:sync: matlab
+
+<!-- run-examples: needs-gurobi -->
+
+```matlab
+draft2 = removeReactions(template, {'HXK'});   % hexokinase
+draft2.id = 'draft2';
+sol = solveLP(draft2);
+fprintf('draft growth %.4f\n', sol.f);
+[addedRxns, reversedRxns] = gapFillMILP(draft2, template, 'params', params);
+fprintf('added: %s; reversed: %s\n', strjoin(addedRxns, ', '), strjoin(reversedRxns, ', '));
+```
+
+```text
+draft growth -0.0000
+[Warning: The following reaction IDs in smallYeast are already present in the model and were renamed: Old: acOUT New: acOUT_smallYeast Old: biomassOUT New: biomassOUT_smallYeast Old: co2OUT New: co2OUT_smallYeast Old: ethOUT New: ethOUT_smallYeast Old: glyOUT New: glyOUT_smallYeast Old: glcIN New: glcIN_smallYeast Old: o2IN New: o2IN_smallYeast Old: ethIN New: ethIN_smallYeast Old: PGI New: PGI_smallYeast ...and 43 more]
+
+gapFillMILP: merged model has 52 mets, 105 rxns (52 draft, 52 universal).
+gapFillMILP: 34 reversal candidates, 52 database candidates.
+gapFillMILP: setting minGrowth = 0.02443 (10% of max 0.2443).
+gapFillMILP: solving MILP (191 vars, 86 binary, 191 constraints)...
+gapFillMILP: reversed 0 draft reaction(s), added 1 universal reaction(s).
+added: HXK; reversed:
+```
+:::
+:::{tab-item} 🐍 Python
+:sync: python
+
+```python
+draft2 = template.copy()
+draft2.remove_reactions([draft2.reactions.get_by_id("HXK")])   # hexokinase
+print(f"draft growth {draft2.slim_optimize():.4f}")
+result = fill_gaps_kumar_milp(draft2, template, verbose=False)
+print(f"added: {result.added_reactions}; reversed: {result.reversed_reactions}")
+print(f"filled growth {result.model.slim_optimize():.4f}")
+```
+
+```text
+draft growth 0.0000
+added: ['HXK']; reversed: []
+filled growth 0.1222
+```
+:::
+::::
+
+Hexokinase comes back, and nothing is reversed. That is not guaranteed: by
+default a reversal costs half as much as an addition, and every irreversible
+draft reaction is a reversal candidate, boundary reactions and the ATP drain
+included. Removing `PFK` instead makes the MILP reverse `FBP` rather than add
+`PFK` back, and for an anaerobic draft without `ADH1` it reverses `ATPX`, which
+makes ATP from nothing. Read the reversed reactions before accepting a fill.
 
 ## 17.5 Filling towards a task, not a hole
 
@@ -326,8 +385,11 @@ already contains the draft, which is the form ftINIT passes.
 - **Net production hiding the problem.** `allowNetProduction` makes more
   reactions look connectable by ignoring where the products go. Useful early,
   misleading later.
-- **MILP on a genome-scale model.** Expect it to be slow, and give it a time
-  limit; see [6. Solvers and configuration](solvers.md).
+- **MILP on a genome-scale model.** Expect it to be slow, on GLPK most of
+  all, and give it a time limit; see [6. Solvers and configuration](solvers.md).
+- **Accepting reversals unread.** `gapFillMILP` and `fill_gaps_kumar_milp`
+  prefer reversing a draft reaction to adding one, and a reversed exchange or
+  ATP drain is a leak, not a repair.
 - **Comparing added-reaction counts across toolboxes.** The two sides
   differ in what they treat as a candidate, so the counts are only
   comparable when the template genuinely holds reactions the draft lacks.
