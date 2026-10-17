@@ -133,11 +133,10 @@ from YAML: yeastGEM_v9.1.0
 same size: True
 ```
 
-cobrapy leaves the encoding in place, so the same release read from the two
-formats reports two different ids while being the same model. Only the
-*identifiers* are affected; `model.name` and the annotations are unchanged.
-Ids have to be decoded before they can be matched against a model read from
-YAML.
+cobrapy decodes the reaction, metabolite and gene ids but leaves the model id
+encoded, so the same release read from the two formats reports two different
+model ids while being the same model. `model.name` and the annotations are
+unchanged.
 :::
 ::::
 
@@ -332,9 +331,13 @@ repositories that pin one.
   letter or underscore. Both toolboxes add a prefix to a whole field when any
   id in it does not, which is why `importModel` and `read_sbml_model` strip
   prefixes on the way back.
-- **Ids differ between two copies of the same release.** An id that contained
-  a dot comes back encoded from SBML in Python. Compare on `model.name` or on
-  annotations, or decode first.
+- **The model id differs between two copies of the same release.** cobrapy
+  decodes `__46__`-style escapes in reaction, metabolite and gene ids, but not
+  in the model id, so yeast-GEM read from SBML reports
+  `yeastGEM_v9__46__1__46__0`. Decode it with
+  `re.sub(r"__(\d+)__", lambda m: chr(int(m.group(1))), model.id)`, or compare
+  `model.name`. Do not match entities on annotations: some database ids are
+  shared by differently named metabolites.
 - **Excel export fails with a missing module.** The Python side needs
   `openpyxl`; install `raven-toolbox[excel]`.
 - **A YAML round trip loses a field neither format defines.** RAVEN YAML
