@@ -106,41 +106,53 @@ asks a different question; see the next section.
 
 ## 18.2 The range *at* the optimum
 
-The useful question for interpreting a result: holding growth at its maximum (or
-at 90 % of it), which fluxes are still free to move?
+The useful question for interpreting a result: holding growth at its maximum,
+which fluxes are still free to move, and how many come free again if growth only
+has to reach 90 % of it?
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
 ```matlab
-fixed = setParam(model, 'lb', 'biomassOUT', 0.9 * sol.f);
-[minFluxes, maxFluxes] = getAllowedBounds(fixed);
-span = full(maxFluxes - minFluxes);
-fprintf('at 90%% of optimum: %d reactions fixed\n', sum(span < 1e-9));
+for fraction = [1 0.9]
+    floored = setParam(model, 'lb', 'biomassOUT', fraction * sol.f);
+    [minFluxes, maxFluxes] = getAllowedBounds(floored);
+    span = full(maxFluxes - minFluxes);
+    fprintf('growth >= %.0f%% of optimum: %d reactions fixed\n', 100 * fraction, sum(span < 1e-9));
+end
 ```
 
 ```text
-at 90% of optimum: 1 reactions fixed
+growth >= 100% of optimum: 51 reactions fixed
+growth >= 90% of optimum: 1 reactions fixed
 ```
 
 RAVEN has no `fraction_of_optimum` argument: constrain the objective
-reaction yourself, then ask for the bounds.
+reaction yourself, then ask for the bounds. A lower bound is a floor, not a
+fixed value, so `0.9 * sol.f` lets growth sit anywhere from 90 % of the optimum
+up to the optimum itself.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
 
 ```python
-at_optimum = flux_variability_analysis(model, fraction_of_optimum=0.9)
-span = at_optimum.maximum - at_optimum.minimum
-print(f"at 90% of optimum: {(span < 1e-9).sum()} reactions fixed")
+for fraction in (1.0, 0.9):
+    ranges = flux_variability_analysis(model, fraction_of_optimum=fraction)
+    span = ranges.maximum - ranges.minimum
+    print(f"growth >= {fraction:.0%} of optimum: {(span < 1e-9).sum()} reactions fixed")
 ```
 
 ```text
-at 90% of optimum: 1 reactions fixed
+growth >= 100% of optimum: 51 reactions fixed
+growth >= 90% of optimum: 1 reactions fixed
 ```
 :::
 ::::
+
+At the optimum only `FRDS2` and `SDH` can still move (18.3 shows why); everything
+else is determined. Let growth drop to 90 % and only `ethIN`, which is closed,
+stays fixed: a 10 % margin frees nearly every flux.
 
 Reactions whose span collapses to zero at the optimum are the ones the model has
 no choice about. Those are the predictions the model determines; a flux with a
@@ -224,7 +236,9 @@ sampling over, keeping a reaction only if its **loopless** range is non-trivial.
 
 When a single flux distribution is needed (for a figure, or to compare two
 conditions), take a parsimonious one rather than whatever the solver returns
-first. It is reproducible, and it is the natural companion to the ranges above.
+first. It carries no loop flux and is less arbitrary than the first vertex
+found, but it need not be unique either: where two routes cost the same total
+flux, pFBA can return either. Report any single flux together with its range.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
