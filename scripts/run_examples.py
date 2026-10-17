@@ -40,8 +40,9 @@ Page-level control, written as HTML comments in the markdown:
     immediately before a ```python block -- that one block is neither executed
     nor checked, but the ones after it still run.
 ``<!-- run-examples: needs-gurobi -->``
-    the block needs a MILP solver: it runs where Gurobi is available (``--gurobi``
-    or ``RAVEN_DOCS_GUROBI=1``, which CI sets when a licence is configured) and is
+    the block selects Gurobi (a MILP the page runs on Gurobi rather than on the
+    bundled GLPK): it runs where Gurobi is available (``--gurobi`` or
+    ``RAVEN_DOCS_GUROBI=1``, which CI sets when a licence is configured) and is
     skipped everywhere else.
 
 ``<!-- run-examples: tabs-differ -->``
@@ -102,10 +103,10 @@ SKIP_FILE = "run-examples: skip-file"
 SKIP_BLOCK = "run-examples: skip"
 NEEDS_GUROBI = "run-examples: needs-gurobi"
 
-# Examples that need a MILP solver run only where Gurobi is available: on a
-# machine with a licence, and in CI when the workflow has one configured. They
-# are skipped everywhere else rather than failing, so a reader without Gurobi
-# still gets a green run.
+# Examples that select Gurobi run only where Gurobi is available: on a machine
+# with a licence, and in CI when the workflow has one configured. They are
+# skipped everywhere else rather than failing, so a reader without Gurobi still
+# gets a green run.
 GUROBI_ENABLED = os.environ.get("RAVEN_DOCS_GUROBI", "") not in ("", "0")
 
 _FENCE_OPEN = re.compile(r"^(?P<indent>[ \t]*)(?P<ticks>`{3,})(?P<info>.*)$")

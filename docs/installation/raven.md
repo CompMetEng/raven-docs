@@ -32,18 +32,18 @@ with no network access ahead of time.
 
 | Solver | LP | MILP | Relative speed | License |
 |---|---|---|---|---|
-| GLPK | yes | no | 1x (baseline) | open source, bundled with RAVEN |
+| GLPK | yes | yes (RAVEN warns; slow on large problems) | 1x (baseline) | open source, bundled with RAVEN |
 | SCIP | yes | yes | 0.33x | open source; bundled on Windows, a separate install on macOS/Linux |
 | Gurobi | yes | yes | 4.2x | free academic license |
 | COBRA Toolbox | yes | depends on the COBRA solver configured | depends on the COBRA solver configured | depends on the COBRA solver configured |
 
 MILP-solving functions (`getMinimalMedium`, ftINIT, some gap-filling
-algorithms) need a solver that supports MILP; GLPK does not, so those
-functions need Gurobi, SCIP, or a MILP-capable solver through the COBRA
-Toolbox.
+algorithms) also run on the bundled GLPK, with a warning that recommends
+Gurobi: on genome-scale models GLPK can be much slower than Gurobi, SCIP, or
+a MILP-capable solver through the COBRA Toolbox.
 
 Set the active solver with `setRavenSolver`, which takes `'gurobi'`,
-`'glpk'`, `'soplex'`, or `'cobra'`:
+`'glpk'`, `'scip'`, or `'cobra'`:
 
 ```matlab
 setRavenSolver('gurobi');
