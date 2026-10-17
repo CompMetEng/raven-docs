@@ -57,7 +57,7 @@ Every other page in this guide is re-executed on every commit. This one is
 not: preparing Human-GEM took **113 minutes** in MATLAB and **126 minutes**
 in Python, the MATLAB run producing a **159 MB** artefact, which no
 documentation build should attempt. The numbers below come
-from one real run (Human-GEM `main`, RAVEN `develop3`, Gurobi 13.0.2) and
+from one real run (Human-GEM `main`, RAVEN 3, Gurobi 13.0.2) and
 are quoted with their wall-clock so you can plan around them.
 
 For the same MATLAB workflow as the model's own documentation presents it,
@@ -133,10 +133,7 @@ prepData.mat: 159 MB
 ```
 
 Human-GEM also has a wrapper, `prepHumanModelForftINIT`, which reads those
-two files for you. Before Human-GEM 2.0.1 it did not run against RAVEN
-`develop3`: `importTsvFile` returned the `spontaneous` column as text, so the
-`== 1` inside it threw. From 2.0.1 on it converts the column first; with an
-older Human-GEM, call `prepINITModel` directly, as above.
+two files for you; it needs Human-GEM 2.0.1 or later.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -189,8 +186,8 @@ without a gene rule are kept only where the optimisation needs them, so they can
 differ from sample to sample. In Human-GEM, `spontaneous` marks reactions that need
 no enzyme. That includes diffusion: transport between cytosol and nucleus through
 the nuclear pores, and gases and water (O2, CO2, H2O, NH3, H2O2, NO, H2S) crossing
-membranes. Leaving out the list, or using a Human-GEM older than the release that
-added these flags, lets ftINIT drop such transports in some samples. The model then
+membranes. Leaving out the list lets ftINIT drop such transports in some
+samples. The model then
 falls back on other routes. For example, without the dCTP transport into the nucleus,
 deoxycytidine kinase (DCK) becomes essential for DNA synthesis, which is an artefact
 of the extraction rather than biology.
