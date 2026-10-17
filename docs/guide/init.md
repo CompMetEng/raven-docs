@@ -57,7 +57,7 @@ Every other page in this guide is re-executed on every commit. This one is
 not: preparing Human-GEM took **113 minutes** in MATLAB and **126 minutes**
 in Python, the MATLAB run producing a **159 MB** artefact, which no
 documentation build should attempt. The numbers below come
-from one real run (Human-GEM `main`, RAVEN `develop3`, Gurobi 13.0.2) and
+from one real run (Human-GEM `main`, RAVEN 3, Gurobi 13.0.2) and
 are quoted with their wall-clock so you can plan around them.
 
 For the same MATLAB workflow as the model's own documentation presents it,
@@ -133,9 +133,7 @@ prepData.mat: 159 MB
 ```
 
 Human-GEM also has a wrapper, `prepHumanModelForftINIT`, which reads those
-two files for you. It does **not** run against RAVEN `develop3`: its
-`importTsvFile` returns the `spontaneous` column as text, so the `== 1`
-inside it throws. Calling `prepINITModel` directly, as above, sidesteps that.
+two files for you; it needs Human-GEM 2.0.1 or later.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -144,6 +142,7 @@ inside it throws. Calling `prepINITModel` directly, as above, sidesteps that.
 
 ```python
 import cobra
+import pandas as pd
 from cobra.io import read_sbml_model
 
 from raven_toolbox.init import prep_init_model
@@ -155,7 +154,11 @@ model = read_sbml_model("Human-GEM/model/Human-GEM.xml")
 model.solver = "gurobi"
 tasks = parse_task_list("Human-GEM/data/metabolicTasks/metabolicTasks_Essential.txt")
 
-prep = prep_init_model(model, tasks, ext_comp="e")
+# spontaneous reactions are flagged in the model's own annotation table
+tsv = pd.read_csv("Human-GEM/model/reactions.tsv", sep="\t")
+spont = tsv.loc[tsv["spontaneous"] == 1, "rxns"].tolist()
+
+prep = prep_init_model(model, tasks, ext_comp="e", spontaneous=spont)
 ```
 
 ```text
@@ -175,6 +178,20 @@ same machine and solver. Two things affect the run:
   second preparation of the same template skips it.
 :::
 ::::
+
+:::{note} Pass the spontaneous reactions
+ftINIT keeps every reaction passed as
+spontaneous in every extracted model, whatever the data say. Other reactions
+without a gene rule are kept only where the optimisation needs them, so they can
+differ from sample to sample. In Human-GEM, `spontaneous` marks reactions that need
+no enzyme. That includes diffusion: transport between cytosol and nucleus through
+the nuclear pores, and gases and water (O2, CO2, H2O, NH3, H2O2, NO, H2S) crossing
+membranes. Leaving out the list lets ftINIT drop such transports in some
+samples. The model then
+falls back on other routes. For example, without the dCTP transport into the nucleus,
+deoxycytidine kinase (DCK) becomes essential for DNA synthesis, which is an artefact
+of the extraction rather than biology.
+:::
 
 ## 14.2 Bring in the expression data
 
