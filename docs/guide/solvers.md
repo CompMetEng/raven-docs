@@ -1,8 +1,12 @@
 # 6. Solvers and configuration
 
-Every simulation on this site ends in a linear program, and something has to
-solve it. This page is about which solver that is, how to change it, and how to
-read what it gives back.
+Most simulations on this site solve a linear program (LP); gap-filling,
+minimum-component media, `solveLP` with `minFlux` 3 and ftINIT solve
+mixed-integer linear programs (MILPs), and the quadratic MOMA in
+[16.5](deletions.md) solves a quadratic program (QP). Something has to solve each
+of them, and which solver can do which depends on the solver and the toolbox.
+This page is about which solver is in use, how to change it, and how to read
+what it gives back.
 
 ### Functions on this page
 
@@ -95,22 +99,26 @@ session can use different solvers.
 
 ## 6.2 Change it
 
-Both toolboxes ship with **GLPK**, which is enough for every LP on this site.
-Gurobi is required for the mixed-integer problems that gap-filling and
-`getMinimalMedium` solve, and is faster on large models; it is free for
-academic use.
+Both toolboxes ship with **GLPK**, which solves LPs and MILPs, so it runs
+every example on this site except the quadratic MOMA. RAVEN prints a warning
+when it sends a MILP to GLPK, recommending Gurobi: GLPK is fine for problems the
+size of these examples, but on a genome-scale model gap-filling and ftINIT can
+take far longer than with **Gurobi**, which is free for academic use. A QP needs
+a QP-capable solver, such as Gurobi or CPLEX; RAVEN has no functions that solve
+one.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
 ```matlab
-setRavenSolver('glpk');     % 'gurobi', or 'cobra' to hand over to the COBRA Toolbox
+setRavenSolver('glpk');     % 'gurobi', 'scip', or 'cobra' to hand over to the COBRA Toolbox
 ```
 
-Those three are the accepted values. `'glpk'` uses the binaries RAVEN ships,
-so it works with no further installation. `'gurobi'` needs Gurobi on the
-MATLAB path. `'cobra'` translates the problem into COBRA Toolbox form and
+The accepted values are `'glpk'`, `'gurobi'`, `'scip'` and `'cobra'`. `'glpk'`
+uses the binaries RAVEN ships, so it works with no further installation.
+`'gurobi'` needs Gurobi on the MATLAB path, and `'scip'` the SCIP MATLAB
+interface. `'cobra'` translates the problem into COBRA Toolbox form and
 uses whatever `changeCobraSolver` last selected, which requires the COBRA
 Toolbox to be initialised first; `setRavenSolver` checks that and errors
 rather than storing a preference that cannot work.
@@ -172,11 +180,11 @@ growth 0.1222 /h
 `solveLP` builds a COBRA-style problem struct and hands it to `optimizeProb`,
 which is where the selected solver is actually called. Calling `optimizeProb`
 directly is the way to solve a problem the toolbox built for you, such as the
-MILPs inside gap-filling, and it takes a `params` struct forwarded to the
-solver. Two fields of `params` are handled by RAVEN rather than passed on:
-`verbose`, which shows MILP progress, and `maxRatio`, which splits
-badly-scaled columns through auxiliary metabolites before solving and leaves
-the feasible region unchanged.
+MILPs inside gap-filling. It takes two name-value arguments: `'params'`, a
+struct forwarded to the solver, and `'verbose'`, which shows MILP progress.
+One field of `params` is handled by RAVEN rather than passed on: `maxRatio`,
+which splits badly-scaled columns through auxiliary metabolites before solving
+and leaves the feasible region unchanged.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -256,8 +264,9 @@ which is a statement about biology rather than about the constraints.
 - **A solver that is set but not installed.** `setRavenSolver('gurobi')`
   stores the preference whether or not Gurobi is there; the failure appears
   at the next solve. `checkRaven` tests it directly.
-- **MILP with GLPK.** GLPK solves LPs only, in RAVEN. Anything mixed-integer
-  (`getMinimalMedium`, some gap-filling) needs Gurobi.
+- **A large MILP on GLPK.** Both toolboxes send MILPs to GLPK, and RAVEN
+  warns when it does. On a genome-scale model, gap-filling and ftINIT can run
+  for hours on GLPK where Gurobi takes minutes; use Gurobi for those.
 - **Reading fluxes after a non-optimal solve.** `sol.stat` of `0` means a
   feasible point was found but not proven optimal, and `-2` means the
   parsimonious step failed after an optimal first solve. Both return numbers.

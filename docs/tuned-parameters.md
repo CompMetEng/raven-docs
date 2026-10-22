@@ -98,16 +98,15 @@ essential-gene drift, measured) ·
 ## Gap-filling
 
 RAVEN MATLAB: `fillGaps` (connectivity mode), ported as `connect_blocked_reactions`.
-`fill_gaps_fast_lp` and `fill_gaps_kumar_milp` are literature-based
-methods added to the Python implementation, with no MATLAB RAVEN counterpart.
+`fill_gaps_fast_lp` and `fill_gaps_milp` are the counterparts of RAVEN's
+`gapFillFastLP` and `gapFillMILP`.
 
 | Parameter | Default | How determined |
 |---|---|---|
 | `epsilon` (in `fill_gaps_fast_lp`) | `0.0001` | Literature: [Thiele et al. 2014](https://doi.org/10.1093/bioinformatics/btu321) (the fastGapFill paper). |
 | `eps` (in `connect_blocked_reactions`) | `1.0` | Measured on a synthetic supply-limited model; reliable noise filter for RAVEN-convention (±1000-bound) models; lower it for tightly-constrained exchanges. |
 | `penalty`, `allow_net_production` (in `connect_blocked_reactions`) | `1.0`, `False` | Measured / standard practice for reconstruction (vs. curation) use. |
-| `weights` (in `fill_gaps_kumar_milp`) | `(1.0, 2.0)` | Literature: [Kumar et al. 2007](https://doi.org/10.1186/1471-2105-8-212); measured: confirms reversal is preferred over adding a new reaction at the intended 2:1 ratio. |
-| `big_m` (in `fill_gaps_kumar_milp`) | `1000.0` | Measured: matches RAVEN's ±1000 bound convention; a smaller value artificially caps reversed-reaction flux. |
+| `big_m` (in `fill_gaps_milp`) | `1000.0` | Matches RAVEN's ±1000 bound convention. It caps an unbounded template reaction only when the merged model has no finite bound; otherwise the largest finite bound does. |
 
 **Full detail:** [Parameter benchmarks](parameter-tuning/benchmarks.md)
 
@@ -200,8 +199,7 @@ RAVEN MATLAB: `checkTasks`. raven-toolbox: `check_tasks`, `find_task_essential_r
 
 | Parameter | Default | How determined |
 |---|---|---|
-| `close_boundaries` (both functions) | `True` | Matches RAVEN's implied behaviour. |
-| `tol` (in `find_task_essential_reactions`) | `1e-8` | Python-side-only parameter. |
+| `close_boundaries` (both functions) | `False` | Matches RAVEN's `checkTasks`, which leaves the model's own exchange reactions open; published task lists were curated against that. `True` makes the task the whole boundary, as `closeModel` does in RAVEN. |
 
 **Full detail:** [Parameter benchmarks](parameter-tuning/benchmarks.md)
 
@@ -335,10 +333,6 @@ cutoff), different algorithms, not a value to port. See the "Keep different" tab
 > analysis of context-specific genome-scale metabolic models derived from
 > single-cell RNA-Seq data.** *Proc Natl Acad Sci USA* 120(6):e2217868120.
 > <https://doi.org/10.1073/pnas.2217868120>
-
-> Kumar VS, Dasika MS, Maranas CD (2007). **Optimization based automated
-> curation of metabolic reconstructions.** *BMC Bioinformatics* 8:212.
-> <https://doi.org/10.1186/1471-2105-8-212>
 
 > Thiele I, Vlassis N, Fleming RMT (2014). **fastGapFill: efficient gap
 > filling in metabolic networks.** *Bioinformatics* 30(17):2529–2531.

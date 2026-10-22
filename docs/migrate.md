@@ -1,7 +1,3 @@
----
-icon: material/folder-open
----
-
 # Migrate
 
 Two ways of moving between versions or languages, each answering a

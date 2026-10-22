@@ -8,11 +8,10 @@ reactions, so annotating a genome with KOs gives you a draft directly. Which
 route you take depends on one thing: whether your organism is already in KEGG.
 
 :::{note} These examples are not run by the documentation build
-Every other page in this guide is executed on each commit and its output
-checked. This one is not. A KEGG reconstruction downloads tens to hundreds of
-megabytes and takes minutes even once that is cached, which is too much for a
-per-commit check. The numbers below come from real runs and are quoted with
-their timings, measured on an ordinary laptop.
+A KEGG reconstruction downloads tens of megabytes and takes minutes, so this
+page is not executed with the others. The Python numbers below come from
+raven-toolbox 3.0.0b1 with the `kegg118` artefacts (about 2.5 minutes per call
+on a recent workstation, with or without the cache).
 :::
 
 ### Functions on this page
@@ -72,9 +71,9 @@ print(f"{len(model.reactions)} rxns, {len(model.metabolites)} mets, "
 The artefacts (a reference model and three tables, about 47 MB) are fetched
 from the `kegg118` raven-data release on first use and cached; see
 [Download data and binaries](../installation/data-and-binaries.md) for
-where, and how to fetch them ahead of a batch run. Expect around five
-minutes for the first run and much the same afterwards: the download is not
-the slow part, assembling the draft from the tables is.
+where, and how to fetch them ahead of a batch run. Expect a few minutes for
+the first run and much the same afterwards: the download is not the slow part,
+assembling the draft from the tables is.
 :::
 ::::
 
@@ -152,8 +151,15 @@ The flags decide how inclusive the draft is. `keepIncomplete` /
 `keepUndefinedStoich` / `keep_undefined_stoich` keeps reactions with `n` or `x`
 in their stoichiometry, which cannot be balanced as written. Turning both off:
 
-```text title="keep_incomplete=False, keep_undefined_stoich=False"
-1348 rxns, 827 genes   (from 1357 and 838)
+```python
+strict = get_kegg_model_for_organism_from_artefacts(
+    "sce", keep_incomplete=False, keep_undefined_stoich=False)
+print(f"{len(strict.reactions)} rxns, {len(strict.genes)} genes "
+      f"(from {len(model.reactions)} and {len(model.genes)})")
+```
+
+```text
+1348 rxns, 827 genes (from 1357 and 838)
 ```
 
 That is a change of nine reactions on this organism. The size of the effect

@@ -192,10 +192,10 @@ genes are all defined.
 
 ## 7.3 Add exchanges
 
-A network with no boundary cannot carry flux: under the steady-state assumption
-every internal metabolite must be produced and consumed at the same rate, so a
-metabolite that appears in only one reaction blocks it. Exchange reactions are
-that boundary.
+Without boundary reactions nothing can enter or leave, so there is no net
+uptake, secretion or growth. Internal cycles can still carry flux (see
+[18.3](fva.md)), and under the steady-state assumption a metabolite that appears
+in only one reaction blocks that reaction. Exchange reactions are the boundary.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -277,8 +277,8 @@ HEX1 flux: 1000.00
   become two different things in Python and an error in MATLAB. Set
   `allow_new_mets=False` and `allow_new_genes=False` once everything is
   defined.
-- **No exchange reactions.** The model then gives zero flux everywhere, with
-  no error to explain why.
+- **No exchange reactions.** Nothing can be taken up or secreted, so growth
+  is zero, with no error to explain why.
 - **A model with no external compartment.** `add_boundary` cannot guess one,
   and RAVEN's `addExchangeRxns` adds exchanges for internal metabolites
   without warning, opening the model to uptake and secretion of

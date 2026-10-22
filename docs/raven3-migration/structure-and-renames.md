@@ -46,11 +46,9 @@ hard-coded a path to a specific `.m` file, (b) called one of the functions that
 was actually removed or merged (see below), or (c) shadowed a RAVEN function
 name with your own; folder names are irrelevant otherwise.
 
-The full moved-file mapping (RAVEN 2 path → RAVEN 3 path) for every relocated
-function is available on request / in the repository's git history
-(`git diff --stat -M develop...develop3`); it is not reproduced in full here
-because it is large and, as the point above explains, rarely something you
-need to act on.
+The full moved-file mapping (RAVEN 2 path → RAVEN 3 path) is not reproduced
+here because it is large and, as the point above explains, rarely something
+you need to act on.
 
 ---
 

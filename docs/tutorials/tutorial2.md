@@ -74,11 +74,10 @@ printFluxes(smallModel, sol.x, true);                                          %
 printFluxes(smallModel, sol.x, false, 10^-5, [], '%rxnID (%rxnName):\n\t%eqn\n\t%flux\n');  % all fluxes
 ```
 
-See [Tutorial 2 on the RAVEN wiki](https://github.com/SysBioChalmers/RAVEN/wiki/Tutorials)
-for more details and the worked answer.
+The worked answer is `tutorial2_solutions.m` in RAVEN's `tutorials` folder.
 
 ## Full script
 
-```{literalinclude} ../../RAVEN/tutorial/tutorial2.m
+```{literalinclude} ../../RAVEN/tutorials/tutorial2.m
 :language: matlab
 ```

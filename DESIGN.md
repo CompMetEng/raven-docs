@@ -25,19 +25,19 @@
 A single, dual-language documentation site for **RAVEN** that serves both the
 **MATLAB** toolbox and the **Python** package (**raven-toolbox**) from one place,
 so a user can learn a concept once and apply it in either language. The site is
-built with [MkDocs](https://www.mkdocs.org/) +
-[Material](https://squidfunk.github.io/mkdocs-material/) and published on Read
-the Docs.
+built with [Sphinx](https://www.sphinx-doc.org/), [MyST](https://myst-parser.readthedocs.io/)
+Markdown and the [PyData theme](https://pydata-sphinx-theme.readthedocs.io/), and
+published on Read the Docs.
 
 ## 2. Guiding principles
 
 - **Dual-language parity.** MATLAB and Python are presented side by side
   throughout: paired API entries, and code blocks with MATLAB/Python tabs.
 - **Single source of truth.** API documentation is extracted directly from the
-  function help in each toolbox's source (via `mkdocstrings`), so it never
+  function help in each toolbox's source, so it never
   drifts from the code. The source repos are tracked as **git submodules**.
 - **Source of truth follows the active branch.** The RAVEN submodule tracks
-  **`develop3`** and raven-toolbox tracks **`develop`**. develop3's modular
+  **`develop`** and raven-toolbox tracks **`develop`**. RAVEN's modular
   folder layout (`reconstruction`, `manipulation`, `analysis`, …) mirrors
   raven-toolbox's package structure, so the two line up by category.
 - **Don't reinvent cobrapy.** Where the Python version intentionally relies on
@@ -50,18 +50,16 @@ the Docs.
 
 ## 3. Technical foundation
 
-- MkDocs + Material theme; Read the Docs build (`.readthedocs.yaml`).
-- `mkdocstrings` with two handlers, both collecting statically from submodule
-  source (no MATLAB runtime, no installed package required):
-  - Python handler (griffe) over the raven-toolbox source, NumPy docstring style.
-  - MATLAB handler (`mkdocstrings-matlab`, tree-sitter) over the RAVEN modular
-    directories, NumPy docstring style.
+- Sphinx + MyST Markdown + PyData theme, with `sphinx-design` for tabs, grids
+  and badges; Read the Docs build (`.readthedocs.yaml`, `docs/conf.py`,
+  `requirements.txt`).
 - Function help in both toolboxes uses **NumPy-style docstrings** so it renders
   as structured argument/return tables.
-- The API reference is **generated at build time** (`mkdocs-gen-files` +
-  `mkdocs-literate-nav`): a cobrapy-style autoapi, one page per category, with
-  MATLAB and Python paired by name.
-- Submodules: `RAVEN` (branch `develop3`), **raven-toolbox** (branch
+- The API reference is **generated at build time** by `scripts/gen_api_pages.py`,
+  called from `docs/conf.py`. It reads the help statically from submodule source
+  (no MATLAB runtime, no installed package) and writes a cobrapy-style autoapi,
+  one page per category, with MATLAB and Python paired by name.
+- Submodules: `RAVEN` (branch `develop`), **raven-toolbox** (branch
   `develop`), `hanpo-GEM` (branch `main`).
 
 ## 4. Site structure
@@ -83,10 +81,9 @@ the Docs.
 An **Installation** section with an overview page and a **separate page per
 version**:
 
-- **RAVEN (MATLAB).** Requirements, then the **three install methods** from the
-  [wiki](https://github.com/SysBioChalmers/RAVEN/wiki/Installation), the
+- **RAVEN (MATLAB).** Requirements, then the **three install methods**: the
   MATLAB Add-Ons manager, a release download, and `git clone`, plus
-  verifying (`checkInstallation`), **upgrading** (per method) and **removing**
+  verifying (`checkRaven`), **upgrading** (per method) and **removing**
   (`removeRavenFromPath`).
 - **Python (raven-toolbox).** Requirements, `pip install raven-toolbox`,
   development install, verifying, **upgrading** and **removing**, and solver
@@ -121,7 +118,7 @@ Then a **mapping table**: MATLAB function name (left) ↔ Python function name
 |---|---|
 | `importModel` | `import_model` |
 | `solveLP` | `solve_lp` |
-| … | … (cobrapy) :material-link-variant: |
+| … | … (cobrapy) |
 
 ### 4.4 Guides
 
@@ -149,7 +146,8 @@ Conventions:
 
 - **Page anatomy.** Title and one-paragraph statement of the task; a
   "Functions on this page" table (MATLAB | Python | note) linking into the API
-  reference; setup; two to five numbered steps, each with a tabbed code block and
+  reference (`scripts/autolink.py` adds the links at build time: every name in
+  the table and the first mention per section in the prose); setup; two to five numbered steps, each with a tabbed code block and
   its real output; "What can go wrong"; "See also".
 - **cobrapy is marked, three ways**: a badge in the function table linking to
   cobrapy's docs, an explicit import in the snippet
@@ -157,7 +155,7 @@ Conventions:
   MATLAB tab would make a cobrapy call look like RAVEN's. A reader who thinks
   `get_by_id` is raven-toolbox's searches the wrong reference.
 - **Never fake a pairing.** Where nothing equivalent exists, the tab says so.
-  `scripts/check_names.py` fails the build on an invented name.
+  `scripts/check_names.py` lists names that resolve to neither toolbox.
 - **Differences are the content.** Where the two toolboxes genuinely disagree,
   `getExchangeRxns` counting 273 exchanges where `model.exchanges` counts 270,
   `fillGaps` being a MILP where `connect_blocked_reactions` is an LP, say so on
@@ -221,13 +219,13 @@ Generated from source, organised so each function is shown for both languages.
   <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html> and a
   function page like
   <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/flux_analysis/parsimonious/index.html#cobra.flux_analysis.parsimonious.pfba>.
-- **MATLAB**: functions organised **by subfolder** (the `develop3` modular
+- **MATLAB**: functions organised **by subfolder** (RAVEN's modular
   categories: `reconstruction`, `manipulation`, `analysis`, …).
 
 ## 5. Conventions
 
-- **Code tabs.** Material content tabs labelled "MATLAB" / "Python", **linked
-  and persistent**, defaulting to **MATLAB**.
+- **Code tabs.** `sphinx-design` tabs labelled "MATLAB" / "Python", **linked**
+  through `:sync:`, defaulting to **MATLAB**.
 - **cobrapy indicator.** Functions that resolve to cobrapy (not RAVEN) are
   marked with a consistent icon/badge and link out to the cobrapy docs.
 - **Naming.** MATLAB `camelCase` ↔ Python `snake_case`; the two are paired by
@@ -246,8 +244,9 @@ into the relevant section above.)*
 
 *(Append decisions here as they are made.)*
 
-- Build stack: MkDocs + Material + `mkdocstrings` (Python + MATLAB handlers).
-- Source via git submodules: RAVEN tracks `develop3`, **raven-toolbox tracks
+- Build stack: Sphinx + MyST + PyData theme; API pages generated by
+  `scripts/gen_api_pages.py`.
+- Source via git submodules: RAVEN tracks `develop`, **raven-toolbox tracks
   `develop`**, hanpo-GEM tracks `main`.
 - The Python package is named **raven-toolbox**.
 - Function help reformatted to NumPy-style docstrings (renders as tables).

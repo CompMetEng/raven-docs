@@ -22,8 +22,11 @@ aerobic minimal glucose medium already applied.
 ## 5.1 What is currently open
 
 An exchange reaction connects a boundary metabolite to nothing, so its flux is
-the rate at which that metabolite enters (negative) or leaves (positive) the
-system. The medium is exactly the set of exchanges with a negative lower bound.
+the rate at which that metabolite enters or leaves the system. yeast-GEM writes
+its exchanges as `metabolite <=>`, so entering is a negative flux and leaving a
+positive one, and the medium is exactly the set of exchanges with a negative
+lower bound. A model that writes uptake as `=> metabolite` has the opposite
+sign; see [6. Solvers](solvers.md).
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -221,7 +224,8 @@ with model:
 
 with model:
     model.medium = {"r_1714": 10.0, "r_1992": 1000.0}   # only glucose and oxygen
-    print(f"glucose and oxygen alone:  {model.slim_optimize():.4f} /h")
+    growth = round(model.slim_optimize(), 4) + 0.0      # + 0.0 turns solver noise -0.0 into 0.0
+    print(f"glucose and oxygen alone:  {growth:.4f} /h")
 
 model.medium = {**shipped, "r_1714": 10.0}        # the shipped recipe, more glucose
 print(f"complete medium:           {model.slim_optimize():.4f} /h")
@@ -351,15 +355,15 @@ gap-filled reaction produces it internally.
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
-<!-- run-examples: needs-gurobi -->
-
 ```matlab
-setRavenSolver('gurobi');   % getMinimalMedium solves a MILP
+% getMinimalMedium solves a MILP: GLPK warns and solves it, setRavenSolver('gurobi') is faster
 sol = solveLP(model);
 medium = getMinimalMedium(model, 'minGrowth', 0.9 * sol.f);
 ```
 
 ```text
+[Warning: Solving a MILP with GLPK. This works for small problems, but for larger problems Gurobi is much faster and more reliable; select it with setRavenSolver('gurobi'). Silence this warning with warning('off','RAVEN:glpkMILP').]
+
 ==============================================================
   Minimal medium  (14 of 16 candidate uptake reactions)
   Target growth: 0.7533
@@ -389,12 +393,11 @@ particular growth rate. `verbose` set to `false` suppresses the table and
 returns the ids alone.
 
 Of the 16 open uptakes, 14 are kept: water and H+ are dropped because other
-reactions supply them. `getMinimalMedium` solves a **MILP**, minimising the
-number of open uptakes, which the GLPK that ships with RAVEN cannot do: with
-GLPK selected it reports `glpk is not suitable for solving MILPs`. cobrapy's
-`minimal_medium` defaults to an LP relaxation that minimises total uptake
-flux instead, which is why the Python tab runs on any solver and returns
-rates rather than a list.
+reactions supply them. `getMinimalMedium` solves a **MILP** that minimises the
+number of open uptakes. RAVEN's bundled GLPK solves it too, with a warning that
+recommends Gurobi. cobrapy's `minimal_medium` by default solves an LP that
+minimises the summed uptake flux (in mmol/gDW/h, all metabolites weighted
+equally), which is why it returns rates.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -425,8 +428,11 @@ r_4600     0.000
 
 The values are uptake rates, not bounds, and the zeros are components the
 solution needs at a rate below the printed precision rather than not at all.
-Passing `minimize_components=True` switches to the MILP formulation and
-returns the same kind of answer `getMinimalMedium` gives.
+`minimize_components=True` solves the component-count MILP instead (it runs on
+GLPK too). It returns the import fluxes of one feasible solution, whose index
+is the medium; the rates are not minimal. Treat values near the solver
+tolerance as zero: with Gurobi, a heme a uptake of 1e-6 appears in this model's
+answer. An integer value returns alternative media as columns.
 :::
 ::::
 
@@ -434,8 +440,9 @@ returns the same kind of answer `getMinimalMedium` gives.
 - **`infeasible` right after setting a medium.** Something essential is
   closed. Reopen the medium one component at a time, or start from
   `minimal_medium` on the working model and compare.
-- **The sign convention bites.** Uptake is a *negative* flux, but
-  `model.medium` takes *positive* numbers. Both are right; mixing them is not.
+- **The sign convention bites.** For an exchange written `metabolite <=>`, as
+  in yeast-GEM, uptake is a *negative* flux, but `model.medium` takes
+  *positive* numbers. Both are right; mixing them is not.
 - **The model grows without a carbon source.** Usually a leak: some reaction
   produces carbon from nothing. [9. Quality control](quality-control.md) is
   where that gets diagnosed, with `canExchange` and `analyse_topology`.

@@ -1,3 +1,5 @@
 	ID	DESCRIPTION	SHOULD FAIL	IN	IN LB	IN UB	OUT	OUT LB	OUT UB	EQU	EQU LB	EQU UB	CHANGED RXN	CHANGED LB	CHANGED UB	PRINT FLUX	COMMENTS
-	GROWTH	Growth on glucose		alpha-D-glucose[c];O2[c]	0	1000	biomass[c];CO2[c]	0	1000								
+	GROWTH	Growth on glucose		alpha-D-glucose[c];O2[c]	0	1000	biomass[c]	0.01	1000								
+							CO2[c]	0	1000								
+							acetate[c]	0	1000								
 	LEAK	Biomass from nothing	1				biomass[c]	0.01	1000								

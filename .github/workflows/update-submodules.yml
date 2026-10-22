@@ -28,7 +28,7 @@ jobs:
           # it out at its tip. Done explicitly because the submodules are
           # `shallow = true`, so only the pinned commit is present and
           # `git submodule update --remote` can't resolve the remote branch ref.
-          # (RAVEN -> develop3, raven-toolbox -> develop, hanpo-GEM -> main)
+          # (RAVEN -> develop, raven-toolbox -> develop, hanpo-GEM -> main)
           git submodule sync --recursive
           git submodule foreach '
             branch=$(git config -f "$toplevel/.gitmodules" "submodule.$name.branch" || echo main)

@@ -12,7 +12,7 @@ holes close, and the judgement is in deciding which holes are worth closing.
 | `gapReport` | `check_model`, `analyse_topology` | find the holes first |
 | `fillGaps` | `connect_blocked_reactions` | add template reactions so blocked reactions can carry flux |
 | `gapFillFastLP` | `fill_gaps_fast_lp` | the LP formulation (fastGapFill / swiftGapFill) |
-| `gapFillMILP` | `fill_gaps_kumar_milp` | the MILP formulation, when the LP is not enough |
+| `gapFillMILP` | `fill_gaps_milp` | the MILP formulation, when the LP is not enough |
 | `gapFillTopological` | `analyse_topology` | connectivity, without solving an LP |
 | `fitTasks` | `fill_tasks` | fill until a task passes; see [15. Metabolic tasks](tasks.md) |
 
@@ -114,16 +114,15 @@ connectivity.
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
-<!-- run-examples: needs-gurobi -->
-
 ```matlab
-setRavenSolver('gurobi');   % fillGaps is a MILP
+% fillGaps solves a MILP: GLPK warns and solves it, setRavenSolver('gurobi') is faster
 [newConnected, cannotConnect, addedRxns] = fillGaps(draft, {template}, ...
     'allowNetProduction', true, 'useModelConstraints', false);
 fprintf('%d added: %s\n', numel(addedRxns), strjoin(addedRxns, ', '));
 ```
 
 ```text
+[Warning: Solving a MILP with GLPK. This works for small problems, but for larger problems Gurobi is much faster and more reliable; select it with setRavenSolver('gurobi'). Silence this warning with warning('off','RAVEN:glpkMILP').]
 1 added: ADH1
 ```
 :::
@@ -149,10 +148,9 @@ those are not stable: it solves a MILP, several solutions are equally
 optimal, and which one comes back can change with the machine or the thread
 count. Two CI runs on identical input reported 11 and 9 newly connected.
 
-**The two are not the same algorithm.** RAVEN's `fillGaps` solves a MILP, so
-it needs Gurobi and reports `glpk is not suitable for solving MILPs`
-otherwise. raven-toolbox's `connect_blocked_reactions` is an LP and runs on
-the GLPK that ships with cobrapy.
+Both are MILPs. `connect_blocked_reactions` runs on the GLPK that ships with
+cobrapy; `fillGaps` runs on RAVEN's bundled GLPK too, with a warning that
+recommends Gurobi, which is the solver this tab selects.
 
 `allow_net_production` decides how strict the test is. A reaction can be
 blocked because a substrate is unavailable *or* because a product has nowhere
@@ -188,8 +186,8 @@ gapFillFastLP: 2 blocked reaction(s) found in draft model.
 
 gapFillFastLP: 1 reaction(s) cannot be rescued by the universal database.
 gapFillFastLP: 1/2 blocked reaction(s) are rescuable; running fast...
-gapFillFastLP: added 8 reaction(s) from universal database.
-8 reactions added
+gapFillFastLP: added 5 reaction(s) from universal database.
+5 reactions added
 ```
 :::
 :::{tab-item} 🐍 Python
@@ -206,7 +204,8 @@ print(f"{len(result.added_reactions)} reactions added")
 1 reactions added
 ```
 
-The two tabs add 8 and 1. They are solving the same idea with different
+The two tabs add 5 and 1 (MATLAB adds 8 with Gurobi: the LP has alternative
+optima, and the solver picks one). They are solving the same idea with different
 inputs: the MATLAB call merges the whole template into the draft first,
 renaming every id it already has, which is what the rename warning above
 lists. Its universal database therefore holds a second copy of the
@@ -220,21 +219,17 @@ the gap between the counts closes.
 
 ## 17.4 The MILP formulation
 
-When the LP relaxation adds too much, or you want the provably smallest set,
-the mixed-integer formulation is the alternative. It needs a MILP solver, and it
-is slower by a wide margin on anything genome-scale.
+When the LP formulation adds too much, or you want the provably smallest set,
+the mixed-integer formulation is the alternative. GLPK solves it at this size in
+both toolboxes (RAVEN warns and recommends Gurobi); on anything genome-scale it
+is slower by a wide margin, and Gurobi is the better choice.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
-<!-- run-examples: needs-gurobi -->
-
 ```matlab
-setRavenSolver('gurobi');
-params.OutputFlag = 0;   % the solver log is long, and machine-specific
-[addedRxns, reversedRxns, outModel] = gapFillMILP(draft, template, ...
-    'params', params);
+[addedRxns, outModel] = gapFillMILP(draft, template);
 fprintf('%d reactions added\n', numel(addedRxns));
 ```
 
@@ -242,35 +237,93 @@ fprintf('%d reactions added\n', numel(addedRxns));
 [Warning: The following reaction IDs in smallYeast are already present in the model and were renamed: Old: acOUT New: acOUT_smallYeast Old: biomassOUT New: biomassOUT_smallYeast Old: co2OUT New: co2OUT_smallYeast Old: ethOUT New: ethOUT_smallYeast Old: glyOUT New: glyOUT_smallYeast Old: glcIN New: glcIN_smallYeast Old: o2IN New: o2IN_smallYeast Old: ethIN New: ethIN_smallYeast Old: HXK New: HXK_smallYeast ...and 43 more]
 
 gapFillMILP: merged model has 52 mets, 105 rxns (52 draft, 52 universal).
-gapFillMILP: 35 reversal candidates, 52 database candidates.
+gapFillMILP: 52 database candidates.
 gapFillMILP: setting minGrowth = 0.02443 (10% of max 0.2443).
-gapFillMILP: solving MILP (192 vars, 87 binary, 192 constraints)...
-gapFillMILP: reversed 0 draft reaction(s), added 0 universal reaction(s).
+gapFillMILP: solving MILP (157 vars, 52 binary, 157 constraints)...
+[Warning: Solving a MILP with GLPK. This works for small problems, but for larger problems Gurobi is much faster and more reliable; select it with setRavenSolver('gurobi'). Silence this warning with warning('off','RAVEN:glpkMILP').]
+gapFillMILP: added 0 universal reaction(s).
 0 reactions added
 ```
 :::
 :::{tab-item} 🐍 Python
 :sync: python
 
-<!-- run-examples: needs-gurobi -->
-
 ```python
-from raven_toolbox.gapfilling import fill_gaps_kumar_milp
+from raven_toolbox.gapfilling import fill_gaps_milp
 
-draft.solver = "gurobi"
-result = fill_gaps_kumar_milp(draft, template)
+result = fill_gaps_milp(draft, template)
 print(f"{len(result.added_reactions)} reactions added")
 ```
 
 ```text
-fill_gaps_kumar_milp: merged model has 53 reactions (52 draft, 1 template).
-fill_gaps_kumar_milp: setting min_growth = 0.01222 (10% of FBA max 0.1222).
-fill_gaps_kumar_milp: solving MILP (35 reversal, 1 database candidates)...
-fill_gaps_kumar_milp: reversed 0 reaction(s), added 0 template reaction(s).
+fill_gaps_milp: merged model has 53 reactions (52 draft, 1 template).
+fill_gaps_milp: setting min_growth = 0.01222 (10% of FBA max 0.1222).
+fill_gaps_milp: solving MILP (1 database candidates)...
+fill_gaps_milp: added 0 template reaction(s).
 0 reactions added
 ```
 :::
 ::::
+
+Zero is the right answer here: without `ADH1` the draft still grows at the
+full 0.1222 /h, so it already meets the default floor (10 % of the merged
+model's maximum) and the MILP has nothing to buy. In MATLAB that floor is twice
+as high, 0.02443 against 0.01222, because `gapFillMILP` merges the template's
+duplicates of the draft's reactions, its uptake reactions included, so the
+merged model can take up twice the glucose. To see a repair, remove a reaction
+growth needs, such as hexokinase:
+
+::::{tab-set}
+:::{tab-item} Ⓜ️ MATLAB
+:sync: matlab
+
+```matlab
+draft2 = removeReactions(template, {'HXK'});   % hexokinase
+draft2.id = 'draft2';
+sol = solveLP(draft2);
+fprintf('draft growth %.4f\n', sol.f);
+addedRxns = gapFillMILP(draft2, template);
+fprintf('added: %s\n', strjoin(addedRxns, ', '));
+```
+
+```text
+draft growth -0.0000
+[Warning: The following reaction IDs in smallYeast are already present in the model and were renamed: Old: acOUT New: acOUT_smallYeast Old: biomassOUT New: biomassOUT_smallYeast Old: co2OUT New: co2OUT_smallYeast Old: ethOUT New: ethOUT_smallYeast Old: glyOUT New: glyOUT_smallYeast Old: glcIN New: glcIN_smallYeast Old: o2IN New: o2IN_smallYeast Old: ethIN New: ethIN_smallYeast Old: PGI New: PGI_smallYeast ...and 43 more]
+
+gapFillMILP: merged model has 52 mets, 105 rxns (52 draft, 52 universal).
+gapFillMILP: 52 database candidates.
+gapFillMILP: setting minGrowth = 0.02443 (10% of max 0.2443).
+gapFillMILP: solving MILP (157 vars, 52 binary, 157 constraints)...
+[Warning: Solving a MILP with GLPK. This works for small problems, but for larger problems Gurobi is much faster and more reliable; select it with setRavenSolver('gurobi'). Silence this warning with warning('off','RAVEN:glpkMILP').]
+gapFillMILP: added 1 universal reaction(s).
+added: HXK
+```
+:::
+:::{tab-item} 🐍 Python
+:sync: python
+
+```python
+draft2 = template.copy()
+draft2.remove_reactions([draft2.reactions.get_by_id("HXK")])   # hexokinase
+print(f"draft growth {draft2.slim_optimize():.4f}")
+result = fill_gaps_milp(draft2, template, verbose=False)
+print(f"added: {result.added_reactions}")
+print(f"filled growth {result.model.slim_optimize():.4f}")
+```
+
+```text
+draft growth 0.0000
+added: ['HXK']
+filled growth 0.1222
+```
+:::
+::::
+
+Hexokinase comes back. Both functions only add template reactions: the
+draft's own reactions keep their bounds, forced fluxes such as ATP maintenance
+included. A draft reaction that runs in the wrong direction is therefore not
+reversed to close a gap; it is a curation finding, so correct its bounds in the
+draft (see [8. Editing an existing model](editing.md)) and fill again.
 
 ## 17.5 Filling towards a task, not a hole
 
@@ -326,8 +379,11 @@ already contains the draft, which is the form ftINIT passes.
 - **Net production hiding the problem.** `allowNetProduction` makes more
   reactions look connectable by ignoring where the products go. Useful early,
   misleading later.
-- **MILP on a genome-scale model.** Expect it to be slow, and give it a time
-  limit; see [6. Solvers and configuration](solvers.md).
+- **MILP on a genome-scale model.** Expect it to be slow, on GLPK most of
+  all, and give it a time limit; see [6. Solvers and configuration](solvers.md).
+- **A draft reaction in the wrong direction.** `gapFillMILP` and
+  `fill_gaps_milp` do not change the draft's own reactions, so a wrong
+  direction shows up as a fill that fails or adds a detour around it.
 - **Comparing added-reaction counts across toolboxes.** The two sides
   differ in what they treat as a candidate, so the counts are only
   comparable when the template genuinely holds reactions the draft lacks.

@@ -58,13 +58,15 @@ model.objective = "biomassOUT"
 Both toolboxes take a `seed`, and you should always set one: without it a chain
 is different every run and nothing you report can be reproduced.
 
-A seed does not guarantee identical numbers, though. The Python chain
-here reproduces exactly across operating systems; the MATLAB one does not. Its
-samplers take a nullspace basis from `null`, which comes from LAPACK, so the
-same seed on Linux and on Windows explores the same *distribution* along a
-slightly different walk: running this page on both put `FRDS2`'s sampled
-minimum at 19.0 and at 18.8. That is why the numbers below are printed to two
-decimals: the distribution is the result, the individual draws are not.
+A seed does not guarantee identical numbers, though. The default `achr`
+sampler starts from warmup points, and those come from LPs: two per reaction.
+A different solver, solver version or platform, and with GLPK even an earlier
+solve on the same model (which leaves a different starting basis), returns
+different warmup vertices, so the same seed explores the same *distribution*
+along a different walk. With seed 1, MATLAB puts `FRDS2`'s sampled minimum at
+18.8 with GLPK and at 4.5 with Gurobi. That is why the numbers below are
+printed to few decimals: the distribution is the result, the individual draws
+are not.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -184,11 +186,6 @@ fprintf('chrr: %d dimensions, MVE converged: %d, %d fixed\n', ...
 chrr: 9 dimensions, MVE converged: 0, 1 fixed
 ```
 
-On RAVEN before [#696](https://github.com/SysBioChalmers/RAVEN/pull/696) this
-call failed on `smallYeast` with `sampleChebyshevCenter: LP infeasible - flux
-polytope has empty interior`. The polytope was fine; the equality system is
-square and rank-deficient there, and the particular solution came back `NaN`.
-If you see that error, update RAVEN.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -229,30 +226,30 @@ its optimum, fix a measured flux) and sample the space that is left.
 
 ```matlab
 sol = solveLP(model);
-atOptimum = setParam(model, 'lb', 'biomassOUT', 0.9 * sol.f);
-constrained = randomSampling(atOptimum, 200, 'seed', 1);
+floored = setParam(model, 'lb', 'biomassOUT', 0.9 * sol.f);
+constrained = randomSampling(floored, 200, 'seed', 1);
 ethIdx = getIndexes(model, 'ethOUT', 'rxns');
-fprintf('ethanol: free %.2f, at 90%% growth %.2f\n', ...
+fprintf('ethanol: free %.2f, growth >= 90%% %.2f\n', ...
     mean(solutions(ethIdx, :)), mean(constrained(ethIdx, :)));
 ```
 
 ```text
-ethanol: free 0.80, at 90% growth 0.04
+ethanol: free 0.80, growth >= 90% 0.04
 ```
 :::
 :::{tab-item} 🐍 Python
 :sync: python
 
 ```python
-at_optimum = model.copy()
-at_optimum.reactions.get_by_id("biomassOUT").lower_bound = 0.9 * model.slim_optimize()
-constrained = random_sampling(at_optimum, 200, seed=1)
+floored = model.copy()
+floored.reactions.get_by_id("biomassOUT").lower_bound = 0.9 * model.slim_optimize()
+constrained = random_sampling(floored, 200, seed=1)
 print(f"ethanol: free {result.samples['ethOUT'].mean():.2f}, "
-      f"at 90% growth {constrained.samples['ethOUT'].mean():.2f}")
+      f"growth >= 90% {constrained.samples['ethOUT'].mean():.2f}")
 ```
 
 ```text
-ethanol: free 0.72, at 90% growth 0.04
+ethanol: free 0.72, growth >= 90% 0.04
 ```
 :::
 ::::
@@ -260,9 +257,12 @@ ethanol: free 0.72, at 90% growth 0.04
 ## 19.5 Which reactions to sample over
 
 The `randomObjective` method needs reactions that can carry real flux to use as
-objectives. Reactions that move only through a loop are useless for that, so
-both toolboxes screen them out with a loopless FVA first, the same test
-[18. Flux variability](fva.md) used by hand.
+objectives. Reactions that move only through a loop are useless for that, and
+the two toolboxes screen them out differently. raven-toolbox runs a loopless
+FVA, the same test [18. Flux variability](fva.md) used by hand. RAVEN runs a
+plain FVA (`getAllowedBounds`) and drops the reactions that reach 0.999 of the
+model's largest bound, which is where loop flux ends up. Here both keep the
+same 50.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -297,21 +297,30 @@ which on a genome-scale model skips the expensive part of the run.
 ::::
 
 :::{warning} What can go wrong
-- **No seed.** The numbers change every run. Set one, and report it, and do
-  not expect a seed alone to reproduce a MATLAB chain on another machine
-  (see 19.1). Report the distribution, not the draws.
-- **Too little thinning.** Consecutive MCMC steps are correlated; the default
-  of 100 steps between recorded samples exists for that reason. Lowering it
-  gains speed and loses independence.
+- **No seed.** The numbers change every run. Set one, and report it with the
+  solver: the warmup points come from LPs, so another solver (or, with GLPK,
+  an earlier solve on the same model) gives another chain (see 19.1). Report
+  the distribution, not the draws.
+- **Too little thinning.** Consecutive MCMC steps are correlated, which is why
+  only every 100th is recorded. That is enough for this model, not for a
+  genome-scale one: on yeast-GEM, samples 100 steps apart are still 0.93
+  correlated and independent chains disagree on most reactions (see the
+  [sampling convergence study](../parameter-tuning/studies/sampling-convergence-calibration.md)).
+  For results you report, run chains with different seeds and check that
+  they agree.
 - **Reading a mean as a prediction.** The mean of a sample describes the
-  *feasible space*, not the cell. A reaction can average 5 while no
-  individual feasible state puts it near 5.
+  feasible space and the sampler, not the cell. It is itself a feasible
+  state, but it sits where most of the volume is: in 19.2 that puts mean
+  growth below half the optimum. With `randomObjective` the samples are
+  vertices, so a reaction can average 5 while every sample has it at 0 or 10.
 - **Sampling a model that is wide open.** With an unconstrained medium the
   space is enormous and the distribution says nothing. Constrain first.
 - **Loops.** They inflate the space being sampled, and every sample drawn
   inside a cycle is wasted. See [18. Flux variability](fva.md).
-- **Genome-scale runtime.** Sampling is many LPs per recorded sample. Start with
-  a few hundred samples to see the shape, not tens of thousands.
+- **Genome-scale runtime.** `achr` starts with two LPs per reaction for its
+  warmup points and `chrr` with an FVA and a rounding step; the sampling
+  steps after that solve no LP. `randomObjective` solves one LP per sample.
+  Start with a few hundred samples to see the shape, not tens of thousands.
 :::
 
 ## See also

@@ -14,8 +14,8 @@ This script closes that gap, for **both** language tabs. For every page it
   workspace), in a scratch directory seeded with a copy of ``docs/data/``, so the
   snippets can use the short relative paths the reader sees,
 * captures what the block prints -- plus the repr of a trailing expression, the
-  way a notebook or the REPL would -- and compares it with the ``title="Output"``
-  block that follows,
+  way a notebook or the REPL would -- and compares it with the plain ``text`` block
+  that follows,
 * reports every mismatch as a unified diff and exits non-zero.
 
 MATLAB needs a MATLAB runtime on the PATH (or ``RAVEN_DOCS_MATLAB`` pointing at
@@ -40,8 +40,9 @@ Page-level control, written as HTML comments in the markdown:
     immediately before a ```python block -- that one block is neither executed
     nor checked, but the ones after it still run.
 ``<!-- run-examples: needs-gurobi -->``
-    the block needs a MILP solver: it runs where Gurobi is available (``--gurobi``
-    or ``RAVEN_DOCS_GUROBI=1``, which CI sets when a licence is configured) and is
+    the block selects Gurobi (a MILP the page runs on Gurobi rather than on the
+    bundled GLPK): it runs where Gurobi is available (``--gurobi`` or
+    ``RAVEN_DOCS_GUROBI=1``, which CI sets when a licence is configured) and is
     skipped everywhere else.
 
 ``<!-- run-examples: tabs-differ -->``
@@ -93,14 +94,19 @@ RAVEN_DIR = Path(os.environ.get("RAVEN_DOCS_RAVEN_SRC", ROOT / "RAVEN"))
 MATLAB_SOLVER = "glpk"
 LANGUAGES = ("python", "matlab")
 
+# The info string of an expected-output fence: a bare ```text directly below the
+# code block. A titled text fence (```text title="tasks.txt") is an input shown
+# to the reader, not output.
+OUTPUT_INFO = "text"
+
 SKIP_FILE = "run-examples: skip-file"
 SKIP_BLOCK = "run-examples: skip"
 NEEDS_GUROBI = "run-examples: needs-gurobi"
 
-# Examples that need a MILP solver run only where Gurobi is available: on a
-# machine with a licence, and in CI when the workflow has one configured. They
-# are skipped everywhere else rather than failing, so a reader without Gurobi
-# still gets a green run.
+# Examples that select Gurobi run only where Gurobi is available: on a machine
+# with a licence, and in CI when the workflow has one configured. They are
+# skipped everywhere else rather than failing, so a reader without Gurobi still
+# gets a green run.
 GUROBI_ENABLED = os.environ.get("RAVEN_DOCS_GUROBI", "") not in ("", "0")
 
 _FENCE_OPEN = re.compile(r"^(?P<indent>[ \t]*)(?P<ticks>`{3,})(?P<info>.*)$")
@@ -248,7 +254,7 @@ def collect_examples(page: Path, language: str = "python") -> PageResult:
         if index + 1 < len(fences):
             nxt = fences[index + 1]
             gap = lines[fence.end + 1 : nxt.start]
-            if all(not line.strip() for line in gap) and 'title="Output"' in nxt.info:
+            if all(not line.strip() for line in gap) and nxt.info.strip() == OUTPUT_INFO:
                 output = nxt
         result.examples.append(
             Example(
@@ -738,7 +744,7 @@ def update_page(result: PageResult) -> bool:
         actual = normalise(example.actual)
         indent = example.code_fence.indent
         if actual:
-            block = [f'{indent}```text title="Output"']
+            block = [f"{indent}```{OUTPUT_INFO}"]
             block += [f"{indent}{line}".rstrip() for line in actual.split("\n")]
             block += [f"{indent}```"]
         else:

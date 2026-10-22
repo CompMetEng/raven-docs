@@ -164,13 +164,7 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
-
-# Sphinx exploration (explore/pydata-sphinx-theme): generated at build time
-# by scripts/gen_api_pages_sphinx.py, the same way the MkDocs build's API
-# pages exist only in mkdocs-gen-files' virtual filesystem, never in git.
-.venv-sphinx/
+# API reference pages, generated at build time by scripts/gen_api_pages.py
 docs/api/matlab/*.md
 docs/api/python/*.md
 docs/matlab-vs-python.md

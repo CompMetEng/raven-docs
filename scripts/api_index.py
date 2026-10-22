@@ -35,8 +35,8 @@ PYPKG = Path(
 )
 
 # RAVEN top-level categories to document, in nav order: (folder, page title).
-# Pruned to existing folders at build time by scripts/build_hooks.py / the
-# matlab handler; legacy/ and external/ are intentionally excluded.
+# Folders missing from the tracked branch are skipped; legacy/ and external/
+# are intentionally excluded.
 MATLAB_CATEGORIES = [
     ("analysis", "Analysis"),
     ("annotation", "Annotation"),
@@ -120,42 +120,69 @@ def is_matlab_function(path: Path) -> bool:
     return False
 
 
-def matlab_summary(path: Path, fname: str) -> str:
-    """First descriptive line of a function's MATLAB help block."""
+def matlab_help_block(path: Path) -> tuple[str, list[str]]:
+    """(signature, help lines) of a MATLAB function file.
+
+    The signature is the ``function`` line, with any ``...`` continuation
+    lines joined onto it. The help lines are the comment block that follows,
+    with the ``%`` and the one space after it removed, so the author's
+    indentation and blank lines are kept.
+    """
     try:
         with path.open(encoding="utf-8-sig", errors="ignore") as fh:
-            lines = fh.readlines()
+            lines = fh.read().splitlines()
     except OSError:
-        return ""
+        return "", []
 
+    i = 0
+    while i < len(lines) and not lines[i].strip().startswith("function"):
+        i += 1
+    if i == len(lines):
+        return "", []
+    signature = [lines[i].strip()]
+    while signature[-1].endswith("...") and i + 1 < len(lines):
+        i += 1
+        signature.append(lines[i].rstrip())
+    i += 1
+
+    while i < len(lines) and not lines[i].strip():
+        i += 1
     help_lines: list[str] = []
-    started = False
-    for line in lines:
-        stripped = line.strip()
-        if not started:
-            if stripped.startswith("function"):
-                started = True
-            continue
-        if stripped.startswith("%"):
-            help_lines.append(stripped.lstrip("%").strip())
-        elif stripped == "" and not help_lines:
-            continue
-        else:
-            break
+    while i < len(lines) and lines[i].strip().startswith("%"):
+        text = lines[i].strip()[1:]
+        help_lines.append(text[1:] if text.startswith(" ") else text)
+        i += 1
+    while help_lines and not help_lines[-1].strip():
+        help_lines.pop()
+    return "\n".join(signature), help_lines
 
-    cleaned = [h for h in help_lines if h]
-    if not cleaned:
-        return ""
-    # The first help line is often just the function name; strip it.
-    first = cleaned[0]
+
+def matlab_summary_and_body(path: Path, fname: str) -> tuple[str, list[str]]:
+    """(summary, remaining help lines) of a MATLAB function.
+
+    The first help line is often just the function name, or the name followed
+    by the summary; the name is stripped, and a line holding nothing else
+    gives way to the next one.
+    """
+    _signature, help_lines = matlab_help_block(path)
+    nonblank = [n for n, line in enumerate(help_lines) if line.strip()]
+    if not nonblank:
+        return "", []
+    first_idx = nonblank[0]
+    first = help_lines[first_idx].strip()
     if first.lower().startswith(fname.lower()):
         rest = first[len(fname):].strip(" -:\t")
         if rest:
-            return rest
-        if len(cleaned) > 1:
-            return cleaned[1]
-        return ""
-    return first
+            return rest, help_lines[first_idx + 1:]
+        if len(nonblank) > 1:
+            return help_lines[nonblank[1]].strip(), help_lines[nonblank[1] + 1:]
+        return "", []
+    return first, help_lines[first_idx + 1:]
+
+
+def matlab_summary(path: Path, fname: str) -> str:
+    """First descriptive line of a function's MATLAB help block."""
+    return matlab_summary_and_body(path, fname)[0]
 
 
 def collect_matlab() -> dict[str, list[dict]]:

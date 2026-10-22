@@ -47,7 +47,7 @@ raven-toolbox splits them, so porting a `fillGaps` call means choosing:
 |---|---|
 | Connecting blocked reactions against template models | `connect_blocked_reactions` |
 | Fast LP-based filling of a large candidate set | `fill_gaps_fast_lp` |
-| MILP filling with explicit weights | `fill_gaps_kumar_milp` |
+| MILP filling with the fewest added reactions that restore growth | `fill_gaps_milp` |
 | Only *finding* the gaps (`canExchange`, `checkProduction`, `getAllSubGraphs`, `haveFlux`) | `analyse_topology` |
 
 The choice changes both the reaction set added and the runtime, because each

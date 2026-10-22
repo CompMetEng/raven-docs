@@ -113,6 +113,6 @@ end
 
 ## Full script
 
-```{literalinclude} ../../RAVEN/tutorial/tutorial3.m
+```{literalinclude} ../../RAVEN/tutorials/tutorial3.m
 :language: matlab
 ```

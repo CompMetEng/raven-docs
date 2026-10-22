@@ -23,7 +23,9 @@ inputs, the outputs, any equations that must carry flux, and the bounds on each.
 
 ```text title="tasks.txt, abridged; the real file keeps every column"
 	ID	DESCRIPTION	SHOULD FAIL	IN	IN LB	IN UB	OUT	OUT LB	OUT UB	…
-	GROWTH	Growth on glucose		alpha-D-glucose[c];O2[c]	0	1000	biomass[c];CO2[c]	0	1000	…
+	GROWTH	Growth on glucose		alpha-D-glucose[c];O2[c]	0	1000	biomass[c]	0.01	1000	…
+							CO2[c]	0	1000	…
+							acetate[c]	0	1000	…
 	LEAK	Biomass from nothing	1				biomass[c]	0.01	1000	…
 ```
 
@@ -43,16 +45,22 @@ set; the columns after `OUT UB` are blank.
 
 Metabolites are named `name[compartment]`, matching the metabolite **names**, not
 the identifiers. Several go in one cell, separated by `;`, and the bounds columns
-apply to all of them.
+apply to all of them. To give a metabolite bounds of its own, put it on a
+continuation row: a row with no `ID` adds its inputs and outputs to the task
+above it. `GROWTH` uses that to ask for at least 0.01 units of biomass while
+leaving CO₂ and acetate free; with a lower bound of 0 on biomass, the all-zero
+flux would pass the task. The 0.01 is illustrative; any positive floor makes
+the point.
 
 `SHOULD FAIL` marks a task the model must *fail*: the second asks for
 biomass with nothing supplied, which a correct model cannot do, so failing it is
 a pass.
 
-Note what `GROWTH` has to list. Glucose and oxygen in, biomass out, and **CO₂**,
-because a task closes the model's own exchanges and growth has to put its carbon
-somewhere. Leave CO₂ out and the task is infeasible, which looks like a broken
-model and is really a broken task.
+Note what `GROWTH` has to list once the model's own exchanges are closed (15.2):
+glucose and oxygen in, biomass out, and **CO₂** and **acetate**, because growth
+has to put its carbon somewhere: CO₂ and, in this small model, some acetate.
+Leave CO₂ out and the task is infeasible, which looks like a broken model and is
+really a broken task.
 
 ## 15.1 Read and run the tasks
 
@@ -65,7 +73,8 @@ model = readYAMLmodel('smallYeast.yml');
 tasks = parseTaskList('tasks.txt');
 fprintf('%d tasks\n', numel(tasks));
 
-report = checkTasks(model, [], 'printOutput', false, 'taskStructure', tasks);
+closed = closeModel(model);   % the task is the whole boundary, see 15.2
+report = checkTasks(closed, [], 'printOutput', false, 'taskStructure', tasks);
 for i = 1:numel(report.id)
     verdicts = {'FAIL', 'pass'};
     fprintf('  %-8s %s\n', report.id{i}, verdicts{report.ok(i) + 1});
@@ -74,7 +83,6 @@ end
 
 ```text
 2 tasks
-[Warning: Exchange metabolites should normally not be removed from the model when using checkTasks. Inputs and outputs are defined in the task file instead. Use importModel(file,false) to import a model with exchange metabolites remaining]
   GROWTH   pass
   LEAK     pass
 ```
@@ -103,7 +111,7 @@ model = read_yaml_model("smallYeast.yml")
 tasks = parse_task_list("tasks.txt")
 print(len(tasks), "tasks")
 
-for result in check_tasks(model, tasks):
+for result in check_tasks(model, tasks, close_boundaries=True):   # see 15.2
     verdict = "pass" if result.passed else "FAIL"
     print(f"  {result.id:<8} {verdict}  (feasible: {result.feasible})")
 ```
@@ -114,47 +122,89 @@ for result in check_tasks(model, tasks):
   LEAK     pass  (feasible: False)
 ```
 
-`check_tasks` closes the model's own exchange reactions first, so the inputs
-and outputs are exactly what the task says they are; RAVEN does the same.
-That is why a task list is portable between models in a way a script full of
-`setParam` calls is not.
+`close_boundaries=True` closes the model's own exchange, sink and demand
+reactions first, so the inputs and outputs are exactly what the task says they
+are. That is why a task list is portable between models in a way a script full
+of `setParam` calls is not.
 :::
 ::::
 
 ## 15.2 A task defines its own medium
 
-`check_tasks` closes every exchange, sink and demand the model has before
-applying a task, exactly as RAVEN does. The task's inputs and outputs are then
-the *only* way anything enters or leaves, which is what makes a task list
-portable between models, and what makes an incomplete task look like a broken
-model.
+By default neither `checkTasks` nor `check_tasks` closes the model's own
+exchange reactions: a task's inputs and outputs are added to whatever the model
+already allows. To make the task the whole boundary, close the model first:
+`closeModel` in RAVEN (what ftINIT does before collecting task-essential
+reactions), `close_boundaries=True` in raven-toolbox. The task's inputs and
+outputs are then the *only* way anything enters or leaves, which is what makes
+a task list portable between models, and what makes an incomplete task look like
+a broken model.
 
 ::::{tab-set}
+:::{tab-item} Ⓜ️ MATLAB
+:sync: matlab
+
+```matlab
+noCO2 = tasks(1);
+noCO2.id = 'GROWTH-NO-CO2';
+keep = ~strcmp(noCO2.outputs, 'CO2[c]');
+noCO2.outputs = noCO2.outputs(keep);
+noCO2.LBout = noCO2.LBout(keep);
+noCO2.UBout = noCO2.UBout(keep);
+pair = [tasks(1); noCO2];
+
+boundaries = {'open', 'closed'};
+models = {model, closed};
+for k = 1:2
+    report = checkTasks(models{k}, [], 'printOutput', false, 'taskStructure', pair);
+    for i = 1:numel(report.id)
+        fprintf('  %-6s  %-14s feasible=%d\n', boundaries{k}, report.id{i}, report.ok(i));
+    end
+end
+```
+
+```text
+[Warning: Exchange metabolites should normally not be removed from the model when using checkTasks. Inputs and outputs are defined in the task file instead. Use importModel(file,false) to import a model with exchange metabolites remaining]
+  open    GROWTH         feasible=1
+  open    GROWTH-NO-CO2  feasible=1
+  closed  GROWTH         feasible=1
+  closed  GROWTH-NO-CO2  feasible=0
+```
+:::
 :::{tab-item} 🐍 Python
 :sync: python
 
 ```python
 from raven_toolbox.tasks import Task
 
-incomplete = Task(
+growth = tasks[0]
+no_co2 = Task(
     id="GROWTH-NO-CO2",
-    description="the same task, without somewhere to put the carbon",
-    inputs=[("alpha-D-glucose[c]", 0.0, 1000.0), ("O2[c]", 0.0, 1000.0)],
-    outputs=[("biomass[c]", 0.0, 1000.0)],
+    description="the same task, without somewhere to put the CO2",
+    inputs=growth.inputs,
+    outputs=[o for o in growth.outputs if o[0] != "CO2[c]"],
 )
 
-for result in check_tasks(model, [incomplete, tasks[0]]):
-    print(f"  {result.id:<16} feasible={result.feasible}")
+for close in (False, True):
+    for result in check_tasks(model, [growth, no_co2], close_boundaries=close):
+        boundary = "closed" if close else "open"
+        print(f"  {boundary:<6}  {result.id:<14} feasible={result.feasible}")
 ```
 
 ```text
-  GROWTH-NO-CO2    feasible=True
-  GROWTH           feasible=True
+  open    GROWTH         feasible=True
+  open    GROWTH-NO-CO2  feasible=True
+  closed  GROWTH         feasible=True
+  closed  GROWTH-NO-CO2  feasible=False
 ```
-
-The only difference between the two is the CO₂ output.
 :::
 ::::
+
+The only difference between the two tasks is the CO₂ output. With the model's
+own exchanges open, both are feasible: the carbon leaves through the model's
+`co2OUT`, whatever the task says. With them closed, the task without CO₂ is
+infeasible. A task list written for one reading gives different answers under
+the other, so check which one it was curated against.
 
 ## 15.3 Which reactions does a task depend on?
 
@@ -168,14 +218,13 @@ expression score.
 :sync: matlab
 
 ```matlab
-[~, essentialRxns] = checkTasks(model, [], 'printOutput', false, ...
+[~, essentialRxns] = checkTasks(closed, [], 'printOutput', false, ...
     'getEssential', true, 'taskStructure', tasks(1));
 fprintf('%d reactions essential for the task\n', sum(essentialRxns));
 ```
 
 ```text
-[Warning: Exchange metabolites should normally not be removed from the model when using checkTasks. Inputs and outputs are defined in the task file instead. Use importModel(file,false) to import a model with exchange metabolites remaining]
-0 reactions essential for the task
+28 reactions essential for the task
 ```
 
 Task-essential reactions come from `checkTasks` with its `getEssential`
@@ -190,14 +239,14 @@ for the model's own objective and takes no task at all.
 ```python
 from raven_toolbox.tasks import find_task_essential_reactions
 
-result = find_task_essential_reactions(model, tasks[:1])
+result = find_task_essential_reactions(model, tasks[:1], close_boundaries=True)
 print(len(result.reactions), "reactions essential for the task")
 print(sorted(result.reactions)[:5])
 ```
 
 ```text
-0 reactions essential for the task
-[]
+28 reactions essential for the task
+['ACO', 'ACS', 'ALD6', 'CIT', 'CO2TRANS']
 ```
 :::
 ::::
@@ -239,9 +288,12 @@ every task feasible again.
 - **Forgetting `SHOULD FAIL`.** The tasks that matter most are often the ones
   the model must *not* satisfy; without them, a leaking model passes
   everything.
-- **Tasks that encode the medium.** A task defines its own inputs, so it does
-  not inherit the model's medium. A task passing therefore says nothing
-  about whether the model grows on the medium the model carries.
+- **Not knowing which boundary the task ran against.** With the model closed,
+  a task defines its own inputs and does not inherit the model's medium, so a
+  task passing says nothing about whether the model grows on the medium it
+  carries. Left open (the default in both toolboxes), the model's own exchanges
+  take part, and a task can pass because of an uptake or secretion it never
+  lists.
 :::
 
 ## See also

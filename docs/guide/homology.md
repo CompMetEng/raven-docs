@@ -24,7 +24,11 @@ reliability of the draft, and they are what encode the method's assumptions.
 Two proteomes and a template model. The template is `smallYeast.yml` (53
 reactions, 61 genes), and `sce-template.faa` holds the sequences of exactly those
 61 *S. cerevisiae* genes. The organism being reconstructed is *Hansenula
-polymorpha*, whose full 5177-protein proteome is in `hanpo.faa`.
+polymorpha*, whose full 5177-protein proteome is in `hanpo.faa`. All three files
+are in [`docs/data/`](../data/README.md):
+[`smallYeast.yml`](../data/smallYeast.yml),
+[`sce-template.faa`](../data/sce-template.faa) and
+[`hanpo.faa`](../data/hanpo.faa).
 
 The template model's id must match the id used for the BLAST. The transfer step
 looks up each hit's source organism by that id to find which template model the
@@ -116,10 +120,12 @@ sce      hanpo    159
 :::
 ::::
 
-The two directions return different counts because they ask different questions:
-159 template genes found a match in *H. polymorpha*, and 178 *H. polymorpha*
-genes found a match in the template. Neither number is the number of orthologs;
-that is decided in the next step, from the pairs that appear in both directions.
+The two directions return different counts because they ask different
+questions, and neither count is of genes: each line of BLAST output is one
+alignment. The 159 alignments in the template-to-*H. polymorpha* direction come
+from 60 of the 61 template genes, and the 178 in the other direction from 106
+*H. polymorpha* genes. Neither number is the number of orthologs; that is decided
+in the next step, from the pairs that appear in both directions.
 
 The shape of the result differs between the toolboxes. RAVEN returns a struct
 array with one entry per direction, each carrying `fromId`, `toId`, `fromGenes`,
@@ -324,9 +330,8 @@ reactions that can carry flux: 0 of 37
 ::::
 
 None of the 37 reactions can carry flux. This is not a defect in the draft: with
-no exchange reactions there is no way for anything to enter or leave the system,
-so every reaction is blocked by the steady-state constraint regardless of how
-well connected the network is. The number says nothing yet about the quality of
+no exchange reactions nothing can enter or leave, so the only flux left is
+internal cycling, and this draft has none. The number says nothing yet about the quality of
 the reconstruction, and will only become informative once a medium is defined.
 
 A homology draft is a set of claims about which reactions the organism has. Turning

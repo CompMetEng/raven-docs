@@ -2,8 +2,8 @@
 
 Which genes can the organism lose and still grow? Knock each one out, re-solve,
 and compare. The same machinery answers "which reactions are essential", "what
-happens if I delete two things at once", and "how do I predict a knockout's flux
-distribution better than plain FBA does".
+happens if I delete two things at once", and "what flux distribution does a
+knockout have right after the gene is lost".
 
 ### Functions on this page
 
@@ -121,9 +121,11 @@ fprintf('%d genes tested, %d essential\n', numel(genes), sum(growth < 1e-6));
 `fluxes` comes back sparse and with one column per deletion, so the growth
 row has to be pulled out by the objective's position, as above.
 `findGeneDeletions` also returns a `details` vector saying what happened to
-each gene: whether it was deleted, proved lethal, or was skipped because it
-only appears on dead-end reactions and deleting it could not change the
-answer.
+each gene: 1 when the deletion was solved, 2 when the problem had no optimal
+solution (infeasible or failed, with fluxes reported as zero), and 4 when the
+gene was skipped because it only appears on dead-end reactions and deleting it
+could not change the answer. A gene whose deletion solves to zero growth gets 1,
+not 2, so read lethality off the growth row, as above.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -142,10 +144,15 @@ print(sorted(next(iter(ids)) for ids in essential.ids)[:5])
 ['YBR196C', 'YCR012W', 'YDL066W', 'YDR050C', 'YKL060C']
 ```
 
-`single_gene_deletion` returns a DataFrame indexed by the deleted gene set,
-with the resulting growth rate and solver status, so ordinary pandas
-filtering finds the essential ones. The index holds a frozenset per row,
-because the same function shape serves the double-deletion case.
+`single_gene_deletion` returns a DataFrame with one row per deletion: `ids`
+(the set of deleted gene ids, a set so that the double-deletion case has the
+same shape), `growth` and `status`. Look a gene up with
+`results.knockout["YBR196C"]`. A knockout that makes the problem infeasible
+gets `growth` NaN and `status` `'infeasible'`, and `growth < 1e-6` does **not**
+select it. Use `results[(results.growth < 1e-6) | (results.status != "optimal")]`
+to count those as lethal, which is what the MATLAB filter above does, since
+`findGeneDeletions` reports zero fluxes for them. Here every solve is optimal,
+so both filters find the same 9.
 :::
 ::::
 
@@ -243,9 +250,10 @@ lowest growth: 0.0000 /h
 ## 16.5 A knockout's fluxes, not just its growth rate
 
 FBA assumes the knockout re-optimises perfectly, which a cell that just lost a
-gene does not do. MOMA instead looks for the flux distribution closest to the
-wild type that the mutant can actually achieve, usually a better predictor of a
-knockout's physiology, and a different answer.
+gene does not do. MOMA (minimisation of metabolic adjustment) instead looks for
+the flux distribution closest to a wild-type reference that the mutant can
+actually achieve. It models the state right after the knockout, before the cell
+adapts, and gives a different answer from FBA.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -257,6 +265,18 @@ as the last function that depended on a paid MATLAB toolbox. Nothing in
 RAVEN replaces it, so a MOMA prediction has to come from the Python side,
 or from the COBRA Toolbox, which keeps its own.
 
+The FBA half of the comparison runs in RAVEN as usual:
+
+```matlab
+modelKO = removeGenes(model, {'YER178W'}, 'removeBlockedRxns', true);   % PDA1
+solKO = solveLP(modelKO);
+fprintf('FBA growth:  %.4f /h\n', solKO.f);
+```
+
+```text
+FBA growth:  0.1053 /h
+```
+
 What RAVEN does offer for the same *question* (what changed in the mutant,
 rather than by how much growth fell) is `compareFluxes` on two flux
 vectors from the same model, in [21. Comparing models](comparing.md).
@@ -265,17 +285,36 @@ vectors from the same model, in [21. Comparing models](comparing.md).
 :sync: python
 
 ```python
-from cobra.flux_analysis import moma
+from cobra.flux_analysis import moma, pfba
 
+wild_type = pfba(model)                       # the reference: the unmodified model
 with model:
-    knock_out_model_genes(model, ["YBR196C"])
-    solution = moma(model, solution=None, linear=True)
-    print(f"MOMA growth: {solution.fluxes['biomassOUT']:.4f} /h")
+    knock_out_model_genes(model, ["YER178W"])   # PDA1, pyruvate dehydrogenase
+    fba_growth = model.slim_optimize()
+    solution = moma(model, solution=wild_type, linear=False)
+print(f"FBA growth:  {fba_growth:.4f} /h")
+print(f"MOMA growth: {solution.fluxes['biomassOUT']:.4f} /h")
 ```
 
 ```text
-MOMA growth: 0.0000 /h
+FBA growth:  0.1053 /h
+MOMA growth: 0.0869 /h
 ```
+
+The reference has to be computed before the knockout. Without `solution=`,
+cobrapy takes pFBA of the model it is given, which inside the `with` block is
+already the mutant, and MOMA returns the FBA answer. `PDA1` is a good test
+because it is not lethal: the PDH bypass (`PDC`, `ALD6`, `ACS`) keeps the
+mutant growing, so FBA and MOMA can differ.
+
+`linear=False` is the quadratic MOMA of Segrè et al. (2002): it minimises the
+squared distance to the reference, a quadratic program (QP). GLPK cannot solve
+QPs, so cobrapy switches to a QP-capable solver for the call (Gurobi or CPLEX)
+and raises `SolverNotFound` when none is installed. `pip install gurobipy`
+brings a size-limited Gurobi licence that is enough for a model this small.
+`linear=True` minimises the summed absolute distance instead, an LP, and is a
+different method with different answers. MOMA's prediction depends on the
+reference flux vector, which pFBA picks from many alternative optima.
 :::
 ::::
 

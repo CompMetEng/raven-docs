@@ -184,7 +184,7 @@ prod_weight                    # run_init / get_init_model argument
 allow_excretion                # run_init / get_init_model / run_ftinit argument
 mip_gap                        # run_init / run_ftinit / predict_localization argument
 force_on                       # run_ftinit argument
-big_m                          # run_ftinit / fill_gaps_kumar_milp argument
+big_m                          # run_ftinit / fill_gaps_milp argument
 max_score                      # gene_scores_from_expression argument
 min_score                      # gene_scores_from_expression argument
 min_identity                   # get_model_from_homology argument
@@ -290,7 +290,7 @@ addLipidReactions             # SLIMEr
 addSLIMEreactions             # SLIMEr
 
 # -- functions of released RAVEN 2.x, referenced as history -----------------
-# These no longer exist on develop3 (the branch this site documents) but are
+# These do not exist in RAVEN 3 (the version this site documents) but are
 # named in the pages precisely to say so. Do not add a name here just because
 # the checker flagged it -- confirm first that the page discusses it as removed.
 importExcelModel              # removed in RAVEN/#631
@@ -350,9 +350,9 @@ get_init_model               # removed from raven-toolbox in #148, with tINIT
 
 # -- RAVEN 2 names, referenced by the RAVEN 2 -> 3 migration guide -----------
 # raven3-migration.md exists to say what RAVEN 3 removed, renamed and merged,
-# so it necessarily names functions that are gone from develop3. Every entry
+# so it necessarily names functions that are gone from RAVEN 3. Every entry
 # below was confirmed present on RAVEN 2's develop branch (== v2.11.3) and
-# absent from develop3; the page discusses each one as removed or merged.
+# absent from RAVEN 3; the page discusses each one as removed or merged.
 addSpontaneousRxns           # external/metacyc, dropped with MetaCyc support
 changeGeneAssoc              # legacy/, dropped
 colorPathway                 # pathway/, dropped with visualization
@@ -391,8 +391,6 @@ kegg118_eukaryotes           # raven-data KEGG artefact name, not a function
 kegg118_prokaryotes          # raven-data KEGG artefact name, not a function
 xml_toolbox                  # third-party library bundled by RAVEN 2's legacy/
 
-# Pending on develop3: checkRaven is the rename of checkInstallation, landing
-# with the 3.0.0b1 changelog work. It is not on develop3 yet, so the index
-# cannot resolve it. DELETE THIS ENTRY once develop3 carries checkRaven.m --
-# the checker should be the thing that tells us the rename has landed.
-checkRaven                   # RAVEN 3 rename of checkInstallation, not yet on develop3
+# checkRaven.m sits at the RAVEN root, outside src/, which the index reads.
+checkRaven                   # RAVEN 3 installation check
+

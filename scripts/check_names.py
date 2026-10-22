@@ -1,15 +1,11 @@
-"""Fail the build when the prose names a function that does not exist.
+"""Report prose that names a function that does not exist.
 
-The hand-written pages describe two moving APIs. Nothing used to check them, so
-names drifted in by analogy -- `camelCase` rewritten as `snake_case` on the
-assumption that the Python function must be called that. Pages ended up
-promising `get_blast`, `fill_gaps`, `import_model` and `solve_lp`, none of which
-were ever real, and a homepage quick start that could not run.
-
-This hook resolves every function-shaped identifier in the hand-written pages
-against the same index the API reference is generated from
-(:mod:`api_index`), and aborts the build on anything that does not resolve.
-Generated pages are skipped: they come from the index by construction.
+The hand-written pages describe two moving APIs, and names drift in by analogy:
+`camelCase` rewritten as `snake_case` on the assumption that the Python function
+must be called that. This script resolves every function-shaped identifier in
+the hand-written pages against the same index the API reference is generated
+from (:mod:`api_index`) and lists anything that does not resolve. Generated
+pages are skipped: they come from the index by construction.
 
 Two kinds of identifier are checked:
 
@@ -23,7 +19,7 @@ Anything that is legitimately not a function -- model struct fields
 belongs in ``known_names.txt`` next to this file, one per line. Keep that list
 short: every entry is a name nothing can verify for you.
 
-Run standalone to see what would fail, without building:
+Run it with:
 
     python scripts/check_names.py
 """
@@ -170,34 +166,6 @@ def _dedent_block(block: str) -> str:
         return block
     pad = min(len(ln) - len(ln.lstrip()) for ln in bodies)
     return "\n".join(ln[pad:] if len(ln) >= pad else ln for ln in lines)
-
-
-# --------------------------------------------------------------------------- #
-# MkDocs hook                                                                 #
-# --------------------------------------------------------------------------- #
-_index: Index | None = None
-
-
-def on_config(config):
-    global _index
-    _index = Index()
-    return config
-
-
-def on_page_markdown(markdown, *, page, config, files):
-    from mkdocs.exceptions import PluginError
-
-    assert _index is not None
-    problems = _index.problems(markdown, page.file.src_path)
-    if problems:
-        listed = "\n  - ".join(problems)
-        raise PluginError(
-            f"check_names: unknown identifier(s) in {page.file.src_path}:\n"
-            f"  - {listed}\n"
-            f"Fix the name, or add it to scripts/known_names.txt if it is "
-            f"legitimately not a function of either toolbox."
-        )
-    return markdown
 
 
 # --------------------------------------------------------------------------- #
