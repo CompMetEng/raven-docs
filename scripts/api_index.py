@@ -261,8 +261,13 @@ def py_summary(node: ast.AST) -> str:
     return ""
 
 
-def collect_python() -> list[dict]:
-    """List of {name, ident, package, summary} for public top-level objects."""
+def collect_python(include_deprecated: bool = False) -> list[dict]:
+    """List of {name, ident, package, summary} for public top-level objects.
+
+    Deprecated aliases are left out unless ``include_deprecated`` is set. The
+    reference pages leave them out; the name checker keeps them, because a page
+    may name an alias on purpose.
+    """
     objects: list[dict] = []
     for py in PYPKG.rglob("*.py"):
         try:
@@ -277,7 +282,7 @@ def collect_python() -> list[dict]:
                 if node.name.startswith("_"):
                     continue
                 summary = py_summary(node)
-                if is_deprecated_alias(summary):
+                if is_deprecated_alias(summary) and not include_deprecated:
                     continue
                 ident = f"{dotted}.{node.name}" if dotted else node.name
                 objects.append(

@@ -76,7 +76,7 @@ class Index:
 
     def __init__(self) -> None:
         self.matlab = set(collect_matlab_all())
-        self.python = {obj["name"] for obj in collect_python()}
+        self.python = {obj["name"] for obj in collect_python(include_deprecated=True)}
         self.allowed = load_allowlist()
 
     def is_generated(self, src_path: str) -> bool:

@@ -1,5 +1,8 @@
 /* ===== PROJECT COLOURS: the only block that differs between sites ======
-   Take the brand colour from the logo. The dark value keeps a contrast ratio
+   Take the brand colour from the logo. The primary colour is the brand colour
+   itself (tab and border colour); the accent is used for links and the language
+   badge, and is the same as the primary colour when the brand colour is dark
+   enough for text. The dark value keeps a contrast ratio
    of at least 4.5:1 on the dark page background. The theme reads the
    --pst-color-* variables as plain colours (for example
    `border: .125rem solid var(--pst-color-primary)`), so a list of numbers
