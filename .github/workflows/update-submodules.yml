@@ -1,14 +1,19 @@
 name: Update submodules
 
+# Moves each submodule to the tip of the branch set in .gitmodules and opens a
+# pull request. The pull request build checks that the new source still builds
+# and that the documented examples still hold; nothing is pushed to main.
+
 on:
   schedule:
-    - cron: '0 4 * * *'       # daily at 04:00 UTC
-  workflow_dispatch: {}       # adds a "Run workflow" button for manual runs
+    - cron: "0 4 * * *"
+  workflow_dispatch: {}
 
 permissions:
-  contents: write             # needed to push the pointer commit
+  contents: write
+  pull-requests: write
 
-concurrency:                  # avoid overlapping runs racing on a commit
+concurrency:
   group: update-submodules
   cancel-in-progress: false
 
@@ -16,19 +21,16 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout raven-docs
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           submodules: true
           fetch-depth: 1
 
-      - name: Bump submodules to their tracked branches
+      - name: Move submodules to their tracked branches
         run: |
-          # Fetch each submodule's tracked branch (from .gitmodules) and check
-          # it out at its tip. Done explicitly because the submodules are
-          # `shallow = true`, so only the pinned commit is present and
-          # `git submodule update --remote` can't resolve the remote branch ref.
-          # (RAVEN -> develop, raven-toolbox -> develop, hanpo-GEM -> main)
+          # The submodules are `shallow = true`: only the pinned commit is
+          # present, so `git submodule update --remote` cannot resolve the
+          # remote branch. Each branch tip is fetched explicitly.
           git submodule sync --recursive
           git submodule foreach '
             branch=$(git config -f "$toplevel/.gitmodules" "submodule.$name.branch" || echo main)
@@ -37,14 +39,22 @@ jobs:
             git checkout -B "$branch" FETCH_HEAD
           '
 
-      - name: Commit & push if anything changed
+      - name: Open or update the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git diff --quiet; then
             echo "No submodule updates."
-          else
-            git add -A
-            git commit -m "chore: update submodules to latest tracked branches"
-            git push
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C chore/update-submodules
+          git add -A
+          git commit -m "chore: update submodules to latest tracked branches"
+          git push --force-with-lease origin chore/update-submodules
+          if [ -z "$(gh pr list --head chore/update-submodules --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head chore/update-submodules \
+              --title "chore: update submodules to latest tracked branches" \
+              --body "Moves each submodule to the tip of the branch set in .gitmodules."
           fi
