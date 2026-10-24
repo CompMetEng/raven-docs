@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Example data
 
 The models the [user guide](../guide/index.md) pages load. They are copied here,

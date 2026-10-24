@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Cross-solver ftINIT benchmark: Human-GEM / HCT116
 
 Same `ftinit()` call (no-task scaled prep; `mip_gap=0.001`, `time_limit=900s`) run with each
