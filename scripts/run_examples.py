@@ -18,9 +18,9 @@ This script closes that gap, for **both** language tabs. For every page it
   that follows,
 * reports every mismatch as a unified diff and exits non-zero.
 
-MATLAB needs a MATLAB runtime on the PATH (or ``RAVEN_DOCS_MATLAB`` pointing at
-one); RAVEN itself comes from the submodule, and the bundled GLPK is used so no
-solver licence is involved. When MATLAB is missing, its half is skipped with a
+MATLAB needs a MATLAB runtime on the PATH (or ``DOCS_MATLAB`` pointing at
+one); the toolbox itself comes from the submodule, and the bundled GLPK is used
+so no solver licence is involved. When MATLAB is missing, its half is skipped with a
 notice rather than failing -- unless it was asked for explicitly.
 
 Usage::
@@ -42,7 +42,7 @@ Page-level control, written as HTML comments in the markdown:
 ``<!-- run-examples: needs-gurobi -->``
     the block selects Gurobi (a MILP the page runs on Gurobi rather than on the
     bundled GLPK): it runs where Gurobi is available (``--gurobi`` or
-    ``RAVEN_DOCS_GUROBI=1``, which CI sets when a licence is configured) and is
+    ``DOCS_GUROBI=1``, which CI sets when a licence is configured) and is
     skipped everywhere else.
 
 ``<!-- run-examples: tabs-differ -->``
@@ -82,16 +82,22 @@ ROOT = HERE.parent
 DEFAULT_TARGET = ROOT / "docs" / "guide"
 DATA_DIR = ROOT / "docs" / "data"
 
+# Settings of the site: the paths of the toolboxes and the ``examples`` section
+# of project.yml.
+sys.path.insert(0, str(HERE))
+from project import load as _load_project  # noqa: E402
+
+_PROJECT = _load_project()
+
 # The solver the pasted numbers are produced with. GLPK ships with cobrapy as a
 # wheel, so it is the one solver every reader and every CI runner is guaranteed
 # to have; pinning it keeps the output blocks reproducible.
-DEFAULT_SOLVER = "glpk"
+DEFAULT_SOLVER = _PROJECT.examples.get("solver", "glpk")
 
-# RAVEN, for the MATLAB half: the submodule checkout, and whatever MATLAB the
-# machine has. RAVEN bundles GLPK and libSBML mex files for Windows, macOS and
-# Linux, so nothing else has to be installed.
-RAVEN_DIR = Path(os.environ.get("RAVEN_DOCS_RAVEN_SRC", ROOT / "RAVEN"))
-MATLAB_SOLVER = "glpk"
+# The MATLAB toolbox for the MATLAB half: the submodule checkout, and whatever
+# MATLAB the machine has.
+MATLAB_DIR = _PROJECT.matlab_src
+MATLAB_SOLVER = DEFAULT_SOLVER
 LANGUAGES = ("python", "matlab")
 
 # The info string of an expected-output fence: a bare ```text directly below the
@@ -107,7 +113,7 @@ NEEDS_GUROBI = "run-examples: needs-gurobi"
 # with a licence, and in CI when the workflow has one configured. They are
 # skipped everywhere else rather than failing, so a reader without Gurobi still
 # gets a green run.
-GUROBI_ENABLED = os.environ.get("RAVEN_DOCS_GUROBI", "") not in ("", "0")
+GUROBI_ENABLED = os.environ.get("DOCS_GUROBI", "") not in ("", "0")
 
 _FENCE_OPEN = re.compile(r"^(?P<indent>[ \t]*)(?P<ticks>`{3,})(?P<info>.*)$")
 _HTML_COMMENT = re.compile(r"<!--(?P<body>.*?)-->")
@@ -305,7 +311,7 @@ def _exec_block(code: str, namespace: dict) -> str:
 def run_page(result: PageResult, solver: str | None) -> None:
     """Execute a page's blocks in one namespace inside a scratch directory."""
     namespace: dict = {"__name__": "__main__"}
-    workdir = Path(tempfile.mkdtemp(prefix="raven-docs-examples-"))
+    workdir = Path(tempfile.mkdtemp(prefix="docs-examples-"))
     if DATA_DIR.is_dir():
         for item in DATA_DIR.iterdir():
             if item.is_file() and item.name != "README.md":
@@ -334,14 +340,14 @@ def run_page(result: PageResult, solver: str | None) -> None:
 
 
 def find_matlab() -> str | None:
-    """The MATLAB executable, from RAVEN_DOCS_MATLAB or the PATH."""
-    explicit = os.environ.get("RAVEN_DOCS_MATLAB")
+    """The MATLAB executable, from DOCS_MATLAB or the PATH."""
+    explicit = os.environ.get("DOCS_MATLAB")
     if explicit:
         return explicit if Path(explicit).exists() else None
     return shutil.which("matlab")
 
 
-_MATLAB_DRIVER = """function ravendocs_run(ravendocs_harness)
+_MATLAB_DRIVER = """function docs_run(docsrun_harness)
 % Run every block of every page and write the captured output as JSON.
 % One workspace per page, so a page's blocks build on each other exactly as the
 % reader's session would.
@@ -353,77 +359,83 @@ warning('off', 'backtrace');
 if ~isempty(getenv('GUROBI_HOME'))
     addpath(fullfile(getenv('GUROBI_HOME'), 'matlab'));
 end
-% RAVEN keeps the solver and the progress backend as MATLAB preferences, which
-% outlive this process -- so remember whatever the machine had and put it back
-% at the end. Without this, running the harness locally silently rewrites the
-% reader's own RAVEN settings.
-ravendocs_keys = {'solver', 'progressBar'};
-ravendocs_prefs = struct('name', {}, 'value', {}, 'had', {});
-for ravendocs_k = 1:numel(ravendocs_keys)
-    ravendocs_key = ravendocs_keys{ravendocs_k};
-    ravendocs_had = ispref('RAVEN', ravendocs_key);
-    ravendocs_val = [];
-    if ravendocs_had
-        ravendocs_val = getpref('RAVEN', ravendocs_key);
-    end
-    ravendocs_prefs(end + 1) = struct( ...
-        'name', ravendocs_key, 'value', {ravendocs_val}, 'had', ravendocs_had); %#ok<AGROW>
-end
-ravendocs_pages = dir(fullfile(ravendocs_harness, 'page_*'));
-ravendocs_out = struct('page', {}, 'block', {}, 'output', {}, 'error', {});
-addpath(genpath('@RAVEN@'));
-% Progress bars redraw with carriage returns and pick their milestones from the
-% terminal width, so the captured text would differ from machine to machine.
-% This has to come after the addpath above: on a machine where RAVEN is not
-% already on the saved path -- a CI runner, say -- setRavenProgress does not
-% exist yet, and the progress lines end up in the documented output.
-try
-    setRavenProgress('none');
-catch ravendocs_err
-    fprintf(2, 'could not silence progress reporting: %s\\n', ravendocs_err.message);
-end
-for ravendocs_p = 1:numel(ravendocs_pages)
-    ravendocs_dir = fullfile(ravendocs_harness, ravendocs_pages(ravendocs_p).name);
-    ravendocs_blocks = dir(fullfile(ravendocs_dir, 'block_*.m'));
-    cd(ravendocs_dir);
-    clearvars -except ravendocs_*
-    % setRavenSolver writes a MATLAB preference, which outlives the page
-    % that set it -- so reset it per page, or one page choosing Gurobi
-    % silently changes every page after it.
-    try
-        setRavenSolver('@SOLVER@');
-    catch ravendocs_err
-        fprintf(2, 'could not select solver: %s\\n', ravendocs_err.message);
-    end
-    for ravendocs_b = 1:numel(ravendocs_blocks)
-        [~, ravendocs_name] = fileparts(ravendocs_blocks(ravendocs_b).name);
-        ravendocs_entry = struct( ...
-            'page', ravendocs_pages(ravendocs_p).name, ...
-            'block', ravendocs_name, 'output', '', 'error', '');
+@PREFS_SAVE@docsrun_pages = dir(fullfile(docsrun_harness, 'page_*'));
+docsrun_out = struct('page', {}, 'block', {}, 'output', {}, 'error', {});
+addpath(genpath('@MATLAB_SRC@'));
+@START@for docsrun_p = 1:numel(docsrun_pages)
+    docsrun_dir = fullfile(docsrun_harness, docsrun_pages(docsrun_p).name);
+    docsrun_blocks = dir(fullfile(docsrun_dir, 'block_*.m'));
+    cd(docsrun_dir);
+    clearvars -except docsrun_*
+@PAGE_START@    for docsrun_b = 1:numel(docsrun_blocks)
+        [~, docsrun_name] = fileparts(docsrun_blocks(docsrun_b).name);
+        docsrun_entry = struct( ...
+            'page', docsrun_pages(docsrun_p).name, ...
+            'block', docsrun_name, 'output', '', 'error', '');
         try
-            ravendocs_entry.output = evalc(ravendocs_name);
-        catch ravendocs_err
-            ravendocs_entry.error = ravendocs_err.message;
+            docsrun_entry.output = evalc(docsrun_name);
+        catch docsrun_err
+            docsrun_entry.error = docsrun_err.message;
         end
-        ravendocs_out(end + 1) = ravendocs_entry; %#ok<AGROW>
-        if ~isempty(ravendocs_entry.error)
+        docsrun_out(end + 1) = docsrun_entry; %#ok<AGROW>
+        if ~isempty(docsrun_entry.error)
             break   % later blocks depend on this one
         end
     end
 end
-for ravendocs_k = 1:numel(ravendocs_prefs)
-    if ravendocs_prefs(ravendocs_k).had
-        setpref('RAVEN', ravendocs_prefs(ravendocs_k).name, ...
-            ravendocs_prefs(ravendocs_k).value);
-    elseif ispref('RAVEN', ravendocs_prefs(ravendocs_k).name)
-        rmpref('RAVEN', ravendocs_prefs(ravendocs_k).name);
-    end
-end
-ravendocs_fid = fopen(fullfile(ravendocs_harness, 'results.json'), 'w');
-fwrite(ravendocs_fid, jsonencode(ravendocs_out));
-fclose(ravendocs_fid);
+@PREFS_RESTORE@docsrun_fid = fopen(fullfile(docsrun_harness, 'results.json'), 'w');
+fwrite(docsrun_fid, jsonencode(docsrun_out));
+fclose(docsrun_fid);
 end
 """
+
+
+_PREFS_SAVE = """% The toolbox keeps its settings as MATLAB preferences, which
+% outlive this process -- so remember whatever the machine had and put it back
+% at the end. Without this, running the harness locally silently rewrites the
+% reader's own settings.
+docsrun_keys = {@KEYS@};
+docsrun_prefs = struct('name', {}, 'value', {}, 'had', {});
+for docsrun_k = 1:numel(docsrun_keys)
+    docsrun_key = docsrun_keys{docsrun_k};
+    docsrun_had = ispref('@GROUP@', docsrun_key);
+    docsrun_val = [];
+    if docsrun_had
+        docsrun_val = getpref('@GROUP@', docsrun_key);
+    end
+    docsrun_prefs(end + 1) = struct( ...
+        'name', docsrun_key, 'value', {docsrun_val}, 'had', docsrun_had); %#ok<AGROW>
+end
+"""
+
+_PREFS_RESTORE = """for docsrun_k = 1:numel(docsrun_prefs)
+    if docsrun_prefs(docsrun_k).had
+        setpref('@GROUP@', docsrun_prefs(docsrun_k).name, ...
+            docsrun_prefs(docsrun_k).value);
+    elseif ispref('@GROUP@', docsrun_prefs(docsrun_k).name)
+        rmpref('@GROUP@', docsrun_prefs(docsrun_k).name);
+    end
+end
+"""
+
+
+def render_matlab_driver() -> str:
+    """The driver with the site's snippets from the ``examples`` section of project.yml."""
+    ex = _PROJECT.examples
+    prefs = ex.get("matlab_preferences") or {}
+    save = restore = ""
+    if prefs:
+        keys = ", ".join(f"'{k}'" for k in prefs["keys"])
+        save = _PREFS_SAVE.replace("@GROUP@", prefs["group"]).replace("@KEYS@", keys)
+        restore = _PREFS_RESTORE.replace("@GROUP@", prefs["group"])
+    return (
+        _MATLAB_DRIVER.replace("@PREFS_SAVE@", save)
+        .replace("@PREFS_RESTORE@", restore)
+        .replace("@START@", ex.get("matlab_start", ""))
+        .replace("@PAGE_START@", ex.get("matlab_page_start", ""))
+        .replace("@MATLAB_SRC@", MATLAB_DIR.as_posix())
+        .replace("@SOLVER@", MATLAB_SOLVER)
+    )
 
 
 def prepare_matlab(results: list[PageResult], harness: Path) -> dict[str, PageResult]:
@@ -453,10 +465,7 @@ def prepare_matlab(results: list[PageResult], harness: Path) -> dict[str, PageRe
                 example.code_fence.code + chr(10), encoding="utf-8"
             )
 
-    driver = _MATLAB_DRIVER.replace("@RAVEN@", RAVEN_DIR.as_posix()).replace(
-        "@SOLVER@", MATLAB_SOLVER
-    )
-    (harness / "ravendocs_run.m").write_text(driver, encoding="utf-8")
+    (harness / "docs_run.m").write_text(render_matlab_driver(), encoding="utf-8")
     return page_dirs
 
 
@@ -481,10 +490,10 @@ _MATLAB_PARPOOL = re.compile(
 )
 
 
-# Both toolboxes fetch third-party binaries (BLAST+, DIAMOND, hmmer) from
-# raven-data the first time a function needs one, and say so. Whether the line
+# The toolboxes fetch third-party binaries (BLAST+, DIAMOND, hmmer) the first
+# time a function needs one, and say so. Whether the line
 # appears -- and its exact wording, which has drifted between toolbox versions
-# ("Downloading blast+ from raven-data ...", "Downloading blast-2.17.0-...zip...
+# ("Downloading blast+ from ...", "Downloading blast-2.17.0-...zip...
 # COMPLETE") -- depends on what the machine has cached and which binary-fetch
 # code is current, not on the example. Match on the leading word alone.
 _BINARY_DOWNLOAD = re.compile(r"^Downloading .*$")
@@ -566,12 +575,12 @@ def run_matlab(results: list[PageResult], matlab: str) -> None:
     """
     if not [r for r in results if not r.skipped_page and r.examples]:
         return
-    harness = Path(tempfile.mkdtemp(prefix="raven-docs-matlab-"))
+    harness = Path(tempfile.mkdtemp(prefix="docs-matlab-"))
     try:
         page_dirs = prepare_matlab(results, harness)
         command = [
             matlab, "-batch",
-            f"addpath('{harness.as_posix()}'); ravendocs_run('{harness.as_posix()}')",
+            f"addpath('{harness.as_posix()}'); docs_run('{harness.as_posix()}')",
         ]
         completed = subprocess.run(  # noqa: S603 -- our own generated script
             command, cwd=str(ROOT), capture_output=True, text=True
@@ -854,7 +863,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--solver", default=DEFAULT_SOLVER, help=f"cobrapy solver to pin (default: {DEFAULT_SOLVER}; '' to leave alone)")
     parser.add_argument(
         "--gurobi", action="store_true",
-        help="run the examples marked needs-gurobi as well (also RAVEN_DOCS_GUROBI=1)",
+        help="run the examples marked needs-gurobi as well (also DOCS_GUROBI=1)",
     )
     parser.add_argument(
         "--matlab-prepare", metavar="DIR",
@@ -883,7 +892,7 @@ def main(argv: list[str] | None = None) -> int:
         page_dirs = prepare_matlab(collected, harness)
         if args.matlab_prepare:
             print(f"run_examples: MATLAB harness written to {harness}")
-            print(f"    run: addpath('{harness.as_posix()}'); ravendocs_run('{harness.as_posix()}')")
+            print(f"    run: addpath('{harness.as_posix()}'); docs_run('{harness.as_posix()}')")
             return 0
         collect_matlab(page_dirs, harness)
         for result in collected:
@@ -902,7 +911,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.language == "matlab":
             print(
                 "run_examples: no MATLAB found. Install one, or point "
-                "RAVEN_DOCS_MATLAB at the executable."
+                "DOCS_MATLAB at the executable."
             )
             return 1
         print("run_examples: no MATLAB found -- skipping the MATLAB tabs.")

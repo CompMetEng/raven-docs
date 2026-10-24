@@ -131,6 +131,7 @@ not yet at parity between the two toolboxes.
 
 ../installation/index
 ../yaml-format
+../data/README
 ```
 
 ```{toctree}

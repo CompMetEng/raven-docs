@@ -66,7 +66,7 @@ including comparison of the extracted models, see the
 which is maintained alongside the model.
 :::
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

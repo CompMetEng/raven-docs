@@ -61,6 +61,14 @@ published on Read the Docs.
   one page per category, with MATLAB and Python paired by name.
 - Submodules: `RAVEN` (branch `develop`), **raven-toolbox** (branch
   `develop`), `hanpo-GEM` (branch `main`).
+- The site follows the `docs-site` standard of
+  [CompMetEng/skills](https://github.com/CompMetEng/skills). The scripts in
+  `scripts/` are copies of `docs-site/scripts` there, and what is specific to
+  this site is in `scripts/project.yml`, `scripts/curated_pairs.yml` and
+  `scripts/known_names.txt`. A change to a script is made in the plugin first.
+- Read the Docs and `.github/workflows/docs-build.yml` build with warnings as
+  errors; `docs-build.yml` also runs `scripts/check_site.py` and
+  `scripts/check_names.py`.
 
 ## 4. Site structure
 
@@ -134,7 +142,7 @@ identical, and side by side a reader sees where raven-toolbox has no counterpart
 because cobrapy already covers it. Two parallel trees would double the
 maintenance and drift.
 
-Nineteen numbered pages are written: getting started, model structure, I/O,
+Twenty-two numbered pages are written: getting started, model structure, I/O,
 FBA, media and conditions, solvers, building, editing, quality control,
 tINIT/ftINIT, deletions, tasks, gap-filling, flux variability, sampling,
 combining and simplifying, comparison, homology reconstruction and KEGG
@@ -239,6 +247,11 @@ into the relevant section above.)*
 
 - **Custom domain**: whether to serve under a project domain in addition to the
   default Read the Docs URL (optional).
+- **Link check.** `docs-build.yml` does not fail on the link check yet; the
+  state of the external links was not known when the check was added.
+- **Migration page labels.** The links to the migration pages are labelled with
+  section numbers of an earlier single-page version (`§7`, `§9`). The targets are
+  correct; the labels are not.
 
 ## 7. Decisions log
 
@@ -258,8 +271,8 @@ into the relevant section above.)*
 - **Always pull all remotes (superproject + submodules) before starting work.**
 - **Look & feel:** layout "direction B", a navy hero homepage with a
   left **sidebar** (dense, sectioned, nested), prominent search, and a segmented
-  MATLAB/Python switch in the hero. Palette **navy** (`#16335C` hero /
-  `#2E6FB8` accent). Logo: the **RAVEN raven silhouette only** (no wordmark),
+  MATLAB/Python switch in the hero. Palette **navy** (the values were replaced by the
+  entry on the docs-site standard below). Logo: the **RAVEN raven silhouette only** (no wordmark),
   white on the navy header/hero; navy version as favicon.
 - **User guide:** a cobrapy-style set of short task pages, both languages on one
   page in linked tabs, replacing the earlier plan of protocol-only content. 13
@@ -273,3 +286,17 @@ into the relevant section above.)*
 - **Versioning:** versioned per release via Read the Docs' native version
   management (tag `raven-docs` releases and activate them in the RTD project;
   RTD shows the version selector). Not mike/gh-pages.
+- **docs-site standard:** the site follows the shared standard. The brand colour
+  is `#1A4888` in light mode and `#6aa6e8` in dark mode, the values in
+  `custom.css`, set as `--site-accent`, `--pst-color-primary` and
+  `--pst-color-link`. The logo is the wordmark, with a white version for dark
+  mode. Logos and the favicon are in `docs/_static` only. The scripts are shared
+  with the other sites. The guide page titles keep their numbers; the standard
+  does not require them.
+- **Warnings are errors:** Read the Docs and CI build with `-W`. Links to the
+  explicit targets of the migration pages are written `[text](#label)`; the form
+  `page.md#label` resolves heading slugs only. The example data page and two
+  parameter-tuning studies, which were listed in no toctree, are in the
+  navigation: the data page under *Start* of the guide, the INIT solver
+  benchmark under the ftINIT studies and the sampling study under a new *Flux
+  sampling* group.

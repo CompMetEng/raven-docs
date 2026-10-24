@@ -14,7 +14,7 @@ raven-toolbox 3.0.0b1 with the `kegg118` artefacts (about 2.5 minutes per call
 on a recent workstation, with or without the cache).
 :::
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

@@ -4,7 +4,7 @@ An FBA result is a statement about a medium. This page is about setting that
 medium deliberately: which exchange reactions are open, how wide, and how to keep
 a condition as reviewable data instead of a paragraph of bound-setting code.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

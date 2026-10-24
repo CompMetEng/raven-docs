@@ -8,7 +8,7 @@ offers to fetch any missing on-demand binaries/data, and its checks catch
 several of the changes below before your scripts do. Beyond that, the two
 changes most likely to break silently rather than error are homology/KEGG
 reconstruction returning a different draft model from the same call
-([§7](raven3-migration/formats-and-reconstruction.md#kegg-reconstruction)), and WoLF PSORT-based localization scores having
+([§7](#kegg-reconstruction)), and WoLF PSORT-based localization scores having
 no in-toolbox migration path ([§3](raven3-migration/backward-incompatible.md#backward-incompatible-changes)).
 :::
 
@@ -87,27 +87,27 @@ behind each item.
 1. Update to RAVEN 3.0.0 (or later) and run `checkRaven` (replaces
    `checkInstallation`); it will offer to fetch any missing on-demand
    binaries/data (§11).
-2. Search your scripts for the functions listed in [§4](raven3-migration/structure-and-renames.md#removed-functionality)
-   (removed) and [§5](raven3-migration/structure-and-renames.md#renamed-merged-and-consolidated-functions)
+2. Search your scripts for the functions listed in [§4](#removed-functionality)
+   (removed) and [§5](#renamed-merged-and-consolidated-functions)
    (renamed/merged) and update or remove those calls.
 3. If you use `getModelFromKEGG`/`getKEGGModelForOrganism` or
    `getModelFromHomology`: expect a different draft reconstruction even from an
    unmodified call: default cutoffs, the KEGG data source, and the homology
-   best-hit criterion all changed ([§7](raven3-migration/formats-and-reconstruction.md#kegg-reconstruction)). Rebuild and
+   best-hit criterion all changed ([§7](#kegg-reconstruction)). Rebuild and
    re-validate any KEGG- or homology-derived draft models.
 4. If you use `.xlsx` curation templates or `importExcelModel`: convert your
    curation data to the `.tsv` format `curateModelFromTables` expects; there
    is no drop-in Excel importer ([§6](raven3-migration/formats-and-reconstruction.md#excel-io)).
 5. If you use WoLF PSORT-based localization scores: switch to one of the
    modern predictors (DeepLoc2, MULocDeep, COMPARTMENTS, UniProt); there is no
-   in-toolbox migration path ([§10](raven3-migration/new-and-environment.md#new-functionality)).
+   in-toolbox migration path ([§10](#new-functionality)).
 6. If your workflows include metabolic-task gap-filling (`fitTasks`,
    `checkTasks`, `ftINIT`): re-run and check task pass/fail results; a fixed
    bug means a previously "passing" task can now correctly fail
-   ([§9](raven3-migration/new-and-environment.md#ftinit)).
+   ([§9](#ftinit)).
 7. If your model files are under version control (YAML/SBML): expect diffs on
    the next export even with no content changes (quoting style, EC-code
-   annotation, ΔG fields; [§6](raven3-migration/formats-and-reconstruction.md#file-formats-and-model-io)).
+   annotation, ΔG fields; [§6](#file-formats-and-model-io)).
 8. Re-run your own test suite / validation pipeline and diff key outputs
    (model size, growth rate, task results) against your RAVEN 2 baseline
    before trusting RAVEN 3 results in production.

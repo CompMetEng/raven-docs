@@ -3,7 +3,7 @@
 Load a model, see how large it is, and inspect a single reaction, metabolite and
 gene. Every later page assumes these operations.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

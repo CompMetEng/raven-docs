@@ -5,7 +5,7 @@ Both toolboxes can instead take the curation as **tables**: one row per
 metabolite, gene or reaction, in tab-separated files that a spreadsheet can edit
 and a pull request can diff.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

@@ -1,0 +1,75 @@
+# Settings of this documentation site that the scripts in this folder read.
+# Nothing else in scripts/ names the project.
+cobrapy: true
+matlab:
+  name: RAVEN
+  path: RAVEN
+  src_subdir: src
+  categories:
+  - folder: analysis
+    title: Analysis
+  - folder: annotation
+    title: Annotation
+  - folder: biomass
+    title: Biomass
+  - folder: comparison
+    title: Comparison
+  - folder: conditions
+    title: Conditions
+  - folder: curation
+    title: Curation
+  - folder: conversion
+    title: Format conversion
+  - folder: gapfilling
+    title: Gap-filling
+  - folder: INIT
+    title: INIT / ftINIT
+  - folder: io
+    title: Input / output
+  - folder: localization
+    title: Localization
+  - folder: manipulation
+    title: Manipulation
+  - folder: tasks
+    title: Metabolic tasks
+  - folder: omics
+    title: Omics integration
+  - folder: queries
+    title: Queries
+  - folder: reconstruction
+    title: Reconstruction
+  - folder: solver
+    title: Solvers
+  - folder: utils
+    title: Utilities
+python:
+  name: raven-toolbox
+  package: raven_toolbox
+  path: raven-toolbox/src/raven_toolbox
+  package_titles:
+    analysis: Analysis
+    annotation: Annotation
+    biomass: Biomass
+    comparison: Comparison
+    conditions: Conditions
+    curation: Curation
+    gapfilling: Gap-filling
+    init: Initialization
+    io: Input / output
+    localization: Localization
+    manipulation: Manipulation
+    omics: Omics integration
+    plotting: Plotting
+    reconstruction: Reconstruction
+    tasks: Metabolic tasks
+    utils: Utilities
+    _toplevel: Top-level
+examples:
+  solver: glpk
+  matlab_preferences:
+    group: RAVEN
+    keys:
+    - solver
+    - progressBar
+  matlab_start: "% Progress bars redraw with carriage returns and pick their milestones from the\n% terminal width, so the captured text would differ from machine to machine.\n% This has to come after the addpath above: on a machine where RAVEN is not\n% already on the saved path -- a CI runner, say -- setRavenProgress does not\n% exist yet, and the progress lines end up in the documented output.\ntry\n    setRavenProgress('none');\ncatch docsrun_err\n    fprintf(2, 'could not silence progress reporting: %s\\\\n', docsrun_err.message);\nend\n"
+  matlab_page_start: "    % setRavenSolver writes a MATLAB preference, which outlives the page\n    % that set it -- so reset it per page, or one page choosing Gurobi\n    % silently changes every page after it.\n    try\n        setRavenSolver('@SOLVER@');\n    catch docsrun_err\n        fprintf(2, 'could not select solver: %s\\\\n', docsrun_err.message);\n    end\n"

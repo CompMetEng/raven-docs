@@ -8,7 +8,7 @@ and **how alike are these** (an overview across whole sets). The first is for
 review and for CI; the second is for deciding whether two models are describing
 the same organism at all.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

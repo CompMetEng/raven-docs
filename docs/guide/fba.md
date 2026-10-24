@@ -3,7 +3,7 @@
 Set an objective, constrain the uptake rates, solve, and read the fluxes back.
 This is the loop every other analysis on this site is built from.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

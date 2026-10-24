@@ -5,7 +5,7 @@ apply before a result can be trusted: is the structure sound, do the reactions
 balance, is anything disconnected, and can the model make something out of
 nothing.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

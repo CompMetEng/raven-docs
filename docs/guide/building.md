@@ -5,7 +5,7 @@ material in and out, and end with a model that carries flux. This is how a
 hand-built model starts, and how you test an idea before an automated
 reconstruction is involved.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

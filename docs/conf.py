@@ -47,7 +47,7 @@ html_theme = "pydata_sphinx_theme"
 # html_title is, so "RAVEN" here would double up with project = "RAVEN"
 # above into a duplicated page title.
 html_title = "RAVEN documentation"
-html_favicon = "assets/raven-icon-navy.png"
+html_favicon = "_static/raven-icon.png"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 # The "view source" link points at this generated MyST file, not anything a
@@ -80,8 +80,8 @@ html_theme_options = {
     # The wordmark already carries the "RAVEN" text, so no separate navbar
     # logo text is needed alongside it.
     "logo": {
-        "image_light": "assets/raven-logo.png",
-        "image_dark": "assets/raven-logo-white.png",
+        "image_light": "_static/raven-logo.png",
+        "image_dark": "_static/raven-logo-white.png",
     },
     "announcement": (
         "This site documents RAVEN <strong>3.0.0b1</strong> "
