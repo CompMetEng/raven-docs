@@ -247,10 +247,6 @@ into the relevant section above.)*
 
 - **Custom domain**: whether to serve under a project domain in addition to the
   default Read the Docs URL (optional).
-- **Navigation of three pages.** `docs/data/README.md`, the INIT solver benchmark
-  and the sampling convergence study are linked from other pages but listed in
-  no toctree, so they are marked `orphan: true`. Adding the two studies to the
-  toctrees of `parameter-tuning/index.md` is an alternative.
 - **Link check.** `docs-build.yml` does not fail on the link check yet; the
   state of the external links was not known when the check was added.
 - **Migration page labels.** The links to the migration pages are labelled with
@@ -299,5 +295,8 @@ into the relevant section above.)*
   does not require them.
 - **Warnings are errors:** Read the Docs and CI build with `-W`. Links to the
   explicit targets of the migration pages are written `[text](#label)`; the form
-  `page.md#label` resolves heading slugs only. Three pages that are reached by
-  link only are marked `orphan: true`.
+  `page.md#label` resolves heading slugs only. The example data page and two
+  parameter-tuning studies, which were listed in no toctree, are in the
+  navigation: the data page under *Start* of the guide, the INIT solver
+  benchmark under the ftINIT studies and the sampling study under a new *Flux
+  sampling* group.

@@ -118,4 +118,12 @@ studies/kegg-hmm-cutoff-calibration
 studies/init-param-calibration
 studies/ftinit-determinism
 studies/humangem-validation
+studies/init-solver-benchmark
+```
+
+```{toctree}
+:hidden:
+:caption: Flux sampling
+
+studies/sampling-convergence-calibration
 ```

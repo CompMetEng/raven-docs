@@ -1,7 +1,3 @@
----
-orphan: true
----
-
 # Flux sampling: convergence and settings
 
 How far a set of ACHR samples can be trusted at genome scale, measured two ways,
