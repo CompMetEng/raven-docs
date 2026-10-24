@@ -6,7 +6,7 @@ something from nothing". Tasks are how a reconstruction is tested against
 biology rather than against itself, and they are what ftINIT repairs against
 after cutting a model down.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

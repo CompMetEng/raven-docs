@@ -5,7 +5,7 @@ something upstream is missing, metabolites nothing produces, a biomass component
 the network cannot make. Gap-filling adds reactions from a template until the
 holes close, and the judgement is in deciding which holes are worth closing.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

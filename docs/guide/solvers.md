@@ -8,7 +8,7 @@ of them, and which solver can do which depends on the solver and the toolbox.
 This page is about which solver is in use, how to change it, and how to read
 what it gives back.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

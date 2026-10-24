@@ -8,7 +8,7 @@ in one model is the same molecule as in the other. **Simplifying** takes a model
 apart again, dropping what cannot carry flux, and the risk is deleting something
 you needed.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

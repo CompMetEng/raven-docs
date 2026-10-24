@@ -4,7 +4,7 @@ Curation is mostly editing: a stoichiometry that was wrong, a gene association
 that has been superseded, a reaction that should never have been there. This
 page is the safe way to do each of those.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

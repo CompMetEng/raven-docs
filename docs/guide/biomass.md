@@ -5,7 +5,7 @@ sets the units of every growth rate the model reports. This page is about readin
 that composition, changing one part of it without breaking the rest, and the
 annotation that makes a model interpretable to something other than a solver.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

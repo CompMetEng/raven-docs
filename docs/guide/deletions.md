@@ -5,7 +5,7 @@ and compare. The same machinery answers "which reactions are essential", "what
 happens if I delete two things at once", and "what flux distribution does a
 knockout have right after the gene is lost".
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

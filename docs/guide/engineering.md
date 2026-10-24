@@ -6,7 +6,7 @@ affected by a transcriptional response. FSEOF answers the first from
 stoichiometry alone; reporter metabolites answer the second from expression
 data.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|
