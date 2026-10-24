@@ -116,7 +116,7 @@ jobs:
           } > "$RUNNER_TEMP/gurobi.lic"
           echo "GUROBI_HOME=$RUNNER_TEMP/gurobi1302/linux64" >> "$GITHUB_ENV"
           echo "GRB_LICENSE_FILE=$RUNNER_TEMP/gurobi.lic" >> "$GITHUB_ENV"
-          echo "RAVEN_DOCS_GUROBI=1" >> "$GITHUB_ENV"
+          echo "DOCS_GUROBI=1" >> "$GITHUB_ENV"
 
       # MATLAB on a GitHub-hosted runner is licensed only when one of the
       # matlab-actions run-* actions starts it -- starting matlab ourselves fails
@@ -132,7 +132,7 @@ jobs:
         with:
           command: >
             addpath('${{ runner.temp }}/matlab-harness');
-            ravendocs_run('${{ runner.temp }}/matlab-harness')
+            docs_run('${{ runner.temp }}/matlab-harness')
 
       - name: Check the MATLAB output
         run: >

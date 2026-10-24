@@ -9,10 +9,10 @@ pages are skipped: they come from the index by construction.
 
 Two kinds of identifier are checked:
 
-* **inline code spans** -- ``camelCase`` tokens must be RAVEN functions,
-  ``snake_case`` tokens must be raven-toolbox functions;
+* **inline code spans** -- ``camelCase`` tokens must be MATLAB functions,
+  ``snake_case`` tokens must be Python functions;
 * **calls inside ```python blocks** -- every called name must be a
-  raven-toolbox function, a known cobrapy name, or allow-listed.
+  Python function, a known cobrapy name, or allow-listed.
 
 Anything that is legitimately not a function -- model struct fields
 (``metDeltaG``), cobrapy names (``read_sbml_model``), reaction ids, file names --
@@ -33,7 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from api_index import collect_matlab_all, collect_python  # noqa: E402
+from api_index import PROJECT, collect_matlab_all, collect_python  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ALLOWLIST_FILE = HERE / "known_names.txt"
@@ -103,13 +103,13 @@ class Index:
             if _CAMEL.match(token):
                 if token not in self.matlab:
                     problems.append(
-                        f"`{token}` looks like a RAVEN function but no such .m "
+                        f"`{token}` looks like a {PROJECT.matlab_name} function but no such .m "
                         f"file exists on the tracked branch"
                     )
             elif _SNAKE.match(token):
                 if token not in self.python:
                     problems.append(
-                        f"`{token}` looks like a raven-toolbox function but is "
+                        f"`{token}` looks like a {PROJECT.python_name} function but is "
                         f"not defined in the package"
                     )
         return problems
@@ -129,11 +129,11 @@ class Index:
                 func = node.func
                 # Only bare calls are checked. A method call belongs to whatever
                 # object is on the left (a cobra.Model, a DataFrame, a Path), not
-                # to the raven-toolbox namespace, so there is nothing here that
+                # to the package namespace, so there is nothing here that
                 # could verify it -- and allow-listing every .items(), .replace()
                 # and .rglob() the examples use would dilute the check that does
                 # work. The failure this exists to catch, an invented function
-                # imported and called (``from raven_toolbox.io import
+                # imported and called (``from <package>.io import
                 # import_model``), is a bare call and is still caught.
                 name = func.id if isinstance(func, ast.Name) else None
                 if name is None or name in _BUILTINS or name in self.allowed:
@@ -141,7 +141,7 @@ class Index:
                 if name not in self.python:
                     problems.append(
                         f"`{name}(...)` is called in a Python example but is "
-                        f"neither a raven-toolbox function nor an allow-listed name"
+                        f"neither a {PROJECT.python_name} function nor an allow-listed name"
                     )
         return problems
 
@@ -182,8 +182,8 @@ def main() -> int:
             print(f"{rel}: {problem}")
         total += len(problems)
     print(
-        f"\n{total} problem(s); index holds {len(index.matlab)} RAVEN and "
-        f"{len(index.python)} raven-toolbox names, plus {len(index.allowed)} "
+        f"\n{total} problem(s); index holds {len(index.matlab)} {PROJECT.matlab_name} and "
+        f"{len(index.python)} {PROJECT.python_name} names, plus {len(index.allowed)} "
         f"allow-listed."
     )
     return 1 if total else 0
