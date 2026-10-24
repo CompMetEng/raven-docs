@@ -57,7 +57,7 @@ jobs:
           # openpyxl is needed by the Excel export example, gurobipy by the
           # quadratic MOMA example, which needs a QP solver. The size-limited
           # licence that comes with the gurobipy wheel covers a model that small.
-          python -m pip install "./raven-toolbox[excel]" gurobipy
+          python -m pip install "./raven-toolbox[excel]" gurobipy pyyaml
 
       - name: Report versions
         run: |
@@ -91,6 +91,10 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+
+      # scripts/project.py reads scripts/project.yml with PyYAML.
+      - name: Install PyYAML
+        run: python -m pip install pyyaml
 
       # Gurobi's MATLAB interface, for the examples marked `needs-gurobi`: MILPs
       # that RAVEN also solves on its bundled GLPK, but that the page runs on
