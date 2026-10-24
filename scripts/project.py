@@ -20,7 +20,7 @@ ROOT = HERE.parent
 COBRAPY_URL = "https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html"
 
 # Folders of a MATLAB toolbox that hold no API.
-DEFAULT_EXCLUDED = ("legacy", "external", "software", "testing", "doc", "deprecated")
+DEFAULT_EXCLUDED = ("legacy", "external", "software", "testing", "doc")
 
 
 @dataclass(frozen=True)
