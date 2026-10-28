@@ -87,7 +87,7 @@ annotation conversion; both fixed.
 
 External binaries (BLAST+, DIAMOND, HMMER) and the KEGG data artifacts
 themselves are fetched on demand rather than bundled with the repository; see
-[§11](../raven3-migration/new-and-environment.md#toolbox-deps).
+[§11](#toolbox-deps).
 
 **New:** `curation/downloadGenomeData.m`, `curation/getGeneData.m`, and
 `curation/processProteinFastaFile.m` give a new on-ramp from a bare NCBI genome

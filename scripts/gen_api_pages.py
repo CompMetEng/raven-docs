@@ -2,9 +2,10 @@
 
 Runs from ``docs/conf.py`` (Sphinx's ``setup()`` hook), before Sphinx reads
 the source tree. It extracts the full help text of every function from the
-RAVEN and raven-toolbox submodules (the collection layer is shared with
+MATLAB and Python submodules (the collection layer is shared with
 ``api_index.py``) and writes static pages: no live directive, no package
-install, no MATLAB runtime.
+install, no MATLAB runtime. Names, paths and categories come from
+``project.yml``.
 """
 
 from __future__ import annotations
@@ -16,13 +17,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import yaml
 
+from project import COBRAPY_URL  # noqa: E402
+
 from api_index import (  # noqa: E402
+    MATLAB,
     MATLAB_CATEGORIES,
+    PROJECT,
     PY_PACKAGE_TITLES,
     PYPKG,
-    RAVEN as MATLAB,
     cell,
-    is_matlab_function,
+    is_deprecated_alias,
+    is_documented_matlab_object,
     matlab_help_block,
     matlab_summary_and_body,
     module_dotted,
@@ -71,7 +76,7 @@ def collect_matlab_full() -> dict[str, list[dict]]:
         if not base.is_dir():
             continue
         for m in base.rglob("*.m"):
-            if m.stem == "Contents" or not is_matlab_function(m):
+            if m.stem == "Contents" or not is_documented_matlab_object(m):
                 continue
             signature, summary, body = matlab_help(m, m.stem)
             funcs.setdefault(
@@ -100,6 +105,8 @@ def collect_python_full() -> list[dict]:
                     continue
                 ident = f"{dotted}.{node.name}" if dotted else node.name
                 summary, rest = py_help(node)
+                if is_deprecated_alias(summary):
+                    continue
                 sig = ""
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     sig = f"({ast.unparse(node.args)})" if hasattr(ast, "unparse") else ""
@@ -120,7 +127,7 @@ def collect_python_full() -> list[dict]:
 # --------------------------------------------------------------------------- #
 # Help-text rendering                                                         #
 # --------------------------------------------------------------------------- #
-# RAVEN's % help blocks and the structured raven-toolbox docstrings both use
+# The MATLAB % help blocks and the structured Python docstrings both use
 # numpydoc section headers ("Parameters" over a dashed underline), so one
 # parser serves both. Parameter sections become definition lists, Examples a
 # code block, and anything else passes through as prose. Help text without any
@@ -198,7 +205,7 @@ def render_help(doc: str, lang: str) -> list[str]:
 # Page rendering                                                              #
 # --------------------------------------------------------------------------- #
 def render_matlab_page(title: str, folder: str, funcs: list[dict]) -> str:
-    out = [f"# {title}", "", f"MATLAB functions in `RAVEN/src/{folder}` of the RAVEN toolbox.", "",
+    out = [f"# {title}", "", f"MATLAB functions in `{PROJECT.matlab_rel}/{folder}` of the {PROJECT.matlab_name} toolbox.", "",
            "## Functions", "", "| Function | Summary |", "|---|---|"]
     for f in funcs:
         out.append(f"| [`{f['name']}`](#{slug(f['name'])}) | {cell(myst_inline(f['summary']))} |")
@@ -218,7 +225,7 @@ def render_matlab_page(title: str, folder: str, funcs: list[dict]) -> str:
 
 
 def render_python_page(title: str, dotted: str, objs: list[dict]) -> str:
-    out = [f"# {title} (Python)", "", f"`raven-toolbox` objects in `{dotted}`.", "",
+    out = [f"# {title} (Python)", "", f"`{PROJECT.python_name}` objects in `{dotted}`.", "",
            "## Functions", "", "| Function | Summary |", "|---|---|"]
     for o in objs:
         out.append(f"| [`{o['name']}`](#{slug(o['name'])}) | {cell(myst_inline(o['summary']))} |")
@@ -270,7 +277,9 @@ def generate(docs_root: Path) -> None:
         )
         matlab_links.append((title, f"{folder}.md"))
     (api_dir / "matlab" / "index.md").write_text(
-        render_group_index("MATLAB API (RAVEN)", "RAVEN's MATLAB functions, by category.", matlab_links),
+        render_group_index(
+            f"MATLAB API ({PROJECT.matlab_name})", f"{PROJECT.matlab_name}'s MATLAB functions, by category.", matlab_links
+        ),
         encoding="utf-8",
     )
 
@@ -281,14 +290,14 @@ def generate(docs_root: Path) -> None:
     for package in sorted(by_package, key=lambda p: (p == "_toplevel", PY_PACKAGE_TITLES.get(p, p).lower())):
         objs = sorted(by_package[package], key=lambda o: o["name"].lower())
         title = PY_PACKAGE_TITLES.get(package, package)
-        dotted = "raven_toolbox" if package == "_toplevel" else f"raven_toolbox.{package}"
+        dotted = PROJECT.python_package if package == "_toplevel" else f"{PROJECT.python_package}.{package}"
         (api_dir / "python" / f"{package}.md").write_text(
             render_python_page(title, dotted, objs), encoding="utf-8"
         )
         python_links.append((title, f"{package}.md"))
     (api_dir / "python" / "index.md").write_text(
         render_group_index(
-            "Python API (raven-toolbox)", "raven-toolbox's packages, by category.", python_links
+            f"Python API ({PROJECT.python_name})", f"{PROJECT.python_name}'s packages, by category.", python_links
         ),
         encoding="utf-8",
     )
@@ -298,21 +307,22 @@ def generate(docs_root: Path) -> None:
     py_by_name = {obj["name"]: obj for obj in python_objs}
     curated = yaml.safe_load((Path(__file__).resolve().parent / "curated_pairs.yml").read_text(encoding="utf-8"))
 
+    M, P = PROJECT.matlab_name, PROJECT.python_name
     unresolved: list[str] = []
     for m_name, p_name in curated["aliases"].items():
         if m_name not in matlab_all:
-            unresolved.append(f"aliases: RAVEN function '{m_name}' is not on the tracked branch")
+            unresolved.append(f"aliases: {M} function '{m_name}' is not on the tracked branch")
         if p_name not in py_by_name:
-            unresolved.append(f"aliases: raven-toolbox function '{p_name}' (for {m_name}) does not exist")
+            unresolved.append(f"aliases: {P} function '{p_name}' (for {m_name}) does not exist")
     for section in ("cobrapy", "not_ported"):
         for m_name in curated[section]:
             if m_name not in matlab_all:
-                unresolved.append(f"{section}: RAVEN function '{m_name}' is not on the tracked branch")
+                unresolved.append(f"{section}: {M} function '{m_name}' is not on the tracked branch")
     if unresolved:
         listed = "\n  - ".join(unresolved)
         raise SystemExit(f"gen_api_pages: scripts/curated_pairs.yml is out of date:\n  - {listed}")
 
-    cobrapy_docs_url = "https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html"
+    cobrapy_docs_url = COBRAPY_URL
 
     # Each row: (matlab name, matlab folder, python-column markdown, summary text).
     rows: list[tuple[str, str, str, str]] = []
@@ -346,25 +356,29 @@ def generate(docs_root: Path) -> None:
         seen_matlab.add(m_name)
         n_cobrapy += 1
 
+    badge_note = (
+        f"and marked with a {{bdg-link-secondary}}`cobrapy <{cobrapy_docs_url}>` badge where cobrapy "
+        f"covers the function instead of {P}. "
+        if PROJECT.cobrapy else ""
+    )
+    cobrapy_count = f", {n_cobrapy} covered by cobrapy instead of {P}" if PROJECT.cobrapy else ""
     lines = [
         "# MATLAB vs Python", "",
-        "RAVEN ships as a MATLAB toolbox and as the Python package **raven-toolbox**. "
+        f"{M} ships as a MATLAB toolbox and as the Python package **{P}**. "
         "This page is generated from the source of both toolboxes at build time. "
         "Pairs are found automatically where the names match, completed from a "
-        "curated list where they do not, and marked with a "
-        f"{{bdg-link-secondary}}`cobrapy <{cobrapy_docs_url}>` badge where cobrapy "
-        "covers the function instead of raven-toolbox. Every name is verified to exist.",
+        f"curated list where they do not, {badge_note}"
+        "Every name is verified to exist.",
         "", "## Paired functions", "",
-        f"**{len(rows)}** RAVEN functions listed: {n_auto} matched automatically, "
-        f"{n_curated} from a curated list, {n_cobrapy} covered by cobrapy instead of "
-        "raven-toolbox.",
-        "", "| RAVEN (MATLAB) | raven-toolbox (Python) | Summary |", "|---|---|---|",
+        f"**{len(rows)}** {M} functions listed: {n_auto} matched automatically, "
+        f"{n_curated} from a curated list{cobrapy_count}.",
+        "", f"| {M} (MATLAB) | {P} (Python) | Summary |", "|---|---|---|",
     ]
     for m_name, m_folder, p_cell, text in sorted(rows, key=lambda r: r[0].lower()):
         m_link = f"[`{m_name}`](api/matlab/{m_folder}.md#{slug(m_name)})"
         lines.append(f"| {m_link} | {p_cell} | {cell(text)} |")
 
-    lines += ["", "## Deliberately not ported", "", "| RAVEN (MATLAB) | Why not |", "|---|---|"]
+    lines += ["", "## Deliberately not ported", "", f"| {M} (MATLAB) | Why not |", "|---|---|"]
     for m_name, reason in sorted(curated["not_ported"].items(), key=lambda kv: kv[0].lower()):
         folder = matlab_all[m_name]
         m_link = f"[`{m_name}`](api/matlab/{folder}.md#{slug(m_name)})"
@@ -374,9 +388,13 @@ def generate(docs_root: Path) -> None:
     unmapped = sorted((n for n in matlab_all if n not in accounted), key=str.lower)
     if unmapped:
         lines += ["", "## Not yet mapped", "",
-                  f"**{len(unmapped)}** RAVEN functions are not yet recorded here.", ""]
+                  f"**{len(unmapped)}** {M} functions are not yet recorded here.", ""]
         for chunk_start in range(0, len(unmapped), 6):
             row = unmapped[chunk_start:chunk_start + 6]
             lines.append(", ".join(f"`{n}`" for n in row) + ("," if chunk_start + 6 < len(unmapped) else ""))
 
     (docs_root / "matlab-vs-python.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+if __name__ == "__main__":
+    generate(Path(__file__).resolve().parent.parent / "docs")

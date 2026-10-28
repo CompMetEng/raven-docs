@@ -1,0 +1,6 @@
+# The owners are asked for a review when a pull request changes these paths.
+# Replace @edkerk with a GitHub user or a team, for example @CompMetEng/docs.
+*                @edkerk
+/scripts/        @edkerk
+/.github/        @edkerk
+/DESIGN.md       @edkerk

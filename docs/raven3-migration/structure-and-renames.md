@@ -76,7 +76,7 @@ make the codebase smaller. None of these have call sites left in RAVEN 3 itself.
 | `core/checkRxn.m` | Per-reaction reactant/product synthesizability debugging | No direct successor; use `gapfilling/findLeakMetabolite.m`, `gapfilling/canExchange.m`, or `gapfilling/checkProduction.m`. |
 | `core/parallelPoolRAVEN.m` | Parallel Computing Toolbox pool setup | Renamed/rewritten as `utils/parallelWorkersRAVEN.m`. |
 | `external/getWoLFScores.m` | WoLF PSORT score parsing | None; see [§3](../raven3-migration/backward-incompatible.md#backward-incompatible-changes). |
-| `external/kegg/{getGenesFromKEGG,getMetsFromKEGG,getRxnsFromKEGG,constructMultiFasta,getWSLpath}.m`, `external/getBlastFromExcel.m` | Local-KEGG-FTP-dump parsing; per-KO multi-FASTA assembly; WSL path translation; Excel-based BLAST import | Superseded by the raven-data-artifact-based KEGG pipeline. See [§7](../raven3-migration/formats-and-reconstruction.md#kegg-reconstruction). |
+| `external/kegg/{getGenesFromKEGG,getMetsFromKEGG,getRxnsFromKEGG,constructMultiFasta,getWSLpath}.m`, `external/getBlastFromExcel.m` | Local-KEGG-FTP-dump parsing; per-KO multi-FASTA assembly; WSL path translation; Excel-based BLAST import | Superseded by the raven-data-artifact-based KEGG pipeline. See [§7](#kegg-reconstruction). |
 | `solver/qMOMA.m`, `solver/solveQP.m` | MOMA-based analyses (quadratic programming) | Removed; no in-toolbox QP-based replacement. See [§3](../raven3-migration/backward-incompatible.md#backward-incompatible-changes) for `findGeneDeletions` impact. |
 | `testing/unit_tests/*.m` (script-based tests) | Ad hoc test scripts | `testing/function_tests/*.m`, a `matlab.unittest`-class-based suite. Contributor-facing only; `runRAVENtests` usage is unchanged for end users. |
 
@@ -100,7 +100,7 @@ removed in the next major release") and forwards to the new function.
 | `INIT/scoreComplexModel.m` | `INIT/scoreModel.m` | **Merged, not renamed.** RAVEN 2 had *both* `INIT/scoreComplexModel.m` and `hpa/scoreModel.m`; RAVEN 3 folded them into one `scoreModel`, called with different settings from tINIT than from ftINIT. A RAVEN 2 call to `scoreModel` is unaffected; a call to `scoreComplexModel` has to move to `scoreModel` *and* pass the settings that reproduce the old behaviour (a single operator for both `and`/`or`, `dataPrecedence` `'reaction'`). |
 | `INIT/ftINITFillGapsMILP.m` | folded into `solver/getMinNrFluxes.m` | Exposed now via `getMinNrFluxes`'s `resolveTies`/`proveAbsGap` options. |
 | `INIT/ftINITFillGapsForAllTasks.m` | folded into `gapfilling/ftINITFillGaps.m` and `fitTasks`'s `'preMerged'` gap-fill mode | |
-| `getGenesFromKEGG`/`getMetsFromKEGG`/`getRxnsFromKEGG` | `reconstruction/kegg/readKEGGTable.m` + the raven-data KEGG artifacts | Not a direct signature-compatible rename: the whole data source changed; see [§7](../raven3-migration/formats-and-reconstruction.md#kegg-reconstruction). |
+| `getGenesFromKEGG`/`getMetsFromKEGG`/`getRxnsFromKEGG` | `reconstruction/kegg/readKEGGTable.m` + the raven-data KEGG artifacts | Not a direct signature-compatible rename: the whole data source changed; see [§7](#kegg-reconstruction). |
 | `checkInstallation` | `checkRaven` | Moved from `installation/checkInstallation.m` to repo-root `checkRaven.m`; identical calling signature. `checkInstallation` remains as a deprecated forwarding wrapper, so old calls keep working with a `RAVEN:deprecated` warning. |
 
 Separately, `getINITModel` and `runINIT` (now under `INIT/tINIT/`) are marked

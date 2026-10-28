@@ -10,7 +10,7 @@ and a transfer step that decides which of those hits are good enough to carry a
 reaction. The cut-offs used by the second step determine the size and the
 reliability of the draft, and they are what encode the method's assumptions.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

@@ -4,7 +4,7 @@ The same model is a **struct of parallel arrays** in MATLAB and a **graph of
 objects** in Python. Knowing which field corresponds to which attribute is most
 of what you need to translate a script between the two.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

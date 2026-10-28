@@ -3,7 +3,7 @@
 Get a model in and out of both toolboxes: SBML, RAVEN YAML, Excel, and the
 directory layout a Git-maintained model repository expects.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

@@ -1,12 +1,12 @@
 # RAVEN
 
-<div class="rh-hero">
-  <div class="rh-logo-row">
-    <img class="rh-logo-light" src="_static/raven-logo.png" alt="RAVEN">
-    <img class="rh-logo-dark" src="_static/raven-logo-white.png" alt="RAVEN">
-    <p class="rh-tag">MATLAB &amp; Python</p>
+<div class="site-hero">
+  <div class="site-logo-row">
+    <img class="site-logo-light" src="_static/raven-logo.png" alt="RAVEN">
+    <img class="site-logo-dark" src="_static/raven-logo-white.png" alt="RAVEN">
+    <p class="site-tag">MATLAB &amp; Python</p>
   </div>
-  <p class="rh-tagline">A toolkit for building, curating, and simulating genome-scale metabolic models, available as a MATLAB toolbox and a Python package built on cobrapy.</p>
+  <p class="site-tagline">A toolkit for building, curating, and simulating genome-scale metabolic models, available as a MATLAB toolbox and a Python package built on cobrapy.</p>
 </div>
 
 ## Install

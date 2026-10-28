@@ -1,0 +1,3 @@
+#!/bin/sh
+# Refuses a commit message or an identity that names an AI tool.
+exec python3 -I "$(git rev-parse --show-toplevel)/.github/scripts/repo_hygiene.py" commit-msg "$1"

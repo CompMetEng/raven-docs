@@ -3,9 +3,9 @@
 A Sphinx extension. On ``source-read`` it rewrites the inline code spans of
 ``guide/*`` pages, outside fenced code, headings and existing links:
 
-* a RAVEN function becomes a link to its entry in the generated MATLAB API
+* a MATLAB function becomes a link to its entry in the generated MATLAB API
   pages (``api/matlab/<folder>.md``);
-* a raven-toolbox function or class becomes a link to its entry in the Python
+* a Python function or class becomes a link to its entry in the Python
   API pages (``api/python/<package>.md``);
 * a cobrapy object becomes a link to its entry in cobrapy's documentation,
   looked up in cobrapy's intersphinx inventory. Single names such as ``pfba``
@@ -30,10 +30,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from api_index import collect_matlab, collect_python, slug  # noqa: E402
+from api_index import PROJECT, collect_matlab, collect_python, slug  # noqa: E402
+from project import COBRAPY_URL  # noqa: E402
 from sphinx.util import logging  # noqa: E402
 
-COBRA_INDEX = "https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html"
+COBRA_INDEX = COBRAPY_URL
 
 _FENCE = re.compile(r"^\s*(```|~~~)")
 _HEADING = re.compile(r"^#{1,6}\s")
@@ -44,7 +45,7 @@ _BADGE = re.compile(r"\{bdg-link-secondary\}`cobrapy <" + re.escape(COBRA_INDEX)
 _IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$")
 _SNAKE = re.compile(r"^[a-z][a-z0-9]+(?:_[a-z0-9]+)+$")
 _COBRA_TYPES = ("py:function", "py:method", "py:class", "py:attribute", "py:property")
-# raven-toolbox names that mean something else on the guide pages: `main` is a
+# Python names that mean something else on the guide pages: `main` is a
 # command-line entry point in the package and a branch name in the prose.
 _NOT_LINKED = {"main"}
 
@@ -168,8 +169,8 @@ def setup(app):
         if "linker" in state:
             c = state["linker"].counts
             logging.getLogger(__name__).info(
-                "autolink: %d RAVEN, %d raven-toolbox and %d cobrapy links; %d cobrapy badges",
-                c["matlab"], c["python"], c["cobrapy"], c["badges"],
+                "autolink: %d %s, %d %s and %d cobrapy links; %d cobrapy badges",
+                c["matlab"], PROJECT.matlab_name, c["python"], PROJECT.python_name, c["cobrapy"], c["badges"],
             )
 
     app.connect("source-read", on_source_read)

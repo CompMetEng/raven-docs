@@ -5,7 +5,7 @@ Flux variability gives the extremes a reaction can reach. Sampling gives the
 look at how they are spread. A range of 0–10 says nothing about whether the flux
 is usually 0, usually 10, or evenly spread; a sample does.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|

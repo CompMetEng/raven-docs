@@ -5,7 +5,7 @@ variability asks the more accurate question: **given the objective, how much can
 each reaction's flux still vary?** It is how you distinguish a flux the model
 requires from one it merely happened to report.
 
-### Functions on this page
+## Functions on this page
 
 | MATLAB | Python | |
 |---|---|---|
