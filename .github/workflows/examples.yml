@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # raven-toolbox is installed from the submodule, so the docs are always
           # checked against the exact commit the API reference is generated from.
@@ -73,7 +73,7 @@ jobs:
     # job is minutes rather than seconds.
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # RAVEN comes from the submodule, together with the GLPK and libSBML
           # mex files it bundles -- nothing else has to be installed.
