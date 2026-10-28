@@ -39,7 +39,7 @@ REQUIRED_FILES = [
 # Scripts that every site copies unchanged from the plugin.
 SHARED_SCRIPTS = [
     "project.py", "api_index.py", "gen_api_pages.py", "autolink.py",
-    "check_names.py", "run_examples.py", "check_site.py",
+    "check_names.py", "run_examples.py", "check_site.py", "report_broken_links.py",
 ]
 
 WRONG_NAMES = {
