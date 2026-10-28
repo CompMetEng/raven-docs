@@ -132,7 +132,7 @@ jobs:
           python scripts/run_examples.py --language matlab
           --matlab-prepare "${{ runner.temp }}/matlab-harness"
 
-      - uses: matlab-actions/run-command@v2
+      - uses: matlab-actions/run-command@v3
         with:
           command: >
             addpath('${{ runner.temp }}/matlab-harness');
