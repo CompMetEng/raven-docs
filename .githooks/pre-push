@@ -1,0 +1,3 @@
+#!/bin/sh
+# Refuses a push of a tool-named branch or of commits that carry a tool identity or name.
+exec python3 -I "$(git rev-parse --show-toplevel)/.github/scripts/repo_hygiene.py" pre-push

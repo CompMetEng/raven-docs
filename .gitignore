@@ -220,4 +220,5 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Local Claude Code config
-.claude/
+.claude/*
+!.claude/settings.json

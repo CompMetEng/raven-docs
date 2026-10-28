@@ -1,0 +1,29 @@
+name: Repo hygiene
+
+# No commit, branch or pull request names an AI tool or carries its authorship.
+# The check runs when a pull request is opened, changed or edited, so a footer
+# that is added to the body after the pull request was created is found.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Branch and body of the pull request
+        run: python3 -I .github/scripts/repo_hygiene.py pr "$GITHUB_EVENT_PATH"
+
+      - name: Commits of the pull request
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: python3 -I .github/scripts/repo_hygiene.py commits "$BASE..$HEAD"

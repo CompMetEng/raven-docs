@@ -1,0 +1,26 @@
+{
+  "extraKnownMarketplaces": {
+    "compmeteng": {
+      "source": {
+        "source": "github",
+        "repo": "CompMetEng/skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "craft@compmeteng": true,
+    "docs-site@compmeteng": true
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git config core.hooksPath .githooks"
+          }
+        ]
+      }
+    ]
+  }
+}
