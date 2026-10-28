@@ -58,7 +58,11 @@ EM_DASH = chr(0x2014)
 AI_WORDS = re.compile(r"\b(claude|anthropic|chatgpt|copilot|co-authored-by)\b", re.I)
 AI_BRANCH = re.compile(r"\b(claude|anthropic|codex|copilot|chatgpt)/", re.I)
 # Files that state the rules or implement the check name what they forbid.
-RULE_FILES = {"scripts/check_site.py", "CONTRIBUTING.md"}
+RULE_FILES = {
+    "scripts/check_site.py", "CONTRIBUTING.md", "CLAUDE.md", ".github/scripts/repo_hygiene.py",
+}
+# Names of configuration files and folders are not mentions of a tool.
+CONFIG_NAMES = re.compile(r"claude\.md|\.claude(?:-plugin)?\b", re.I)
 
 GUIDE_EXPECTED = ["Functions on this page", "What can go wrong", "See also"]
 # A page that explains a concept instead of a task opts out of the anatomy.
@@ -254,6 +258,7 @@ def check_text(site: Path, files: list[Path]) -> list[Finding]:
                 out.append(Finding("S", "error", rel, "em dash", i))
             if rel in RULE_FILES:
                 continue
+            line = CONFIG_NAMES.sub("", line)
             m = AI_WORDS.search(line)
             if m and p.suffix != ".txt":
                 out.append(Finding("S", "error", rel, f"mentions '{m.group(0)}'", i))
