@@ -31,6 +31,7 @@ REQUIRED_FILES = [
     "docs/conf.py",
     "docs/index.md",
     "docs/_static/custom.css",
+    "docs/_static/language-sync.js",
     "scripts/gen_api_pages.py",
     "scripts/project.yml",
 ]
@@ -196,6 +197,8 @@ def check_conf(site: Path) -> list[Finding]:
             out.append(Finding("C", "error", "docs/conf.py", f"extension {ext} is not enabled"))
     if re.search(r"html_(logo|favicon)\s*=\s*\"assets/", text) or re.search(r'"image_(light|dark)":\s*"assets/', text):
         out.append(Finding("C", "error", "docs/conf.py", "logo and favicon paths are relative to _static/, not assets/"))
+    if not re.search(r"html_js_files\s*=\s*\[[^\]]*[\"']language-sync\.js[\"']", text):
+        out.append(Finding("C", "error", "docs/conf.py", "html_js_files does not list language-sync.js"))
     logo = re.search(r'"image_light":\s*"([^"]+)"\s*,\s*"image_dark":\s*"([^"]+)"', text, re.S)
     if logo and logo.group(1) == logo.group(2):
         out.append(Finding("C", "error", "docs/conf.py", "the dark-mode logo is the same file as the light-mode logo"))

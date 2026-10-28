@@ -300,3 +300,4 @@ into the relevant section above.)*
   navigation: the data page under *Start* of the guide, the INIT solver
   benchmark under the ftINIT studies and the sampling study under a new *Flux
   sampling* group.
+- **Remembered code tab language:** the language of the code tabs (MATLAB or Python) is remembered in `localStorage` by `docs/_static/language-sync.js`, so it applies to every tab on a page, to the next pages, to new browser tabs and to later visits, and the install tabs follow it. sphinx-design alone keeps the choice in `sessionStorage` for one browser tab.
