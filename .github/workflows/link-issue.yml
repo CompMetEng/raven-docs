@@ -1,0 +1,54 @@
+name: Broken links
+
+# Checks the external links of the site every week and keeps one open issue
+# with the broken ones. The issue is updated when the list changes and closed
+# when no link is broken.
+
+on:
+  schedule:
+    - cron: "0 7 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: python -m pip install -r requirements.txt
+
+      - name: Check external links
+        # The exit status is not used: the script reads the result.
+        run: sphinx-build -q -b linkcheck docs docs/_build/linkcheck || true
+
+      - name: Open, update or close the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          out=docs/_build/linkcheck/output.json
+          count=$(python scripts/report_broken_links.py "$out" --count)
+          number=$(gh issue list --label broken-links --state open --json number --jq '.[0].number // empty')
+          if [ "$count" -gt 0 ]; then
+            python scripts/report_broken_links.py "$out" --run-url "$RUN_URL" > "$RUNNER_TEMP/body.md"
+            gh label create broken-links --description "Broken external links" --force
+            if [ -n "$number" ]; then
+              gh issue edit "$number" --body-file "$RUNNER_TEMP/body.md"
+            else
+              gh issue create --title "Broken external links" --label broken-links --body-file "$RUNNER_TEMP/body.md"
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --comment "The weekly link check found no broken links."
+          fi

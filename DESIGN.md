@@ -301,3 +301,4 @@ into the relevant section above.)*
   benchmark under the ftINIT studies and the sampling study under a new *Flux
   sampling* group.
 - **Remembered code tab language:** the language of the code tabs (MATLAB or Python) is remembered in `localStorage` by `docs/_static/language-sync.js`, so it applies to every tab on a page, to the next pages, to new browser tabs and to later visits, and the install tabs follow it. sphinx-design alone keeps the choice in `sessionStorage` for one browser tab.
+- **Broken links and code owner:** `.github/workflows/link-issue.yml` checks the external links every Wednesday and keeps one open issue labelled `broken-links` with the broken ones; it closes the issue when none is broken. `.github/CODEOWNERS` names `@edkerk` as the owner of the repository, who is asked to review every pull request.
