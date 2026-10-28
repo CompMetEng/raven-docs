@@ -45,7 +45,7 @@ jobs:
           # checked against the exact commit the API reference is generated from.
           submodules: recursive
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -88,7 +88,7 @@ jobs:
           # Without it every Gurobi solve fails, single-threaded or not.
           products: Parallel_Computing_Toolbox
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
