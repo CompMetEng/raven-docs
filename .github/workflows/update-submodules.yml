@@ -1,8 +1,7 @@
 name: Update submodules
 
-# Moves each submodule to the tip of the branch set in .gitmodules and opens a
-# pull request. The pull request build checks that the new source still builds
-# and that the documented examples still hold; nothing is pushed to main.
+# Moves each submodule to the tip of the branch set in .gitmodules and commits
+# the new pointers to main.
 
 on:
   schedule:
@@ -11,7 +10,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: update-submodules
@@ -39,9 +37,7 @@ jobs:
             git checkout -B "$branch" FETCH_HEAD
           '
 
-      - name: Open or update the pull request
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Commit to main
         run: |
           if git diff --quiet; then
             echo "No submodule updates."
@@ -49,14 +45,6 @@ jobs:
           fi
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -C chore/update-submodules
           git add -A
           git commit -m "chore: update submodules to latest tracked branches"
-          # The branch is rebuilt from main on every run. The checkout is shallow and
-          # has no remote-tracking ref for it, so a lease check rejects the push.
-          git push --force origin chore/update-submodules
-          if [ -z "$(gh pr list --head chore/update-submodules --state open --json number --jq '.[].number')" ]; then
-            gh pr create --base main --head chore/update-submodules \
-              --title "chore: update submodules to latest tracked branches" \
-              --body "Moves each submodule to the tip of the branch set in .gitmodules."
-          fi
+          git push origin HEAD:main
