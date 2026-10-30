@@ -52,7 +52,9 @@ jobs:
           git switch -C chore/update-submodules
           git add -A
           git commit -m "chore: update submodules to latest tracked branches"
-          git push --force-with-lease origin chore/update-submodules
+          # The branch is rebuilt from main on every run. The checkout is shallow and
+          # has no remote-tracking ref for it, so a lease check rejects the push.
+          git push --force origin chore/update-submodules
           if [ -z "$(gh pr list --head chore/update-submodules --state open --json number --jq '.[].number')" ]; then
             gh pr create --base main --head chore/update-submodules \
               --title "chore: update submodules to latest tracked branches" \
