@@ -31,7 +31,7 @@ The RAVEN functions `canExchange`, `checkProduction` and `getAllSubGraphs` find 
 
 ftINIT extraction, gap-filling and compartment assignment solve mixed-integer problems that routinely have several optima of equal objective value. Two runs can return different reaction sets that are both correct. Results can differ between implementations, between solvers and between repeat runs of one solver.
 
-The ftINIT reproducibility study measured raven-toolbox only (RAVEN's `ftINIT` was not run): runs of one solver also differ with the seed and the number of threads, and two repeated builds at one seed differed by 2 reactions when a step stopped at its wall-clock limit (see [ftINIT reproducibility: `resolve_ties`, `prove_abs_gap`](../parameter-tuning/studies/ftinit-determinism.md)). No single exact result is expected.
+The ftINIT reproducibility study measured raven-toolbox only (RAVEN's `ftINIT` was not run): runs of one solver also differ with the seed and the number of threads, and two repeated builds at one seed differed by 2 reactions when a step stopped at its wall-clock limit (see [ftINIT reproducibility with `resolve_ties` and `prove_abs_gap`](../parameter-tuning/studies/ftinit-determinism.md)). No single exact result is expected.
 
 Compare these outputs by the overlap of their reaction sets; do not test them for identity.
 
