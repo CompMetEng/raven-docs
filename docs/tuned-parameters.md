@@ -11,12 +11,12 @@ and methodology, follow the linked study.
 
 :::{note} Where the two implementations still differ
 RAVEN has existed as MATLAB since 2013 and gained a Python implementation
-(raven-toolbox) from 2026; a handful of parameters have only been
-re-measured on one side and haven't yet been ported to the other. Neither
+(raven-toolbox) from 2026; the parameters re-measured on one side have since
+been ported to the other (the homology and KEGG cut-offs). Neither
 implementation's un-measured default was assumed correct going in; where
 the two disagreed, the answer was to measure, not to defer to whichever
 came first. Every row below states today's actual value(s); where the two
-genuinely still differ, both are given, with which side is pending.
+genuinely still differ, both are given.
 [Cross-toolbox parity decisions](#cross-toolbox-parity-decisions) below is
 the full accounting, including the cases that are *deliberately* kept
 different because the two implementations rest on different solvers or
@@ -32,7 +32,7 @@ Both implementations expose all three sampling methods through one entry point.
 
 | Parameter | Default | How determined |
 |---|---|---|
-| `method` | `'achr'` (Python) / `'random_objective'` (MATLAB) | Literature: ACHR gives near-uniform interior sampling; the random-objective method draws polytope vertices instead. Both algorithms are implemented and selectable on both sides; only which one is the *default* differs. |
+| `method` | `'achr'` (Python); `'achr'` (RAVEN 3, `randomSampling`) | Literature: ACHR gives near-uniform interior sampling; the random-objective method draws polytope vertices instead. All three methods are selectable on both sides (`'randomObjective'` in MATLAB, `'random_objective'` in Python). RAVEN 2.11.3 had only the random-objective method. |
 | `thinning` | `100` | Upstream convention (cobrapy's own ACHR default, which RAVEN's Python side inherited). **Measured insufficient at genome scale**: yeast-GEM gives only ~12 effective samples from 300 stored (ESS), and independent chains frequently disagree entirely (median Gelman-Rubin R-hat fails the convergence threshold). No cheap fix found; see the [convergence study](parameter-tuning/studies/sampling-convergence-calibration.md). |
 | `warmup` | `1000` | Upstream convention (cobrapy). |
 | `n_objectives` | `2` | Literature: [Bordel et al. 2010](https://doi.org/10.1371/journal.pcbi.1000859). |
@@ -119,7 +119,7 @@ RAVEN MATLAB: `getModelFromHomology`, `getBlast`, `getDiamond`. raven-toolbox:
 | `evalue` (`run_diamond`) | `1e-3` | Matches MATLAB's `getDiamond`, which passes no `-evalue` flag and so inherits DIAMOND's own default. Deliberately *not* the same value as `run_blast`; each aligner tracks its own MATLAB call, not the other Python aligner. |
 | `threads` | every CPU the process may run on (Python); the cores assigned to MATLAB (MATLAB) | Measured deterministic across thread counts, pure performance change, ~1.9–4× speedup. Both sides use all available cores. |
 | `max_evalue` | `1e-30` | Measured **inert** from `1e-4` to `1e-50`; identity and alignment-length have already excluded whatever a looser e-value would admit. |
-| `min_align_len` | `100` on the Python side; MATLAB still uses `200` | Measured against independent KEGG and OMA ortholog references across a 4-organism relatedness series: recovers 3–4 points of recall over `200` for ≤0.6 points of precision cost. A MATLAB back-port is proposed but not yet done. |
+| `min_align_len` | `100`; RAVEN 2.11.3 used `200` | Measured against independent KEGG and OMA ortholog references across a 4-organism relatedness series: recovers 3–4 points of recall over `200` for ≤0.6 points of precision cost. RAVEN 3's `getModelFromHomology` uses `minLen` 100 too. |
 | `min_identity` | `40` | Same study: the binding filter and the measured optimum, weighting a wrongly-transferred reaction as worse than a missing one. |
 | `bidirectional` | `True` | Same on both sides. |
 
@@ -139,8 +139,8 @@ name hasn't been independently confirmed). raven-toolbox: `assign_kos`,
 
 | Parameter | Default | How determined |
 |---|---|---|
-| `cutoff` (in `assign_kos`) | `1e-30` on the Python side; MATLAB still uses `1e-50` | Measured against real KEGG gene→KO annotations across 4 organisms of varying study depth: the tighter value sits inside the tail of *real* matches (~20 orders of magnitude above the noise floor), discarding genuine hits for no gain. MATLAB's port is still pending. |
-| `min_score_ratio_g` (in `assign_kos`) | `0.9` on the Python side; MATLAB still uses `0.8` | Same study: the real precision lever (0.8→0.95 lifts precision ~0.07–0.10 for ~0.02 recall). MATLAB's port is still pending. |
+| `cutoff` (in `assign_kos`) | `1e-30`; RAVEN 2.11.3 used `1e-50` | Measured against real KEGG gene→KO annotations across 4 organisms of varying study depth: the tighter value sits inside the tail of *real* matches (~20 orders of magnitude above the noise floor), discarding genuine hits for no gain. RAVEN 3's `getKEGGModelForOrganism` uses `cutOff` `10^-30` too. |
+| `min_score_ratio_g` (in `assign_kos`) | `0.9`; RAVEN 2.11.3 used `0.8` | Same study: the real precision lever (0.8→0.95 lifts precision ~0.07–0.10 for ~0.02 recall). RAVEN 3's `getKEGGModelForOrganism` uses `minScoreRatioG` `0.9` too. |
 | `min_score_ratio_ko` (in `assign_kos`) | `0.3` | Same study: measured empirically **inert** (varying it changes precision/recall by ≤0.02); kept at the original value since it does nothing either way. |
 | `seq_identity` (in `build_ko_hmm`) | `0.9` | Literature: CD-HIT's own recommendation for protein clustering. |
 | `threads` (`run_hmmsearch`, `build_ko_hmm`) | every CPU the process may run on | Performance-only; HMMER is deterministic (to within insignificant float noise) across thread counts. |
@@ -215,9 +215,9 @@ change, or explains why it stays split.
 | Parameter | Python now | MATLAB now | Unify at | Side that changes | Confidence | Evidence |
 |---|---|---|---|---|---|---|
 | `run_blast.evalue` | `1e-4` ✓ done | `1e-4` | **`1e-4`** | ~~Python~~ done | High | No downstream effect measured either way (`get_model_from_homology`'s `1e-30` dominates); matches `develop`'s independent PR #91 call |
-| `get_model_from_homology.min_align_len` | `100` ✓ done | `200` | **`100`** | Python done; MATLAB pending | High | Directly measured: [homology cut-off calibration study](parameter-tuning/studies/homology-cutoff-calibration.md) |
-| `assign_kos.cutoff` | `1e-30` | `1e-50` | **`1e-30`** | MATLAB | High | Directly measured: [KEGG HMM cut-off calibration study](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md) |
-| `assign_kos.min_score_ratio_g` | `0.9` | `0.8` | **`0.9`** | MATLAB | High | Directly measured, same study |
+| `get_model_from_homology.min_align_len` | `100` ✓ done | `100` ✓ done (`200` in RAVEN 2.11.3) | **`100`** | ~~Python and MATLAB~~ done | High | Directly measured: [homology cut-off calibration study](parameter-tuning/studies/homology-cutoff-calibration.md) |
+| `assign_kos.cutoff` | `1e-30` ✓ done | `1e-30` ✓ done (`1e-50` in RAVEN 2.11.3) | **`1e-30`** | ~~MATLAB~~ done | High | Directly measured: [KEGG HMM cut-off calibration study](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md) |
+| `assign_kos.min_score_ratio_g` | `0.9` ✓ done | `0.9` ✓ done (`0.8` in RAVEN 2.11.3) | **`0.9`** | ~~MATLAB~~ done | High | Directly measured, same study |
 | `get_init_model.allow_excretion` | `False` ✓ done | `False` | **`False`** | ~~Python~~ done (2026-06-20) | High | Zero effect at default `prod_weight`, pure inconsistency; see `parameter-tuning/benchmarks.md` |
 
 ### Resolved without unifying: `run_init`/`run_ftinit` `mip_gap`/`time_limit`
@@ -237,7 +237,6 @@ The [INIT solver benchmark](parameter-tuning/studies/init-solver-benchmark.md) m
 
 | Parameter | Python | MATLAB | Why |
 |---|---|---|---|
-| `random_sampling.method` | `'achr'` | `'random_objective'` | Different algorithms, not a flag. ACHR is methodologically preferred (uniform interior sampling vs vertex-biased). Unifying means porting ACHR into MATLAB RAVEN, a real implementation project, tracked separately, not a default change. |
 | `random_sampling.replace_max_bound` | `False` | `True` | Applying MATLAB's `True` inside cobrapy/optlang makes the sampler unbounded on standard RAVEN-convention models (measured; see `sampling.md`). Whether MATLAB's own solver path handles `True` safely wasn't tested here; either way this is a solver-stack constraint, not a preference. |
 | `random_sampling.loopless_good_reactions` | `True` (loopless FVA) | heuristic (exclude FVA ≥ 999) | Different techniques, not a value. Python's is more correct; MATLAB's heuristic over-excludes reactions that legitimately reach capacity. Porting the proper technique to MATLAB is a bigger project than a default flip. |
 | `merge_models.match_by` | `'name'` | `'metNames'` | Same semantic field (metabolite display name), different field name, an artifact of cobrapy vs COBRA Toolbox schemas, not a tunable behaviour. |
@@ -247,20 +246,19 @@ The [INIT solver benchmark](parameter-tuning/studies/init-solver-benchmark.md) m
 
 ## Changes needed in MATLAB RAVEN for parity
 
-All rows below were re-checked directly against `core/*.m` on `origin/develop` in
-the RAVEN MATLAB repo on 2026-08-28 (not inferred from raven-toolbox's own
-prior write-ups).
+None are open. The three MATLAB changes this page once listed are in RAVEN 3,
+checked against `src/` on RAVEN `develop`:
 
-| Change | Priority | Evidence |
+| Function | RAVEN 2.11.3 | RAVEN 3 |
 |---|---|---|
-| `getKEGGModelForOrganism`'s `cutOff` parameter: `10^-50` → `10^-30` | High | [KEGG HMM cut-off calibration study](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md); current value confirmed directly in `external/kegg/getKEGGModelForOrganism.m` |
-| Same function, `minScoreRatioG`: `0.8` → `0.9` | High | Same study and same confirmation |
-| `getModelFromHomology`'s `minLen`: `200` → `100` | Medium | [homology cut-off calibration study](parameter-tuning/studies/homology-cutoff-calibration.md); confirmed directly in `core/getModelFromHomology.m`. A fix already exists as an uncommitted local branch (`fix/homology-minlen`) but is stale relative to current `origin/develop` (file moved `reconstruction/homology/` → `core/`) and hasn't been pushed. |
+| `getKEGGModelForOrganism`, `cutOff` | `10^-50` | `10^-30` |
+| `getKEGGModelForOrganism`, `minScoreRatioG` | `0.8` | `0.9` |
+| `getModelFromHomology`, `minLen` | `200` | `100` |
 
-Localisation's time-budget parameter was removed from this table: `core/predictLocalization.m`
-confirmed MATLAB solves the problem with simulated annealing (`maxTime`, default 15 minutes,
+Localisation's time-budget parameter is not a change to port: `predictLocalization.m`
+solves the problem with simulated annealing (`maxTime`, default 15 minutes,
 a search budget), not the deterministic MILP raven-toolbox uses (`time_limit`, a solver
-cutoff), different algorithms, not a value to port. See the "Keep different" table above.
+cutoff), different algorithms. See the "Keep different" table above.
 
 ## Still open
 

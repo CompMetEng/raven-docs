@@ -6,11 +6,11 @@ of them had ever been measured, in either toolbox. This is what they are worth.
 | Setting | Was | Now | Why |
 |---|---|---|---|
 | `min_identity` | 40 | **40** | The one that matters. 40 is right. |
-| `min_align_len` | 200 | **100** | 200 was throwing away real matches for nothing. |
+| `min_align_len` | 200 (RAVEN 2.11.3) | **100** | 200 was throwing away real matches for nothing. |
 | `max_evalue` | 1e-30 | **1e-30** | Makes no difference anywhere between 1e-4 and 1e-50. |
 
-`min_align_len` now differs from MATLAB RAVEN, which still uses 200. Worth
-back-porting.
+`min_align_len` is 100 in raven-toolbox and in RAVEN 3 (`getModelFromHomology`'s
+`minLen`); RAVEN 2.11.3 used 200.
 
 ## How it was tested
 
@@ -38,7 +38,8 @@ can be applied to the same matches.
 
 ## Sequence identity: keep 40
 
-Scored against KEGG annotations (higher is better):
+Scored against KEGG annotations (higher is better). The page does not name the
+score itself:
 
 | identity | `kla` | `yli` | `ani` | `eco` |
 |---|---|---|---|---|
@@ -60,6 +61,10 @@ settings is meaningless unless it says how it weighed the two kinds of mistake.
 
 ## Alignment length: 200 was too strict
 
+This table is not labelled with its reference. Its 200 row (0.923, 0.860, 0.804,
+0.598) equals the 40 row of the KEGG table above, so it is scored against KEGG
+annotations; the page reports no OMA scores for alignment length.
+
 | length | `kla` | `yli` | `ani` | `eco` |
 |---|---|---|---|---|
 | 50 | 0.933 | 0.871 | 0.815 | 0.618 |
@@ -74,6 +79,11 @@ wrong-match rate moves by at most 0.6 of a percentage point. 50 and 100 are
 identical, so 100 was chosen as the less permissive of the two.
 
 ## E-value: not a setting that changes the result
+
+This table covers `kla` and `ani` only, and is not labelled with its reference.
+Its 1e-4 … 1e-50 values (0.923, 0.804) equal the 40 row of the KEGG table above,
+so it is scored against KEGG annotations; the page reports no OMA scores for the
+e-value.
 
 | `max_evalue` | `kla` | `ani` |
 |---|---|---|
