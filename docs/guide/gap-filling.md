@@ -1,29 +1,23 @@
-# 17. Gap-filling
+# Gap-filling
 
-A draft model always has holes: reactions that cannot carry flux because
-something upstream is missing, metabolites nothing produces, a biomass component
-the network cannot make. Gap-filling adds reactions from a template until the
-holes close, and the judgement is in deciding which holes are worth closing.
+A draft model always has holes: reactions that cannot carry flux because something upstream is missing, metabolites nothing produces, a biomass component the network cannot make. Gap-filling adds reactions from a template until the holes close. Deciding which holes are worth closing is a judgement.
 
-## Functions on this page
+## Functions
 
-| MATLAB | Python | |
+| MATLAB | Python | Purpose |
 |---|---|---|
 | `gapReport` | `check_model`, `analyse_topology` | find the holes first |
 | `fillGaps` | `connect_blocked_reactions` | add template reactions so blocked reactions can carry flux |
-| `gapFillFastLP` | `fill_gaps_fast_lp` | the LP formulation (fastGapFill / swiftGapFill) |
-| `gapFillMILP` | `fill_gaps_milp` | the MILP formulation, when the LP is not enough |
+| `gapFillFastLP` | `fill_gaps_fast_lp` | the linear programming (LP) formulation (fastGapFill / swiftGapFill) |
+| `gapFillMILP` | `fill_gaps_milp` | the mixed-integer linear programming (MILP) formulation, when the LP is not enough |
 | `gapFillTopological` | `analyse_topology` | connectivity, without solving an LP |
-| `fitTasks` | `fill_tasks` | fill until a task passes; see [15. Metabolic tasks](tasks.md) |
+| `fitTasks` | `fill_tasks` | fill until a task passes; see [Metabolic tasks](tasks.md) |
 
 `gapFillTopological` and `analyse_topology` take their defaults from the model. The seeds are the metabolites of every reaction that has only substrates and a negative lower bound, or only products and a positive upper bound, whatever the number of metabolites; when the model has no such reaction, RAVEN and the toolbox warn that there is no seed. Reactions without substrates fire in the scope computation whatever their bounds, so closing an uptake reaction does not remove its metabolite from the scope. The targets are the metabolites of the first objective reaction, substrates and products. Without targets, a model with no objective reaction raises `RAVEN:badInput` in MATLAB and `ValueError` in Python.
 
 ## Setup
 
-A gap-filling example needs a draft with holes and a template to fill them from.
-`smallYeast.yml` serves as both: open its medium, take a copy, and remove a
-reaction. What gap-filling then puts back is checkable by eye: it should be the
-reaction that was removed.
+A gap-filling example needs a draft with holes and a template to fill them from. `smallYeast.yml` is both: its medium is opened, a copy is taken and one reaction is removed. The reaction that gap-filling adds back can be checked directly: it should be the reaction that was removed.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -64,16 +58,13 @@ print(f"draft {len(draft.reactions)} rxns, template {len(template.reactions)} rx
 draft 52 rxns, template 53 rxns
 ```
 
-Note the medium. Shipped shut, `smallYeast` has **51 of its 53 reactions
-blocked**: not because it has gaps, but because nothing can get in. Gap-fill
-a model in that state and you are asking the wrong question entirely.
+With the medium as shipped (closed), `smallYeast` has 51 of its 53 reactions blocked, because nothing can get in and not because of gaps. Gap-filling a model in that state asks the wrong question.
 :::
 ::::
 
-## 17.1 Find the holes before filling them
+## Finding holes
 
-Gap-filling without looking first is how a model acquires reactions nobody can
-justify. Start from what cannot carry flux.
+A model acquires reactions that nobody can justify when gap-filling starts without a check of the holes. Start from the reactions that cannot carry flux.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -106,11 +97,9 @@ print(sorted(blocked)[:5])
 :::
 ::::
 
-## 17.2 Connectivity gap-filling
+## Connectivity gap-filling
 
-The question here is structural: which template reactions, added to the draft,
-would let a blocked reaction carry flux at all? No objective, no growth, just
-connectivity.
+Connectivity gap-filling is structural: it finds the template reactions that, added to the draft, let a blocked reaction carry flux. It uses no objective and no growth, only connectivity.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -143,35 +132,19 @@ print(f"{len(result.added_reactions)} added: "
 1 added: ADH1
 ```
 
-The reaction that comes back is the one that was taken out, in both
-toolboxes. That identity is the result to report. `fillGaps` also
-returns counts of *newly connected* and *still unconnectable* reactions, and
-those are not stable: it solves a MILP, several solutions are equally
-optimal, and which one comes back can change with the machine or the thread
-count. Two CI runs on identical input reported 11 and 9 newly connected.
+The reaction that is returned is the one that was taken out, in both toolboxes. That identity is the result to report. `fillGaps` also returns the newly connected reactions and those that cannot be connected, and their numbers are not stable: it solves a MILP, several solutions are equally optimal, and which one is returned can change with the machine or the thread count. Two CI runs on identical input reported 11 and 9 newly connected.
 
-Both are MILPs. `connect_blocked_reactions` runs on the GLPK that ships with
-cobrapy; `fillGaps` runs on RAVEN's bundled GLPK too, with a warning that
-recommends Gurobi, which is the solver this tab selects.
+Both are MILPs. `connect_blocked_reactions` runs on the GLPK that ships with cobrapy; `fillGaps` runs on RAVEN's bundled GLPK too, with a warning that recommends Gurobi (`setRavenSolver('gurobi')`).
 
-`allow_net_production` decides how strict the test is. A reaction can be
-blocked because a substrate is unavailable *or* because a product has nowhere
-to go; with net production allowed, only the first counts. Turning it off asks
-the harder question and usually adds more reactions.
+`allow_net_production` decides how strict the test is. A reaction can be blocked because a substrate is unavailable or because a product has nowhere to go; with net production allowed, only the first counts. Turning it off asks the harder question and usually adds more reactions.
 :::
 ::::
 
-## 17.3 The LP formulation
+## LP formulation
 
-Note the argument: `fillGaps` takes a **cell array** of template models, while
-`gapFillFastLP` and `gapFillMILP` take a **single struct**. Passing a cell to
-these two fails with `Dot indexing is not supported for variables of this
-type`.
+`fillGaps` takes a cell array of template models or a model structure, while `gapFillFastLP` and `gapFillMILP` take a single struct. Passing a cell to these two fails with `Dot indexing is not supported for variables of this type`.
 
-`fill_gaps_fast_lp` (fastGapFill, and its `swift` variant) solves one LP per
-blocked reaction: activate this reaction using as few template reactions as
-possible. It is the fast option, and the one that scales to a genome-scale
-draft.
+`fill_gaps_fast_lp` (fastGapFill, and its `swift` variant) solves one LP per blocked reaction: activate this reaction using as few template reactions as possible. It is the fast option, and the one that scales to a genome-scale draft.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -206,25 +179,13 @@ print(f"{len(result.added_reactions)} reactions added")
 1 reactions added
 ```
 
-The two tabs add 5 and 1 (MATLAB adds 8 with Gurobi: the LP has alternative
-optima, and the solver picks one). They are solving the same idea with different
-inputs: the MATLAB call merges the whole template into the draft first,
-renaming every id it already has, which is what the rename warning above
-lists. Its universal database therefore holds a second copy of the
-draft's own reactions, and the LP is free to rescue a blocked reaction
-through those duplicates. `fill_gaps_fast_lp` matches by id and treats
-the shared reactions as already present, so only the missing one is a
-candidate. On two models that genuinely differ, which is the real case,
-the gap between the counts closes.
+The two tabs add 5 and 1 (MATLAB adds 8 with Gurobi: the LP has alternative optima, and the solver picks one). They apply the same method to different inputs: the MATLAB call merges the whole template into the draft first, renaming every id it already has, which the rename warning in the MATLAB output lists. Its universal database therefore holds a second copy of the draft's own reactions, and the LP is free to rescue a blocked reaction through those duplicates. `fill_gaps_fast_lp` matches by id and treats the shared reactions as already present, so only the missing one is a candidate. On two models that differ, which is the real case, the gap between the counts closes.
 :::
 ::::
 
-## 17.4 The MILP formulation
+## MILP formulation
 
-When the LP formulation adds too much, or you want the provably smallest set,
-the mixed-integer formulation is the alternative. GLPK solves it at this size in
-both toolboxes (RAVEN warns and recommends Gurobi); on anything genome-scale it
-is slower by a wide margin, and Gurobi is the better choice.
+When the LP formulation adds too much, or when the provably smallest set is wanted, the MILP formulation is the alternative. GLPK solves it at this size in both toolboxes (RAVEN warns and recommends Gurobi); on anything genome-scale it is slower by a wide margin, and Gurobi is the better choice.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -267,8 +228,7 @@ fill_gaps_milp: added 0 template reaction(s).
 :::
 ::::
 
-Zero is the right answer here: without `ADH1` the draft still grows at 0.1222 /h, so it already meets the default floor (10 % of the merged model's maximum, 0.02443 /h in both tools). The template repeats the draft's reactions, its uptake reactions included, so the merged model can take up twice the glucose and its maximum is 0.2443 /h. The MILP has nothing to buy. To see a repair, remove a reaction
-growth needs, such as hexokinase:
+Zero is the right answer here: without `ADH1` the draft grows at 0.1222 /h, so it meets the default floor (10 % of the merged model's maximum, 0.02443 /h in both tools). The template repeats the draft's reactions, its uptake reactions included, so the merged model can take up twice the glucose and its maximum is 0.2443 /h. The MILP has nothing to add. To see a repair, remove a reaction that growth needs, such as hexokinase:
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -316,18 +276,11 @@ filled growth 0.1222
 :::
 ::::
 
-Hexokinase comes back. Both functions only add template reactions: the
-draft's own reactions keep their bounds, forced fluxes such as ATP maintenance
-included. A draft reaction that runs in the wrong direction is therefore not
-reversed to close a gap; it is a curation finding, so correct its bounds in the
-draft (see [8. Editing an existing model](editing.md)) and fill again.
+Hexokinase is added back. Both functions only add template reactions: the draft's own reactions keep their bounds, forced fluxes such as ATP maintenance included. A draft reaction that runs in the wrong direction is therefore not reversed to close a gap; it is a curation finding, so correct its bounds in the draft (see [Editing an existing model](editing.md)) and fill again.
 
-## 17.5 Filling towards a task, not a hole
+## Filling towards a task
 
-Connectivity gap-filling asks "can this reaction carry flux?". The other question
-("can the model still do *this*?") is answered by filling against a task list,
-which is the form the question usually takes: a model that grows, or that
-produces a particular compound.
+Connectivity gap-filling asks whether a reaction can carry flux. The other question, whether the model can perform a given function, is answered by filling against a task list, which is the form the question usually takes: a model that grows, or that produces a particular compound.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -351,45 +304,23 @@ tasks = parseTaskList('tasks.txt');
 from raven_toolbox.init import fill_tasks
 ```
 
-See [15. Metabolic tasks](tasks.md) for the task list itself, and
-[14. Context-specific models](init.md) for `fill_tasks` in its usual role,
-repairing a model that ftINIT has just cut down.
+See [Metabolic tasks](tasks.md) for the task list itself, and [Context-specific models](init.md) for `fill_tasks` in its usual role, repairing a model that ftINIT has reduced.
 
-`fitTasks` fills one task at a time rather than all of them at once, so
-the order of the task list can change the result. Its `rxnScores` weights
-the candidates, taking negative scores only and maximising their sum, so a
-reaction with a score closer to zero is cheaper to add; that is the hook
-ftINIT uses to prefer reactions its expression data supports.
-`gapFillMode` picks the back-end: `'merge'` combines the reference model
-with the draft for every task, and `'preMerged'` expects a reference that
-already contains the draft, which is the form ftINIT passes.
+`fitTasks` fills one task at a time, so the order of the task list can change the result. Its `rxnScores` weights the candidates, taking negative scores only and maximising their sum, so a reaction with a score closer to zero is cheaper to add; this is how ftINIT prefers reactions its expression data supports. `gapFillMode` selects the back-end: `'merge'` combines the reference model with the draft for every task, and `'preMerged'` expects a reference that already contains the draft, which is the form ftINIT passes.
 :::
 ::::
 
-:::{warning} What can go wrong
-- **Identifiers that do not line up.** Gap-filling can only add what it can
-  match. Two models built from different databases share almost no metabolite
-  ids, and the result is a gap-filler that adds nothing, or adds duplicates.
-- **Filling every gap.** Some blocked reactions are blocked because the
-  organism genuinely cannot do them. Each addition is a claim about biology,
-  and `fillGaps` will make hundreds of them in one call.
-- **Net production hiding the problem.** `allowNetProduction` makes more
-  reactions look connectable by ignoring where the products go. Useful early,
-  misleading later.
-- **MILP on a genome-scale model.** Expect it to be slow, on GLPK most of
-  all, and give it a time limit; see [6. Solvers and configuration](solvers.md).
-- **A draft reaction in the wrong direction.** `gapFillMILP` and
-  `fill_gaps_milp` do not change the draft's own reactions, so a wrong
-  direction shows up as a fill that fails or adds a detour around it.
-- **Comparing added-reaction counts across toolboxes.** The two sides
-  differ in what they treat as a candidate, so the counts are only
-  comparable when the template genuinely holds reactions the draft lacks.
+:::{warning} Troubleshooting
+- Identifiers that do not line up. Gap-filling can only add what it can match. Two models built from different databases share almost no metabolite ids, and the result is a gap-filler that adds nothing, or adds duplicates.
+- Filling every gap. Some blocked reactions are blocked because the organism cannot perform them. Each addition is a claim about biology, and `fillGaps` makes hundreds of them in one call.
+- Net production hiding the problem. `allowNetProduction` makes more reactions look connectable by ignoring where the products go. It helps in early stages and misleads in later ones.
+- MILP on a genome-scale model. Expect it to be slow, on GLPK most of all, and give it a time limit; see [Solvers and configuration](solvers.md).
+- A draft reaction in the wrong direction. `gapFillMILP` and `fill_gaps_milp` do not change the draft's own reactions, so a wrong direction shows up as a fill that fails or adds a detour around it.
+- Comparing added-reaction counts across toolboxes. The two sides differ in what they treat as a candidate, so the counts are only comparable when the template holds reactions that the draft lacks.
 :::
 
 ## See also
 
-- [9. Quality control](quality-control.md), finding the holes, and deciding
-  which matter.
-- [15. Metabolic tasks](tasks.md), the other way to say what the model must do.
-- [3. Reading and writing models](io.md), saving the filled model with a record
-  of what was added.
+- [Quality control](quality-control.md), finding the holes, and deciding which matter.
+- [Metabolic tasks](tasks.md), the other way to say what the model must do.
+- [Reading and writing models](io.md), saving the filled model with a record of what was added.

@@ -153,10 +153,10 @@ written: localization.
 Conventions:
 
 - **Page anatomy.** Title and one-paragraph statement of the task; a
-  "Functions on this page" table (MATLAB | Python | note) linking into the API
+  "Functions" table (MATLAB | Python | note) linking into the API
   reference (`scripts/autolink.py` adds the links at build time: every name in
   the table and the first mention per section in the prose); setup; two to five numbered steps, each with a tabbed code block and
-  its real output; "What can go wrong"; "See also".
+  its real output; "Troubleshooting"; "See also".
 - **cobrapy is marked, three ways**: a badge in the function table linking to
   cobrapy's docs, an explicit import in the snippet
   (`from cobra.io import read_sbml_model`), and a line of prose wherever the

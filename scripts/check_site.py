@@ -64,7 +64,7 @@ RULE_FILES = {
 # Names of configuration files and folders are not mentions of a tool.
 CONFIG_NAMES = re.compile(r"claude\.md|\.claude(?:-plugin)?\b", re.I)
 
-GUIDE_EXPECTED = ["Functions on this page", "What can go wrong", "See also"]
+GUIDE_EXPECTED = ["Functions", "Troubleshooting", "See also"]
 # A page that explains a concept instead of a task opts out of the anatomy.
 CONCEPT_MARKER = "<!-- docs-site: concept-page -->"
 

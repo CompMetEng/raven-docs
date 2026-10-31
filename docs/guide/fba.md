@@ -1,30 +1,23 @@
-# 4. Simulating growth with FBA
+# Simulating growth with FBA
 
-Set an objective, constrain the uptake rates, solve, and read the fluxes back.
-This is the loop every other analysis on this site is built from.
+Flux balance analysis (FBA) sets an objective, constrains the uptake rates, solves and reads the fluxes back. Every other analysis on this site is built from this loop.
 
-## Functions on this page
+## Functions
 
-| MATLAB | Python | |
+| MATLAB | Python | Purpose |
 |---|---|---|
 | `setParam` | `Reaction.bounds`, `Model.objective` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | set bounds and the objective |
 | `solveLP` | `Model.optimize` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | solve the LP |
 | `printFluxes` | `Model.summary` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | show the fluxes that carry material |
 | `solveLP` (`minFlux`) | `pfba` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | pick a parsimonious solution among the optima |
 
-:::{admonition} Where the Python functions come from
-:class: info
-Every simulation step on this page is cobrapy, marked
-{bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` in the table above. In MATLAB,
-`solveLP` needs neither the COBRA Toolbox nor anything else outside RAVEN.
-:::
+Every Python simulation step on this page is cobrapy, marked {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` in the functions table. In MATLAB, `solveLP` needs neither the COBRA Toolbox nor anything else outside RAVEN.
 
 ## Setup
 
-`yeast-GEM.yml` from [`docs/data/`](../data/README.md), yeast-GEM v9.1.0, which
-arrives with a growth objective and an aerobic glucose medium already set.
+The model is `yeast-GEM.yml` from [`docs/data/`](../data/README.md), yeast-GEM v9.1.0, which has a growth objective and an aerobic glucose medium set.
 
-## 4.1 Solve
+## Solving
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -44,25 +37,18 @@ status:    1
 growth:    0.0809 /h
 ```
 
-The objective is `model.c`, a vector with one entry per reaction, so
-`model.c == 1` finds the reaction being maximised.
+The objective is `model.c`, a vector with one entry per reaction, so `model.c == 1` finds the reaction being maximised.
 
-`sol` carries the whole answer. `sol.f` is the objective value with its
-natural sign: RAVEN minimises internally and negates the result, so no sign
-has to be undone by the caller. `sol.x` is the flux vector, in the order of
-`model.rxns`, and `sol.stat` reports how the solve ended:
+`sol` holds the whole answer. `sol.f` is the objective value with its natural sign: RAVEN minimises internally and negates the result, so no sign has to be undone by the caller. `sol.x` is the flux vector, in the order of `model.rxns`, and `sol.stat` reports how the solve ended:
 
 | `stat` | Meaning |
 |---|---|
 | `1` | solved to optimality |
 | `0` | a feasible solution was found, but not proven optimal |
 | `-1` | no feasible solution exists |
-| `-2` | solved, but the flux minimisation in 4.6 failed |
+| `-2` | solved, but the second optimisation set by `minFlux` failed |
 
-Anything other than `1` makes the fluxes provisional at best, so check `stat`
-before reading `x`. A plain solve (`minFlux` left at its default) also returns
-`sol.sPrice` and `sol.rCost`, the shadow prices and reduced costs from the
-LP dual.
+Anything other than `1` makes the fluxes provisional at best, so check `stat` before reading `x`. A plain solve (`minFlux` left at its default) also returns `sol.sPrice` and `sol.rCost`, the shadow prices and reduced costs from the LP dual.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -84,21 +70,15 @@ status:    optimal
 growth:    0.0809 /h
 ```
 
-`optimize` maximises by default and returns a `Solution` whose `fluxes` is a
-pandas Series indexed by reaction id.
+`optimize` maximises by default and returns a `Solution` whose `fluxes` is a pandas Series indexed by reaction id.
 
-The objective prints as a difference of two terms because cobrapy gives every
-reaction a forward and a reverse variable, both non-negative, and reports the
-net flux as forward minus reverse. The suffix on the reverse variable is a
-hash, so it differs between models. Only the expression is split; `r_2111`
-remains one reaction, and `solution.fluxes['r_2111']` is the net value.
+The objective prints as a difference of two terms because cobrapy gives every reaction a forward and a reverse variable, both non-negative, and reports the net flux as forward minus reverse. The suffix on the reverse variable is a hash, so it differs between models. Only the expression is split; `r_2111` remains one reaction, and `solution.fluxes['r_2111']` is the net value.
 :::
 ::::
 
-## 4.2 Change the objective
+## Changing the objective
 
-The objective is a reaction to maximise: growth, a product exchange, an ATP
-demand.
+The objective is a reaction to maximise: growth, a product exchange, an ATP demand.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -113,9 +93,7 @@ disp(model.rxnNames{getIndexes(model, 'r_2111', 'rxns')});
 growth
 ```
 
-`setParam` writes the coefficient into `model.c` and zeroes every other
-entry, so setting an objective replaces the previous one rather than adding
-to it. A negative coefficient minimises that reaction instead.
+`setParam` writes the coefficient into `model.c` and zeroes every other entry, so setting an objective replaces the previous one. A negative coefficient minimises that reaction.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -129,21 +107,13 @@ print(model.reactions.get_by_id("r_2111").name)
 growth
 ```
 
-Assigning a reaction or its id replaces the objective. `model.objective` also
-accepts an expression, so a weighted combination of reactions is written
-directly, and `model.objective_direction` switches between maximising and
-minimising.
+Assigning a reaction or its id replaces the objective. `model.objective` also accepts an expression, so a weighted combination of reactions is written as one expression, and `model.objective_direction` switches between maximising and minimising.
 :::
 ::::
 
-## 4.3 Constrain an uptake rate
+## Constraining an uptake rate
 
-yeast-GEM writes its exchange reactions as `metabolite <=>`, so uptake is a
-**negative** flux and the lower bound is what limits it. A model that writes
-uptake as `=> metabolite`, like smallYeast in [6. Solvers](solvers.md), has the
-opposite sign. yeast-GEM ships with glucose capped at 1 mmol/gDW/h, which is
-where the growth rate above comes from; ten times the glucose gives roughly ten
-times the growth.
+yeast-GEM writes its exchange reactions as `metabolite <=>`, so uptake is a negative flux and the lower bound limits it. A model that writes uptake as `=> metabolite`, like smallYeast in [Solvers](solvers.md), has the opposite sign. yeast-GEM has glucose capped at 1 mmol/gDW/h, which determines the growth rate of the first solve; ten times the glucose gives roughly ten times the growth.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -186,19 +156,11 @@ growth on 10 mmol glucose: 0.8370 /h
 :::
 ::::
 
-The upper bound of `1000` on the same reaction is the model's convention for
-"unbounded", and it allows secretion of glucose, which nothing in the model will
-choose to do. Bounds are a pair, and only the one facing the direction of
-interest constrains the answer. [5. Growth media and conditions](media.md) sets
-all of them at once, and covers the opposite sign convention that
-`model.medium` uses.
+The upper bound of `1000` on the same reaction is the model's convention for "unbounded", and it allows secretion of glucose, which the model has no reason to do. Bounds are a pair, and only the one facing the direction of interest constrains the answer. [Growth media and conditions](media.md) sets all of them at once and covers the opposite sign convention that `model.medium` uses.
 
-## 4.4 Try something without keeping it
+## Temporary changes
 
-A knockout or a tighter bound is usually a question, not a decision. cobrapy's
-model is a context manager: changes made inside `with model:` are rolled back on
-the way out. MATLAB has no equivalent; copy the struct, change the copy, and let
-it go out of scope.
+A knockout or a tighter bound is usually a question to test, not a change to keep. cobrapy's model is a context manager: changes made inside `with model:` are rolled back on leaving the block. MATLAB has no equivalent; copy the struct, change the copy, and let it go out of scope.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -219,9 +181,7 @@ anaerobic: 0.0000 /h
 back to aerobic: 0.0809 /h
 ```
 
-`'eq'` sets both bounds at once, so a single call closes the reaction in both
-directions. MATLAB structs are value types, so `modelKO` is a copy from the
-moment it is assigned and `model` cannot be reached through it.
+`'eq'` sets both bounds at once, so a single call closes the reaction in both directions. MATLAB structs are value types, so `modelKO` is a copy from the moment it is assigned and `model` cannot be reached through it.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -239,28 +199,15 @@ anaerobic: -0.0000 /h
 back to aerobic: 0.0809 /h
 ```
 
-Without `with`, the bound change would persist and every later result on this
-page would be an anaerobic one. The block undoes the edits cobrapy records:
-bounds, the objective, reactions and metabolites added or removed,
-stoichiometry changed with `add_metabolites`, gene rules and gene knockouts.
-Plain attribute edits are not recorded and survive the block: names, formulas,
-charges, `subsystem`, the model id and anything written into `annotation` or
-`notes`. Make those on `model.copy()`.
+Without `with`, the bound change would persist and every later result of these examples would be an anaerobic one. The block undoes the edits cobrapy records: bounds, the objective, reactions and metabolites added or removed, stoichiometry changed with `add_metabolites`, gene rules and gene knockouts. Plain attribute edits are not recorded and survive the block: names, formulas, charges, `subsystem`, the model id and anything written into `annotation` or `notes`. Make those on `model.copy()`.
 
-Two things in that output need care. The anaerobic growth rate is **zero**,
-not a smaller positive number: closing the oxygen exchange is not enough to
-make yeast-GEM grow fermentatively; it also needs sterol and fatty-acid
-uptake and a different biomass composition, which is what a *condition* does.
-See [Growth media and conditions](media.md). And the minus sign on that zero
-is solver noise, not a negative growth rate; compare against a tolerance
-rather than to `0`.
+The anaerobic growth rate is zero. Closing the oxygen exchange is not enough to make yeast-GEM grow fermentatively; growth also needs sterol and fatty-acid uptake and a different biomass composition, which a condition provides (see [Growth media and conditions](media.md)). The minus sign on that zero is solver noise and is not a negative growth rate. Compare the value against a tolerance, not against `0`.
 :::
 ::::
 
-## 4.5 Look at the fluxes
+## Inspecting the fluxes
 
-An FBA solution has thousands of numbers, most of them zero and most of the rest
-uninteresting. Both toolboxes offer a filtered view.
+An FBA solution has thousands of numbers, most of them zero. Both toolboxes provide a filtered view.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -282,12 +229,7 @@ end
  ethanol:    0.0000
 ```
 
-`printFluxes(model, sol.x)` does the same filtering without a list of ids:
-by default it prints every exchange reaction carrying more than `1e-8`. Its
-`cutOffFlux` raises that floor, `onlyExchange` set to `false` includes
-internal reactions, `metaboliteList` restricts the print-out to reactions
-touching named metabolites, and `outputString` controls the columns, with
-`%eqn`, `%lower` and `%upper` available alongside `%flux`.
+`printFluxes(model, sol.x)` does the same filtering without a list of ids: by default it prints every exchange reaction whose absolute flux is at least `1e-8`. Its `cutOffFlux` raises that floor, `onlyExchange` set to `false` includes internal reactions, `metaboliteList` restricts the print-out to reactions touching named metabolites, and `outputString` controls the columns, with `%eqn`, `%lower` and `%upper` available alongside `%flux`.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -311,23 +253,15 @@ for rxn_id, label in exchanges.items():
  ethanol:    0.0000
 ```
 
-`model.summary()` prints the same picture (uptake, secretion and the
-objective) as a table, and `solution.fluxes` is a pandas Series, so ordinary
-filtering works: `solution.fluxes[solution.fluxes.abs() > 1e-6]`.
+`model.summary()` prints the same picture (uptake, secretion and the objective) as a table, and `solution.fluxes` is a pandas Series, so ordinary filtering works: `solution.fluxes[solution.fluxes.abs() > 1e-6]`.
 :::
 ::::
 
-In yeast-GEM's orientation the signs say which way material moves: negative
-through an exchange is uptake, positive is secretion. Glucose and oxygen enter, CO2 leaves, and ethanol is zero
-because the model has enough oxygen to respire everything it takes up.
+In yeast-GEM's orientation the signs say which way material moves: negative through an exchange is uptake, positive is secretion. Glucose and oxygen enter, CO2 leaves, and ethanol is zero because the model has enough oxygen to respire everything it takes up.
 
-## 4.6 Pick a parsimonious solution
+## Parsimonious solution
 
-An FBA optimum is rarely unique: many flux distributions reach the same growth
-rate, and a plain solve returns an arbitrary one, often with internal loops that
-carry flux without contributing to the objective. Parsimonious FBA keeps the
-objective at its optimum and then minimises the total flux, on the reasoning that
-a cell does not run reactions it gains nothing from.
+An FBA optimum is rarely unique: many flux distributions reach the same growth rate, and a plain solve returns an arbitrary one, often with internal loops that carry flux without contributing to the objective. Parsimonious FBA (pFBA) keeps the objective at its optimum and then minimises the total flux, on the reasoning that a cell does not run reactions it gains nothing from.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -344,12 +278,7 @@ growth:     0.0809 /h
 total flux: 100.6
 ```
 
-`minFlux` selects the second optimisation. `1` minimises the sum of absolute
-fluxes, which requires one further LP. `3`
-minimises the *number* of active reactions instead, which is a
-mixed-integer problem: the result is easier to read as a pathway, and the
-solve is far slower. Leaving `minFlux` at `0` skips the second solve
-altogether and is the only setting that reports shadow prices.
+`minFlux` selects the second optimisation. `1` minimises the sum of absolute fluxes, which requires one further LP. `3` minimises the number of active reactions, which is a mixed-integer problem: the result is easier to read as a pathway, and the solve is far slower. Leaving `minFlux` at `0` skips the second solve and is the only setting that reports shadow prices.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -367,36 +296,18 @@ growth:     0.0809 /h
 total flux: 100.6
 ```
 
-`pfba` is the equivalent of `minFlux` set to `1`. It takes
-`fraction_of_optimum`, which relaxes the objective before minimising flux, so
-`0.95` asks for the leanest distribution that still reaches 95% of the
-optimum.
+`pfba` is the equivalent of `minFlux` set to `1`. It takes `fraction_of_optimum`, which relaxes the objective before minimising flux, so `0.95` asks for the leanest distribution that still reaches 95 % of the optimum.
 
-The growth rate is unchanged and the total flux is now the smallest that
-achieves it. The *number* of active reactions still varies between solves;
-pFBA pins the total flux, not which reactions carry it, so a test on that
-count will be flaky.
+The growth rate is unchanged and the total flux is the smallest that achieves it. The number of active reactions varies between solves: pFBA pins the total flux and leaves open which reactions carry it, so a test on that count fails intermittently.
 :::
 ::::
 
-:::{warning} What can go wrong
-- **The status is `infeasible`.** Something is over-constrained, most often
-  an uptake that is closed, or a bound set to the wrong sign. See
-  [Growth media and conditions](media.md).
-- **Growth is zero but the solve succeeded.** The model is feasible and the
-  optimum really is zero: a nutrient is missing, or a gap blocks the biomass
-  pseudoreaction.
-- **The same model gives different flux distributions.** Expected:
-  alternative optima. Use pFBA, or compare ranges with FVA, rather than one
-  solution.
-- **Reading `sol.f` as a negated objective.** RAVEN minimises `-c'x`
-  internally and negates the result before returning, so `sol.f` is the
-  growth rate, not its negative.
-- **A model whose coefficients span many orders of magnitude.** Ill-scaled
-  stoichiometry makes the solver report an optimum that shifts between
-  solvers. `solveLP` takes `params.maxRatio`, which splits any reaction whose
-  coefficients span more than that ratio through auxiliary metabolites before
-  solving, leaving the feasible region unchanged.
+:::{warning} Troubleshooting
+- The status is `infeasible`: something is over-constrained, most often an uptake that is closed, or a bound set to the wrong sign. See [Growth media and conditions](media.md).
+- Growth is zero but the solve succeeded: the model is feasible and the optimum is zero, because a nutrient is missing or a gap blocks the biomass pseudoreaction.
+- The same model gives different flux distributions: this is expected, as alternative optima exist. Use pFBA, or compare ranges with flux variability analysis (FVA), not one solution.
+- Reading `sol.f` as a negated objective: RAVEN minimises `-c'x` internally and negates the result before returning, so `sol.f` is the growth rate, not its negative.
+- A model whose coefficients span many orders of magnitude: ill-scaled stoichiometry makes the solver report an optimum that shifts between solvers. `solveLP` takes `params.maxRatio`, which splits any reaction whose coefficients span more than that ratio through auxiliary metabolites before solving; the feasible region is unchanged.
 :::
 
 ## See also
