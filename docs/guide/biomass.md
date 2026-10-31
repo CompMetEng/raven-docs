@@ -32,7 +32,7 @@ pseudoRxns = {'protein pseudoreaction', 'carbohydrate pseudoreaction', ...
               'RNA pseudoreaction', 'DNA pseudoreaction', ...
               'lipid backbone pseudoreaction', 'cofactor pseudoreaction', ...
               'ion pseudoreaction'};
-strategies = {'mw_minus_2h', 'mw_minus_2h', 'mw_minus_2h', 'mw_minus_2h', ...
+strategies = {'mw_minus_2h', 'mw_minus_2h', 'mw_minus_water', 'mw_minus_water', ...
               'grams', 'mw_minus_2h', 'mw_minus_2h'};
 
 components = cell(1, numel(names));
@@ -63,8 +63,8 @@ model = read_yaml_model("yeast-GEM.yml")
 strategies = {
     "protein": "mw_minus_2h",
     "carbohydrate": "mw_minus_2h",
-    "RNA": "mw_minus_2h",
-    "DNA": "mw_minus_2h",
+    "RNA": "mw_minus_water",
+    "DNA": "mw_minus_water",
     "lipid backbone": "grams",
     "cofactor": "mw_minus_2h",
     "ion": "mw_minus_2h",
@@ -93,7 +93,7 @@ print(len(config.components), "components configured")
 
 The component `name` is used differently on the two sides. MATLAB returns the fractions as a struct keyed by that name, so it has to be a valid field name and cannot contain a space; the lipid backbone is therefore `lipidBackbone` in the configuration. `scaleBiomassPseudoreaction` and `rescale_pseudoreaction` also use the name to identify the metabolite the pseudoreaction produces, which they leave unscaled, so it matches the model's own wording. In MATLAB a name that differs from the metabolite name, such as `lipidBackbone`, leaves the product unprotected. `pseudoreaction_name` locates the reaction in both, and it is the same string either way.
 
-The `mass_strategy` says how a pseudoreaction's substrates become grams. `mw` multiplies each coefficient by the metabolite's molecular weight. `mw_minus_2h` reduces each substrate's molecular weight by two hydrogens (2.016 g/mol), the protons a charged tRNA releases in the protein pseudoreaction; `mw_minus_water` reduces it by one water (18.015 g/mol), the mass lost per polymerisation step in RNA and DNA. The example configuration sets `mw_minus_2h` for RNA and DNA. A protein therefore weighs less than the sum of its amino acids. `grams` takes the coefficients as already in g/gDW, the form in which the lipid backbone is written.
+The `mass_strategy` says how a pseudoreaction's substrates become grams. `mw` multiplies each coefficient by the metabolite's molecular weight. `mw_minus_2h` reduces each substrate's molecular weight by two hydrogens (2.016 g/mol), the protons a charged tRNA releases in the protein pseudoreaction; `mw_minus_water` reduces it by one water (18.015 g/mol), the mass lost per polymerisation step in RNA and DNA. A protein therefore weighs less than the sum of its amino acids. `grams` takes the coefficients as already in g/gDW, the form in which the lipid backbone is written.
 
 ## Composition of the biomass
 
@@ -112,12 +112,12 @@ end
 ```text
   protein          0.4648
   carbohydrate     0.3787
-  RNA              0.0633
-  DNA              0.0039
+  RNA              0.0541
+  DNA              0.0033
   lipidBackbone    0.0873
   cofactor         0.0048
   ion              0.0024
-  total            1.0051
+  total            0.9954
 ```
 :::
 :::{tab-item} 🐍 Python
@@ -134,12 +134,12 @@ for name, value in fractions.items():
 ```text
   protein          0.4648
   carbohydrate     0.3787
-  RNA              0.0633
-  DNA              0.0039
+  RNA              0.0541
+  DNA              0.0033
   lipid backbone   0.0873
   cofactor         0.0048
   ion              0.0024
-  total            1.0051
+  total            0.9954
 ```
 :::
 ::::
@@ -165,7 +165,7 @@ fprintf('protein %.4f, carbohydrate %.4f, total %.4f\n', ...
 ```
 
 ```text
-protein 0.5000, carbohydrate 0.3384, total 1.0000
+protein 0.5000, carbohydrate 0.3481, total 1.0000
 ```
 :::
 :::{tab-item} 🐍 Python
@@ -183,14 +183,14 @@ print(f"protein {after['protein']:.4f}, "
 ```
 
 ```text
-protein 0.5000, carbohydrate 0.3384, total 1.0000
+protein 0.5000, carbohydrate 0.3481, total 1.0000
 ```
 :::
 ::::
 
 `scale_biomass` edits the model in place and returns `None`, while `scaleBiomassFraction` returns a new struct and leaves its input alone. That is the same split as in [Combining and simplifying](combining.md); the Python tab therefore copies the model first.
 
-`balanceOut` names the component that absorbs the change: it is rescaled so the components sum to 1 g/gDW (`targetTotal` or `target_total`), whatever the total was before (1.0051 becomes 1.0000); the H+ rebalance of a rescaled pseudoreaction can leave the total slightly above it. The balancing component must be large enough to absorb the difference; if it would have to go negative, both functions raise an error, so its pseudoreaction is not turned around. Omit `balanceOut` and the component is rescaled on its own, which is correct only if some other step restores the total.
+`balanceOut` names the component that absorbs the change: it is rescaled so the components sum to 1 g/gDW (`targetTotal` or `target_total`), whatever the total was before (0.9954 becomes 1.0000); the H+ rebalance of a rescaled pseudoreaction can leave the total slightly above it. The balancing component must be large enough to absorb the difference; if it would have to go negative, both functions raise an error, so its pseudoreaction is not turned around. Omit `balanceOut` and the component is rescaled on its own, which is correct only if some other step restores the total.
 
 `scaleBiomassPseudoreaction` and `rescale_pseudoreaction` work one level down, on a single pseudoreaction, and rebalance the protons afterwards using the `proton_met` from the configuration. The reaction charge therefore stays balanced when its coefficients move.
 
@@ -249,7 +249,7 @@ Thermodynamic data is handled in a separate file. `loadDeltaGCSV` and `load_delt
 
 :::{warning} Troubleshooting
 - A configuration that does not match the model. Components are matched on the pseudoreaction's name and not its id. A component whose pseudoreaction is missing contributes zero without failing, so a mistyped name shows as a total that is short.
-- The wrong mass strategy. Using `mw` where the convention is `mw_minus_2h` inflates every polymer by the mass of the bonds, and the total shows it: the total is not near 1.
+- The wrong mass strategy. Using `mw` where the convention is `mw_minus_2h` or `mw_minus_water` inflates every polymer by the mass of the bonds, and the total shows it: the total is not near 1.
 - Rescaling without balancing. Setting protein to a measured value and leaving the rest alone changes the total, and therefore rescales every growth rate the model produces.
 - Counting a lipid twice. A backbone-and-chain representation states the same mass two ways. Include one.
 - Trusting SBO terms as validation. They record what the model already implies. They are useful downstream and are no check on the model.

@@ -235,12 +235,14 @@ Removing a metabolite from the cofactor pseudoreaction leaves it charge imbalanc
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
-<!-- run-examples: skip -->
-
 ```matlab
 modelAnaerobic = applyCondition(model, 'anaerobic.yml');
 sol = solveLP(modelAnaerobic);
 fprintf('anaerobic growth: %.4f /h\n', sol.f);
+```
+
+```text
+anaerobic growth: 0.1615 /h
 ```
 
 `applyCondition` reads the file with `parseYAML`, a YAML reader written in MATLAB.
