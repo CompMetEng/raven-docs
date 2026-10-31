@@ -95,7 +95,9 @@ The asymmetry follows from the matching rules. Metabolites are matched on name a
 
 `mergeModels` takes `metParam` to choose what metabolites are matched on: `"metNames"`, the default used in the example, or `"mets"` to match on identifier. Matching on id is the right choice when both models come from the same database, where the ids mean the same thing and the names may not.
 
-:::{warning} Merging matches on names, not identifiers
+:::{admonition} Merging matches on names, not identifiers
+:class: warning
+
 Two models built from different databases usually share almost no metabolite names either, in which case merging produces a model with two disconnected halves in the same struct. Merging assumes that the naming is consistent; check the naming before merging.
 :::
 
@@ -134,7 +136,9 @@ after contracting: 53 rxns
 
 `simplifyModel` does little unless the flags say what to remove: every flag is off by default except `deleteUnconstrained`. `deleteMinMax` is the expensive one used in the example, minimising and maximising each reaction to find out whether it can carry flux; `deleteInaccessible` drops dead ends structurally, `deleteZeroInterval` drops reactions pinned to zero, and `deleteDuplicates` does what `contractModel` does. `reservedRxns` protects reactions from all of them. In Python the same choices are `delete_no_flux` and its siblings, with `open_exchanges` deciding whether the test runs on the medium as it stands or with the boundary opened first.
 
-:::{warning} Which functions mutate
+:::{admonition} Which functions mutate
+:class: warning
+
 Every RAVEN function here returns a new model struct and leaves its input unchanged. The Python functions differ:
 
 | Python | Behaviour |
@@ -238,7 +242,9 @@ A reaction that holds a single metabolite after merging is kept or removed by th
 
 Collapsing compartments discards information. A model that distinguishes mitochondrial from cytosolic acetyl-CoA cannot be recovered from the flattened one, and the flattened model permits a pathway to run on a pool that no membrane separates. Flatten a copy, for a specific question, and keep the original.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Merging on inconsistent names. The match is on name and compartment. Different naming conventions give two disconnected networks in one model, and the merge raises no error; MATLAB only warns about the metabolite ids it renames.
 - Expecting de-duplication. Merging keeps every reaction from every source. Contract afterwards, and check what got collapsed.
 - Simplifying against the wrong condition. Reactions are removed because they cannot carry flux under the current bounds. Change the medium first.

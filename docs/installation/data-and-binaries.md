@@ -115,7 +115,9 @@ Every tool is invoked as a subprocess, so the availability of a native build for
 
 On Windows, homology reconstruction and the KEGG query path run natively, since they need only the first three tools. Building an HMM library needs MAFFT and CD-HIT, which have no Windows builds. Use Windows Subsystem for Linux 2 (WSL2) for that and keep the whole stack inside it, since raven-toolbox calls the resolved executable directly and does not translate paths between Windows and WSL.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 | Problem | Possible reason | Solution |
 |---|---|---|
 | A machine with no network | The first reconstruction needs to download files, which fails without a network. | Fetch on a connected machine, copy `~/.cache/raven_toolbox` and set `RAVEN_PYTHON_AUTOFETCH=0`. |

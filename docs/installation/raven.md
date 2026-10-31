@@ -51,7 +51,9 @@ setRavenSolver('cobra');
 
 ## Installation
 
-:::{warning} Installing 3.0.0b1
+:::{admonition} Installing 3.0.0b1
+:class: warning
+
 This site documents RAVEN 3.0.0b1, a pre-release. The Add-Ons manager and the normal releases page of the Release download offer only the latest stable release (RAVEN 2.x), so neither method installs 3.0.0b1. Use the Clone with git tab, or the direct archive link in the Release download tab.
 :::
 

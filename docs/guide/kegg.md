@@ -117,7 +117,9 @@ print(f"{len(strict.reactions)} rxns, {len(strict.genes)} genes "
 
 That is a change of nine reactions on this organism. The size of the effect differs per organism. Measure it for each organism. Unlike the other flags, `keepGeneral` / `keep_general` is off by default: general reactions are placeholders like "an alcohol + NAD+", and admitting them produces a network that appears to do far more than it can.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Expecting a model. No biomass reaction, no exchanges, no compartments, no medium. The draft is a reaction inventory with gene associations.
 - Trusting the KO assignment. A KO is an orthology group and not a demonstrated activity in the organism, and a partial HMM hit is weaker still.
 - Undefined stoichiometry. Reactions with `n` or `x` coefficients cannot be mass-balanced. They are kept by default because dropping them removes real chemistry, but they interfere with [Quality control](quality-control.md) later.

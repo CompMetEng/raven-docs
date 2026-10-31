@@ -102,11 +102,15 @@ The prefixes are arguments: `metPrefix` and `rxnPrefix` in MATLAB, `met_id_prefi
 
 Adding a reaction needs both reaction tables. The row in the reactions table carries the bounds, the gene rule and the annotation; the rows in the coefficients table carry the stoichiometry, one per metabolite, negative for substrates and positive for products, linked by `rxnIdx`. Any metabolite named there that the model does not have is created, so the metabolite table is usually applied in the same pass.
 
-:::{warning} Blank cells overwrite values
+:::{admonition} Blank cells overwrite values
+:class: warning
+
 In both toolboxes an empty cell is an instruction and not an omission: by default it overwrites the model's existing value, so a table written to fix one charge erases the text annotations in every column that is present but blank in that row. Setting `overwriteWithEmpty` to false, or `overwrite_with_empty=False`, keeps the existing values instead. Empty `grRules` and bounds never overwrite, an empty charge or confidence score becomes 0 when another row has a value, and a charge, confidence-score or annotation (MIRIAM) column with no value at all is not written. In Python, an all-blank text column that is present still clears the stored values. For both toolboxes, include only the columns being curated, and keep the values that should survive in the file and do not rely on the blank, which keeps the value only when `overwriteWithEmpty` is false.
 :::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Matching on names that do not match. A trailing space, a different capitalisation, or `name[comp]` written with the wrong compartment makes the row add a duplicate entity and not curate the intended one.
 - Reactions matched on stoichiometry. Two reactions with the same reactants and products, differing only in direction or bounds, are one reaction to the matcher.
 - The wrong id prefix. The default is `M_` and `R_`. On a model using `s_` and `r_` the additions are correct, but their ids do not look like anything else in the model.

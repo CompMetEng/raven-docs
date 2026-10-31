@@ -267,7 +267,9 @@ PGI rule: 'YLR354C'
 
 `removeGenes` and `remove_genes` rewrite each affected GPR without the removed gene. A reaction whose last catalyst is removed stays in the model with its rule dropped and its bounds set to `(0, 0)`: this is the default of `remove_genes` (`blocked_reactions="constrain"`), while `removeGenes` does it when `removeBlockedRxns` is false, its default, and it is the bound state that `knock_out_model_genes` leaves. With `blocked_reactions="keep"` the blocked reactions keep their bounds; setting `removeBlockedRxns` to true, or `blocked_reactions="remove"`, deletes them instead, which turns a gene deletion into a reaction deletion; [Deletions and essentiality](deletions.md) covers when that is the question being asked. When at least one requested gene is in the model, genes that no remaining reaction used are removed as well, also when they were not requested; when none is in the model, no gene is removed. In `removeGenes`, `standardizeRules`, on by default, normalises the rewritten rules.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Editing `model.S` by hand. It leaves `model.rev`, the bounds and the gene matrix describing a different model than the matrix does. Use `changeRxns`.
 - Deleting a reaction and leaving its metabolites without a reaction. Without the orphan flags, metabolites that nothing produces or consumes remain in the model and appear as gaps. See [Quality control](quality-control.md).
 - Overwriting a GPR that was meant to be extended. `changeGrRules` and `change_gene_reaction_rules` replace by default.
