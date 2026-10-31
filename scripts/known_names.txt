@@ -73,6 +73,16 @@ gapFillMode                   # fitTasks argument
 printOutput                   # checkTasks argument
 resolveTies                   # ftINIT argument
 proveAbsGap                   # ftINIT argument
+mip_gap_abs                   # ftinit argument
+bigMCap  # local variable of ftINITInternalAlg
+rank_keys  # run_ftinit argument
+rxn_scores  # ftinit argument
+prep_edited  # variable in an example
+glpk_exact  # optlang interface name
+ecFSEOF  # GECKO function
+constrainReversible          # simplifyModel argument
+rankKeys                      # ftINITInternalAlg argument
+pinFluxes                     # ftINITInternalAlg argument
 getExprForRxnScore            # RAVEN test fixture under testing/function_tests/private/, not public API
 gene_scores                   # ftinit argument
 spontRxnNames                 # prepINITModel argument
