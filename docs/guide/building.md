@@ -234,7 +234,9 @@ HEX1 flux: 1000.00
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - A typo creates a metabolite. The defaults differ: `add_reactions_from_equations` creates unrecognised metabolites and genes, while `addRxns` refuses them unless `allowNewMets` and `allowNewGenes` are set. So `m7` and `M7` become two different things in Python and an error in MATLAB. Set `allow_new_mets=False` and `allow_new_genes=False` once everything is defined.
 - No exchange reactions. Nothing can be taken up or secreted, so growth is zero, with no error to explain why.
 - A model with no external compartment. `add_boundary` cannot guess one, and RAVEN's `addExchangeRxns` adds exchanges for internal metabolites without warning, opening the model to uptake and secretion of intermediates.

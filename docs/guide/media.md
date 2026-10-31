@@ -344,7 +344,9 @@ The values are uptake rates and not bounds, and the zeros are components that th
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - `infeasible` right after setting a medium: something essential is closed. Reopen the medium one component at a time, or start from `minimal_medium` on the working model and compare.
 - A sign error from mixing conventions: for an exchange written `metabolite <=>`, as in yeast-GEM, uptake is a negative flux, but `model.medium` takes positive numbers. Both are correct; mixing them is not.
 - The model grows without a carbon source: usually a leak, where some reaction produces carbon from nothing. [Quality control](quality-control.md) covers the diagnosis, with `canExchange` and `analyse_topology`.

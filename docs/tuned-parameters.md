@@ -2,7 +2,9 @@
 
 Every RAVEN parameter with a non-trivial default has been through one of three processes: matched to a literature value from the original paper of the method, measured empirically on real or synthetic models, or kept for consistency with an existing convention (the default of a widely used underlying tool, or a value already established elsewhere in RAVEN). The short version (current default and a one-line reason) is grouped by capability and covers both the MATLAB and Python (raven-toolbox) implementations. The linked studies give the full measurements and methodology.
 
-:::{note} Differences between the two implementations
+:::{admonition} Differences between the two implementations
+:class: note
+
 The MATLAB implementation of RAVEN dates from 2013 and the Python implementation (raven-toolbox) from 2026. The parameters re-measured in one implementation have been ported to the other (the homology and KEGG cut-offs). Un-measured defaults of both implementations were not assumed correct; where the two disagreed, the default was measured, with no deference to whichever implementation came first. Every row states the current value(s); where the two differ, both are given. [Cross-toolbox parity decisions](#cross-toolbox-parity-decisions) gives the full accounting, including the cases that are deliberately kept different because the two implementations rest on different solvers or algorithms.
 :::
 

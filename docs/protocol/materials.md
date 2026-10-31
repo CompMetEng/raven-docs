@@ -34,7 +34,9 @@ Homology-based reconstruction requires files for both the target organism and th
 
 The target organism requires (1) a protein FASTA of all proteins in its genome, (2) a DNA FASTA for nucleotide ratios, and (3) a GenBank file for ribonucleotide ratios. Each template requires a protein FASTA and a model file in SBML format.
 
-:::{important} Matching identifiers
+:::{admonition} Matching identifiers
+:class: important
+
 For automatic gene matching, the protein FASTA and the model file of each template must use the same gene identifiers.
 :::
 
@@ -54,7 +56,9 @@ checkRaven
 
 See [Installing RAVEN](#verify) for what a successful run looks like.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Problem: `checkRaven` reports Fail for Export Excel format.
 - Possible reason: The protocol script reports that MATLAB's Text Analytics Toolbox can conflict with reading Excel files.
 - Solution: uninstall the Text Analytics Toolbox. For support, see the [RAVEN issues](https://github.com/CompMetEng/RAVEN/issues) page.

@@ -135,7 +135,9 @@ Reading Human-GEM from the Systems Biology Markup Language (SBML) file alone tak
 :::
 ::::
 
-:::{note} Spontaneous reactions
+:::{admonition} Spontaneous reactions
+:class: note
+
 Pass the list of spontaneous reactions. ftINIT keeps every reaction passed as spontaneous in every extracted model, whatever the data say. Other reactions without a gene rule are kept only where the optimisation needs them, so they can differ from sample to sample. In Human-GEM, `spontaneous` marks reactions that need no enzyme. That includes diffusion: transport between cytosol and nucleus through the nuclear pores, and gases and water (O2, CO2, H2O, NH3, H2O2, NO, H2S) crossing membranes. Leaving out the list lets ftINIT drop such transports in some samples. The model then uses other routes. For example, without the dCTP transport into the nucleus, deoxycytidine kinase (DCK) becomes essential for DNA synthesis, which is an artefact of the extraction and not biology.
 :::
 
@@ -381,7 +383,9 @@ print(sum(1 for result in report if result.passed), "of", len(report), "tasks pa
 
 Compare the result against the template and against the other samples: [Quality control](quality-control.md) covers the structural checks, and the Human-GEM guide's [GEM comparison](https://sysbiochalmers.github.io/Human-GEM-guide/gem_comparison/) covers comparing many extracted models at once.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Identifiers that do not match. Human-GEM uses ENSEMBL identifiers, and so does `Hart2015_RNAseq.txt`, so no mapping step appears in the workflow. Expression data with symbols or systematic names needs a mapping; score a few genes and check that they are not all at the floor before spending 37 to 47 minutes on the preparation.
 - Re-preparing per sample. The preparation depends only on the template and the tasks. Do it once, save it, and reuse it; preparation and extraction are separate, which makes that possible.
 - No Gurobi. Both extractions are mixed-integer problems; on Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi; Human-GEM `38567ab8`, no-task scaled prep, series `1+1`, `time_limit=900`, a different input from the one in this workflow).

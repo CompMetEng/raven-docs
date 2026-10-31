@@ -197,7 +197,9 @@ strict draft: 32 rxns, 46 genes
 
 Raising the two thresholds removes five reactions and eight genes. Whether that is an improvement depends on what the draft is for: a model that is curated by hand benefits from the extra candidates, since a wrong reaction is easier to spot than a missing one, while a model used directly for prediction is better with fewer and better-supported reactions.
 
-:::{note} Reproducing a RAVEN 2 reconstruction
+:::{admonition} Reproducing a RAVEN 2 reconstruction
+:class: note
+
 Some of these defaults differ from the values RAVEN 2 used, so the same script can produce a different draft under RAVEN 3. Set them explicitly, or see [Migrating from RAVEN 2](../raven3-migration.md).
 :::
 
@@ -248,7 +250,9 @@ None of the 37 reactions can carry flux. This is not a defect in the draft: with
 
 A homology draft is a set of claims about which reactions the organism has. Turning it into a model means giving it a medium ([Growth media and conditions](media.md)), closing the gaps that stop it producing biomass ([Gap-filling](gap-filling.md)), and checking it against what the organism is known to do ([Metabolic tasks](tasks.md)). The [GEM reconstruction protocol](../protocol/index.md) follows that path for *H. polymorpha* at full scale.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Identifiers that do not match. The FASTA headers must carry the same gene ids as the template model's `genes`. A mismatch produces a draft with no reactions and no error.
 - One template, one organism's biases. Every reaction in the draft comes from the template, so anything the template lacks the draft cannot have. Several templates, with `preferredOrder`, spread that risk.
 - Reading absence as evidence. A reaction left out means no acceptable hit was found, which does not show that the organism lacks the capability. Sequencing gaps, divergent sequences and short proteins all look the same here.

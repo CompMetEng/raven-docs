@@ -44,7 +44,9 @@ in calling convention, not in what the functions compute:
 | Indexing | 1-based | 0-based |
 | Model object | RAVEN `model` struct | `cobra.Model` with RAVEN extensions |
 
-:::{note} A note on the two docstring styles
+:::{admonition} A note on the two docstring styles
+:class: note
+
 raven-toolbox's docstrings are NumPy-style, so they render as structured
 parameter/return tables. RAVEN's MATLAB help blocks use the toolbox's own
 indented convention, so they render as faithful help text rather than typed

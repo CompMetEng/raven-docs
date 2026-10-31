@@ -247,7 +247,9 @@ Database cross-references are stored in MIRIAM form: a namespace and an identifi
 
 Thermodynamic data is handled in a separate file. `loadDeltaGCSV` and `load_delta_g_csv` read CSVs of standard Gibbs free energies onto the metabolites and reactions, and `saveDeltaGCSV` and `save_delta_g_csv` write it back out. Keeping it in CSV means a thermodynamics run can be versioned and reviewed separately from the model, and re-applied after the model changes.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - A configuration that does not match the model. Components are matched on the pseudoreaction's name and not its id. A component whose pseudoreaction is missing contributes zero without failing, so a mistyped name shows as a total that is short.
 - The wrong mass strategy. Using `mw` where the convention is `mw_minus_2h` or `mw_minus_water` inflates every polymer by the mass of the bonds, and the total shows it: the total is not near 1.
 - Rescaling without balancing. Setting protein to a measured value and leaving the rest alone changes the total, and therefore rescales every growth rate the model produces.
