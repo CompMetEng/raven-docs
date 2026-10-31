@@ -1,49 +1,28 @@
 # RAVEN (MATLAB)
 
-The RAVEN Toolbox runs in MATLAB and works completely independently; it does
-not require the COBRA Toolbox, although it can interoperate with it.
+The RAVEN Toolbox runs in MATLAB and works independently. It does not require the COBRA Toolbox, although it can interoperate with it.
 
 ## Requirements
 
-- **MATLAB** R2016b or later, which is the oldest release the code still guards
-  for. Continuous integration tests R2024b only, so a recent release is the
-  better-covered choice. No additional MathWorks toolboxes required.
-- A **linear-programming solver**: [Gurobi](https://www.gurobi.com/) (free
-  academic license, recommended) or **GLPK**, bundled with RAVEN itself, no
-  separate install needed. See
-  [Choosing and configuring a solver](#choosing-a-solver-matlab) below.
-- RAVEN **bundles** `libSBML` and the GLPK mex files for Windows, macOS and
-  Linux. `BLAST+`, `DIAMOND` and `HMMER` are **not** bundled: RAVEN fetches the
-  build for your platform on first use, so the reconstruction functions need
-  internet access the first time they run. `downloadRavenBinaries` fetches them
-  ahead of time. See
-  [Download data and binaries](data-and-binaries.md) for the full set, where
-  it is cached, and how to prepare an offline machine.
-
-:::{note} Working offline
-[Download data and binaries](data-and-binaries.md) covers preparing a machine
-with no network access ahead of time.
-:::
+- MATLAB R2016b or later. R2016b is the oldest release that the code guards for. Continuous integration tests R2024b only. No additional MathWorks toolboxes are required.
+- A linear-programming solver: [Gurobi](https://www.gurobi.com/) (free academic licence, recommended) or GLPK, bundled with RAVEN itself and needing no separate install. See [Choosing and configuring a solver](#choosing-a-solver-matlab).
+- RAVEN bundles `libSBML` and the GLPK mex files for Windows, macOS and Linux. `BLAST+`, `DIAMOND` and `HMMER` are not bundled: RAVEN fetches the build for the platform on first use, so the reconstruction functions need internet access the first time they run. `downloadRavenBinaries` fetches them ahead of time. [Download data and binaries](data-and-binaries.md) lists the full set, where it is cached and how to prepare an offline machine.
 
 ---
 
 (choosing-a-solver-matlab)=
 ## Choosing and configuring a solver
 
-| Solver | LP | MILP | Relative speed | License |
+| Solver | LP | MILP | Relative speed | Licence |
 |---|---|---|---|---|
 | GLPK | yes | yes (RAVEN warns; slow on large problems) | 1x (baseline) | open source, bundled with RAVEN |
-| SCIP | yes | yes | 0.33x | open source; bundled on Windows, a separate install on macOS/Linux |
-| Gurobi | yes | yes | 4.2x | free academic license |
+| SCIP | yes | yes | 0.33x | open source; bundled on Windows, a separate install on macOS or Linux |
+| Gurobi | yes | yes | 4.2x | free academic licence |
 | COBRA Toolbox | yes | depends on the COBRA solver configured | depends on the COBRA solver configured | depends on the COBRA solver configured |
 
-MILP-solving functions (`getMinimalMedium`, ftINIT, some gap-filling
-algorithms) also run on the bundled GLPK, with a warning that recommends
-Gurobi: on genome-scale models GLPK can be much slower than Gurobi, SCIP, or
-a MILP-capable solver through the COBRA Toolbox.
+MILP-solving functions (`getMinimalMedium`, ftINIT, some gap-filling algorithms) also run on the bundled GLPK, with a warning that recommends Gurobi. On genome-scale models GLPK can be slower than Gurobi, which runs at 4.2 times the speed of GLPK in the table.
 
-Set the active solver with `setRavenSolver`, which takes `'gurobi'`,
-`'glpk'`, `'scip'`, or `'cobra'`:
+`setRavenSolver` sets the active solver and takes `'gurobi'`, `'glpk'`, `'scip'` or `'cobra'`:
 
 ```matlab
 setRavenSolver('gurobi');
@@ -52,71 +31,52 @@ setRavenSolver('gurobi');
 ### Gurobi
 
 1. Install Gurobi 7.5 or later.
-2. Request and download a license (a free academic license covers most
-   research use).
-3. Place the license file where Gurobi's own installer says to.
-4. Follow Gurobi's MATLAB integration instructions, then run `savepath` so
-   MATLAB keeps the change after a restart.
-5. `setRavenSolver('gurobi')`.
+2. Request and download a licence (a free academic licence covers most research use).
+3. Place the licence file where Gurobi's own installer says to.
+4. Follow Gurobi's MATLAB integration instructions, then run `savepath` to keep the change after a restart.
+5. Run `setRavenSolver('gurobi')`.
 
-### Through the COBRA Toolbox
+### Solving through the COBRA Toolbox
 
-RAVEN can solve through whatever solver the COBRA Toolbox has configured,
-instead of one of its own bundled options:
+RAVEN can solve through the solver that the COBRA Toolbox has configured, in place of its own bundled options:
 
 ```matlab
 changeCobraSolver('glpk');   % or any solver the COBRA Toolbox supports
 setRavenSolver('cobra');
 ```
 
-`ravenCobraWrapper` converts a model between the RAVEN struct and the COBRA
-Toolbox structure; see
-[COBRA Toolbox conversion](../raven3-vs-raven-toolbox/what-each-has.md#cobra-toolbox-conversion).
+`ravenCobraWrapper` converts a model between the RAVEN struct and the COBRA Toolbox structure; see [COBRA Toolbox conversion](../raven3-vs-raven-toolbox/what-each-has.md#cobra-toolbox-conversion).
 
 ---
 
-## Install
+## Installation
 
-:::{warning} Getting 3.0.0b1 specifically
-This site documents RAVEN **3.0.0b1**, a pre-release. Both the **Add-Ons
-manager** and the **Release download**'s normal releases page only offer the
-latest stable release (RAVEN 2.x), not 3.0.0b1: neither method can install
-what this site documents. Use the **Clone with git** tab, or the direct
-archive link in the **Release download** tab below.
+:::{warning} Installing 3.0.0b1
+This site documents RAVEN 3.0.0b1, a pre-release. The Add-Ons manager and the normal releases page of the Release download offer only the latest stable release (RAVEN 2.x), so neither method installs 3.0.0b1. Use the Clone with git tab, or the direct archive link in the Release download tab.
 :::
 
 ::::{tab-set}
 :::{tab-item} {octicon}`plug;1em` Add-Ons manager
 
-Installs from within MATLAB, with no separate download. **Installs the
-latest stable release, not 3.0.0b1**; see the warning above.
+The installation runs from within MATLAB with no separate download. The installed version is the latest stable release (RAVEN 2.x), not 3.0.0b1; see the warning at the start of the [Installation](#installation) section.
 
 1. Open the **Home** tab and click **Add-Ons → Get Add-Ons**.
 2. Search for **RAVEN Toolbox** and click **Add → Add to MATLAB**.
-3. [Verify the installation](#verify).
+3. [Verify the installation](#verification).
 
-If MATLAB does not pick up the toolbox after step 2, run
-`matlab.addons.enableAddon("RAVEN")` to enable it explicitly.
+If MATLAB does not pick up the toolbox after step 2, `matlab.addons.enableAddon("RAVEN")` enables it.
 :::
 :::{tab-item} {octicon}`download;1em` Release download
 
-Good for offline or managed environments. **The
-[RAVEN releases page](https://github.com/CompMetEng/RAVEN/releases)
-itself only lists stable releases**; 3.0.0b1 is a git tag with no packaged
-release, so download it directly instead:
+This method suits offline or managed environments. The [RAVEN releases page](https://github.com/CompMetEng/RAVEN/releases) lists only stable releases, and 3.0.0b1 is a git tag with no packaged release, so the archive is downloaded directly:
 
-1. Download
-   [the 3.0.0b1 archive](https://github.com/CompMetEng/RAVEN/archive/refs/tags/3.0.0b1.zip)
-   directly (this works without git).
-2. Extract it to a location of your choice.
-3. In MATLAB, add the RAVEN folder to the path (`pathtool`), then
-   [verify](#verify).
+1. Download [the 3.0.0b1 archive](https://github.com/CompMetEng/RAVEN/archive/refs/tags/3.0.0b1.zip). This works without git.
+2. Extract it to any location.
+3. In MATLAB, add the RAVEN folder to the path (`pathtool`), then [verify](#verification).
 :::
 :::{tab-item} {octicon}`git-branch;1em` Clone with git
 
-Clones the repository, then checks out the `3.0.0b1` tag specifically: a
-plain `git clone` alone tracks the `develop` branch, which can contain changes
-made after this site's pre-release.
+The commands clone the repository and check out the `3.0.0b1` tag. A plain `git clone` tracks the `develop` branch, which can contain changes made after this site's pre-release.
 
 ```bash
 git clone --depth=1 https://github.com/CompMetEng/RAVEN.git
@@ -125,14 +85,14 @@ git fetch --depth=1 origin tag 3.0.0b1
 git checkout 3.0.0b1
 ```
 
-Add the folder to the MATLAB path and [verify](#verify).
+Add the folder to the MATLAB path and [verify](#verification).
 :::
 ::::
 
 ---
 
 (verify)=
-## Verify
+## Verification
 
 From the MATLAB command window:
 
@@ -140,7 +100,7 @@ From the MATLAB command window:
 checkRaven
 ```
 
-A successful run looks like:
+The output of a successful run has the form:
 
 ```text
 *** THE RAVEN TOOLBOX ***
@@ -177,53 +137,42 @@ A successful run looks like:
 *** checkRaven complete ***
 ```
 
-If MATLAB reports that it could not save the path (common on shared or
-managed installations where you do not have write access to MATLAB's own
-`pathdef.m`), run `addRavenToUserPath` instead: it writes a `startup.m` that
-adds RAVEN to the path on every MATLAB start, without touching the shared
-path file. `addRavenToUserPath('overwrite', false)` appends to an existing
-`startup.m` instead of replacing it.
+MATLAB can report that it could not save the path, which is common on shared or managed installations without write access to MATLAB's own `pathdef.m`. In that case, run `addRavenToUserPath`, which writes a `startup.m` that adds RAVEN to the path on every MATLAB start and leaves the shared path file unchanged. `addRavenToUserPath('overwrite', false)` appends to an existing `startup.m`, which is replaced otherwise.
 
 ---
 
-## Upgrade
+## Upgrading
 
 ::::{tab-set}
 :::{tab-item} {octicon}`plug;1em` Add-Ons manager
 
-In MATLAB go to **Help → Check for Updates**, click **Update** for RAVEN,
-then run `checkRaven` again.
+In MATLAB, open **Help → Check for Updates**, click **Update** for RAVEN and run `checkRaven` again.
 :::
 :::{tab-item} {octicon}`download;1em` Release download
 
-Close MATLAB, delete the old RAVEN folder, download and extract the new
-release, and run `checkRaven`.
+Close MATLAB, delete the old RAVEN folder, download and extract the new release and run `checkRaven`.
 :::
 :::{tab-item} {octicon}`git-branch;1em` Clone with git
 
-The `3.0.0b1` tag does not move, so there is nothing to pull while staying on
-it. To follow the development branch instead:
+The `3.0.0b1` tag does not move, so a checkout of it has nothing to pull. The development branch is followed with:
 
 ```bash
 git checkout develop
 git pull origin develop
 ```
 
-`develop` can contain changes that are not yet released. Then run
-`checkRaven`.
+`develop` can contain unreleased changes. Afterwards, run `checkRaven`.
 :::
 ::::
 
 ---
 
-## Remove
+## Removal
 
 ::::{tab-set}
 :::{tab-item} {octicon}`plug;1em` Add-Ons manager
 
-Go to **Add-Ons → Manage Add-Ons** and remove RAVEN from the list. Running
-`removeRavenFromPath` afterward should report an unrecognized-function error,
-confirming RAVEN is off the path.
+Open **Add-Ons → Manage Add-Ons** and remove RAVEN from the list. A following call of `removeRavenFromPath` should report an unrecognised-function error, which confirms that RAVEN is off the path.
 :::
 :::{tab-item} {octicon}`download;1em` Release download
 
@@ -249,5 +198,4 @@ Then delete the cloned RAVEN folder from disk.
 
 ## Getting help
 
-For installation problems, open an issue on
-[GitHub](https://github.com/CompMetEng/RAVEN/issues).
+Installation problems are reported as an issue on [GitHub](https://github.com/CompMetEng/RAVEN/issues).

@@ -71,7 +71,7 @@ RAVEN, libSBML and Gurobi subfolders to the MATLAB path, then verify with:
 checkRaven
 ```
 
-See [Installing RAVEN](../installation/raven.md#verify) for what a
+See [Installing RAVEN](#verify) for what a
 successful run looks like.
 
 :::{warning}

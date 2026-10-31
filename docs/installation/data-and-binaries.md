@@ -1,72 +1,59 @@
 # Download data and binaries
 
-Neither toolbox ships the large files it needs. The KEGG reference data, the
-profile-HMM libraries, and the BLAST+, DIAMOND and HMMER executables are all
-fetched on first use from a shared, checksummed release and cached locally. This
-page covers what is fetched, where it is kept, and how to override each step.
+Neither toolbox ships the large files it needs. The KEGG reference data, the profile hidden Markov model (HMM) libraries and the BLAST+, DIAMOND and HMMER executables are fetched on first use from a shared, checksummed release and cached locally. This page covers what is fetched, where it is kept and how to override each step.
 
-Both toolboxes read from the same
-[`toolbox-assets`](https://github.com/CompMetEng/toolbox-assets) repository, so the
-files RAVEN downloads and the files raven-toolbox downloads are the same files.
+Both toolboxes read from the same [`toolbox-assets`](https://github.com/CompMetEng/toolbox-assets) repository, so the files RAVEN downloads and the files raven-toolbox downloads are the same files.
 
-## What gets downloaded
+## Downloaded artefacts
 
 | Artefact | Size | Needed for |
 |---|---|---|
-| KEGG core bundle (reference model plus the KO, reaction and organism-gene tables) | about 47 MB | [13. Reconstruction from KEGG](../guide/kegg.md), either route |
+| KEGG core bundle (reference model plus the KO, reaction and organism-gene tables) | about 47 MB | [13. Reconstruction from KEGG](../guide/kegg.md), either method |
 | KEGG HMM library, one per domain | 129 MB compressed, eukaryotes | a KEGG draft for an organism KEGG has never seen |
 | KEGG taxonomy | small | phylogenetic weighting of KO assignments |
 | BLAST+ (`blastp`, `makeblastdb`) | small | [12. Reconstruction from homology](../guide/homology.md) |
-| DIAMOND | small | the faster homology route |
+| DIAMOND | small | the faster homology method |
 | HMMER (`hmmsearch`) | small | searching the KEGG HMM library |
 
-Nothing is downloaded until something needs it. Loading, editing, simulating and
-comparing models require none of it.
+Nothing is downloaded until a function needs it. Loading, editing, simulating and comparing models require none of it.
 
-## Where it goes
+## Cache locations
 
-raven-toolbox caches under `$XDG_CACHE_HOME`, or `~/.cache` when that is
-unset, using the same rule on every platform:
+raven-toolbox caches under `$XDG_CACHE_HOME`, or `~/.cache` when that is unset, using the same rule on every platform:
 
 ::::{tab-set}
 :::{tab-item} Linux
 
-| | Path |
+| Item | Path |
 |---|---|
 | Data artefacts | `/home/<user>/.cache/raven_toolbox/data/<dataset>-<version>/` |
 | Binaries | `/home/<user>/.cache/raven_toolbox/binaries/` |
 :::
 :::{tab-item} macOS
 
-| | Path |
+| Item | Path |
 |---|---|
 | Data artefacts | `/Users/<user>/.cache/raven_toolbox/data/<dataset>-<version>/` |
 | Binaries | `/Users/<user>/.cache/raven_toolbox/binaries/` |
 :::
 :::{tab-item} Windows
 
-| | Path |
+| Item | Path |
 |---|---|
 | Data artefacts | `C:\Users\<user>\.cache\raven_toolbox\data\<dataset>-<version>\` |
 | Binaries | `C:\Users\<user>\.cache\raven_toolbox\binaries\` |
 :::
 ::::
 
-raven-toolbox does not use each platform's own convention (`%LOCALAPPDATA%`
-on Windows, `~/Library/Caches` on macOS); `~/.cache` is literal everywhere.
+The path `~/.cache` is used literally on every platform, and the platform conventions (`%LOCALAPPDATA%` on Windows, `~/Library/Caches` on macOS) do not apply.
 
-The version is part of the path, so two KEGG releases coexist and a pinned run
-keeps fetching the release it was pinned to.
+The version is part of the path, so two KEGG releases coexist and a pinned run fetches the release it was pinned to when that release is missing from the cache.
 
-In MATLAB the KEGG artefacts go wherever `dataDir` points, which
-`getKEGGModelForOrganism` requires you to pass, and the executables live in
-`software/` inside wherever RAVEN itself is installed, the same on every
-platform.
+In MATLAB the KEGG artefacts go to the directory `dataDir`, which `getKEGGModelForOrganism` requires as an argument. The executables are stored in `software/` inside the RAVEN installation directory on every platform.
 
-## How a tool is found
+## Tool resolution
 
-raven-toolbox resolves an executable in a fixed order and only reaches the
-network at the end:
+raven-toolbox resolves an executable in a fixed order and reaches the network only at the download step:
 
 ```text
 explicit binary= argument
@@ -76,17 +63,11 @@ explicit binary= argument
   → an error naming the conda package and the manual alternative
 ```
 
-An existing installation therefore takes precedence, and the bundled copy is
-reached only on a machine that has none. The environment variable per tool is
-`RAVEN_PYTHON_` followed by the tool name: `RAVEN_PYTHON_BLASTP`,
-`RAVEN_PYTHON_MAKEBLASTDB`, `RAVEN_PYTHON_DIAMOND`, `RAVEN_PYTHON_HMMSEARCH`,
-`RAVEN_PYTHON_HMMBUILD`, `RAVEN_PYTHON_HMMPRESS`, `RAVEN_PYTHON_HMMSCAN`,
-`RAVEN_PYTHON_MAFFT`, `RAVEN_PYTHON_CDHIT`.
+An existing installation therefore takes precedence, and the bundled copy is used only on a machine without one. The environment variable per tool is `RAVEN_PYTHON_` followed by the tool name: `RAVEN_PYTHON_BLASTP`, `RAVEN_PYTHON_MAKEBLASTDB`, `RAVEN_PYTHON_DIAMOND`, `RAVEN_PYTHON_HMMSEARCH`, `RAVEN_PYTHON_HMMBUILD`, `RAVEN_PYTHON_HMMPRESS`, `RAVEN_PYTHON_HMMSCAN`, `RAVEN_PYTHON_MAFFT`, `RAVEN_PYTHON_CDHIT`.
 
-## Fetching ahead of time
+## Fetching before first use
 
-Downloading on first use puts the download inside the first run, which is not
-always where it should be. Both toolboxes can fetch ahead of that.
+Downloading on first use puts the download inside the first run, which is not always where it should be. Both toolboxes can fetch the files before that run.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -96,9 +77,7 @@ always where it should be. Both toolboxes can fetch ahead of that.
 downloadRavenBinaries
 ```
 
-Fetches the executables RAVEN needs into its `software/` directory. The KEGG
-artefacts arrive separately, on the first `getKEGGModelForOrganism` call, into
-the `dataDir` given there.
+`downloadRavenBinaries` fetches the executables that RAVEN needs into its `software/` directory. The KEGG artefacts are fetched separately, on the first `getKEGGModelForOrganism` call, into the `dataDir` given there.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -109,32 +88,21 @@ raven-toolbox-binaries --set runtime    # blastp, makeblastdb, diamond, hmmsearc
 raven-toolbox-binaries --set build      # hmmbuild, mafft, cd-hit
 ```
 
-The `runtime` set is what an ordinary reconstruction needs. The `build` set is
-for rebuilding the KEGG HMM libraries, which end users do not do.
+The `runtime` set covers an ordinary reconstruction. The `build` set is for rebuilding the KEGG HMM libraries, which end users do not do.
 
-The command skips anything already on the `PATH`, verifies every download
-against its checksum, and reports tools with no bundle for this platform
-rather than failing.
+The command skips anything already on the `PATH`, verifies every download against its checksum and reports tools with no bundle for the platform without failing.
 :::
 ::::
 
 ## Working offline
 
-Setting `RAVEN_PYTHON_AUTOFETCH` to `0`, `false`, `no` or `off` stops
-raven-toolbox reaching the network at all. Resolution then stops at the `PATH`
-and raises an error naming what is missing, instead of downloading it. The
-explicit `raven-toolbox-binaries` command still fetches when run, so an
-air-gapped setup is: fetch once on a connected machine, copy the cache, and set
-the variable.
+Setting `RAVEN_PYTHON_AUTOFETCH` to `0`, `false`, `no` or `off` stops raven-toolbox from reaching the network. Resolution then stops at the `PATH` and raises an error that names the missing tool, without downloading it. The explicit `raven-toolbox-binaries` command fetches when run. An air-gapped setup fetches once on a connected machine, copies the cache and sets the variable.
 
-For data artefacts, pass an explicit directory instead of relying on the cache:
-`get_kegg_model_for_organism_from_artefacts` and its siblings take an
-`artefact_dir=`, and MATLAB's `dataDir` is already explicit.
+For data artefacts, an explicit directory replaces the cache: `get_kegg_model_for_organism_from_artefacts` and its siblings take an `artefact_dir=` argument, and MATLAB's `dataDir` is already explicit.
 
-## What runs where
+## Platform support
 
-Every tool is invoked as a subprocess, so what matters is whether a native build
-exists for the platform.
+Every tool is invoked as a subprocess, so the availability of a native build for the platform decides support.
 
 | Tool | Linux | macOS | Windows |
 |---|---|---|---|
@@ -145,33 +113,20 @@ exists for the platform.
 | MAFFT | yes | yes | no |
 | CD-HIT | yes | yes | no |
 
-On Windows this means homology reconstruction and the KEGG query path both run
-natively, since they need only the first three. **Building** an HMM library does
-not, because that needs MAFFT and CD-HIT, which have no Windows builds. Use WSL2 for that, keeping the whole stack inside it, since raven-toolbox
-calls the resolved executable directly and does not translate paths between
-Windows and WSL.
+On Windows, homology reconstruction and the KEGG query path run natively, since they need only the first three tools. Building an HMM library needs MAFFT and CD-HIT, which have no Windows builds. Use Windows Subsystem for Linux 2 (WSL2) for that and keep the whole stack inside it, since raven-toolbox calls the resolved executable directly and does not translate paths between Windows and WSL.
 
-:::{warning} What can go wrong
-- **A machine with no network.** The first reconstruction fails at the
-  download. Fetch on a connected machine, copy `~/.cache/raven_toolbox`, and
-  set `RAVEN_PYTHON_AUTOFETCH=0`.
-- **An unexpected version of a tool.** The `PATH` takes precedence over the
-  pinned bundle, so a conda environment carrying an old BLAST+ supplies it
-  with no message. Point the `RAVEN_PYTHON_*` variable at the intended
-  binary.
-- **A read-only or unusual home directory.** The cache follows
-  `XDG_CACHE_HOME`; set it somewhere writable on a shared or containerised
-  machine.
-- **Trying to build HMM libraries on Windows.** MAFFT and CD-HIT have no
-  Windows builds. Use WSL2, and keep Python and the binaries both inside it.
-- **Disk.** The HMM libraries are the large item, and the first KEGG model
-  build needs a few hundred MB of working space beyond the download.
+:::{warning} Troubleshooting
+| Problem | Possible reason | Solution |
+|---|---|---|
+| A machine with no network | The first reconstruction needs to download files, which fails without a network. | Fetch on a connected machine, copy `~/.cache/raven_toolbox` and set `RAVEN_PYTHON_AUTOFETCH=0`. |
+| An unexpected version of a tool | The `PATH` takes precedence over the pinned bundle, so a conda environment carrying an old BLAST+ supplies it without a message. | Point the `RAVEN_PYTHON_*` variable at the intended binary. |
+| A read-only or unusual home directory | The cache follows `XDG_CACHE_HOME`. | Set `XDG_CACHE_HOME` to a writable location on a shared or containerised machine. |
+| Building HMM libraries on Windows | MAFFT and CD-HIT have no Windows builds. | Use WSL2 and keep Python and the binaries both inside it. |
+| Disk space | The HMM libraries are the large item, and the first KEGG model build needs a few hundred MB of working space beyond the download. | |
 :::
 
 ## See also
 
-- [13. Reconstruction from KEGG](../guide/kegg.md), the workflow that pulls the
-  KEGG artefacts.
-- [12. Reconstruction from homology](../guide/homology.md), the one that needs
-  BLAST+ or DIAMOND.
-- [Installing RAVEN](raven.md) and [Installing raven-toolbox](python.md).
+- [13. Reconstruction from KEGG](../guide/kegg.md), the workflow that fetches the KEGG artefacts.
+- [12. Reconstruction from homology](../guide/homology.md), the workflow that needs BLAST+ or DIAMOND.
+- [RAVEN (MATLAB)](raven.md) and [raven-toolbox (Python)](python.md).

@@ -41,18 +41,16 @@ Add the folder to the MATLAB path, then run `checkRaven` to verify.
 :::
 ::::
 
-## Key features
+## Features
 
 ::::{grid} 1 2 3 3
 
 :::{grid-item-card} Homology reconstruction
-Build draft models by transferring reactions from template models using
-BLAST+, DIAMOND, or HMMER.
+Build draft models by transferring reactions from template models using BLAST+, DIAMOND, or HMMER.
 :::
 
 :::{grid-item-card} KEGG-based reconstruction
-Reconstruct metabolic networks directly from KEGG organism annotations and
-pathway databases.
+Reconstruct metabolic networks from KEGG organism annotations and pathway databases.
 :::
 
 :::{grid-item-card} Flux analysis
@@ -60,18 +58,15 @@ FBA, FVA, gene knockouts, and flux sampling with Gurobi or GLPK solvers.
 :::
 
 :::{grid-item-card} ftINIT
-Fast task-and-data-driven INIT for extracting context-specific models from
-transcriptomics data.
+Fast task-and-data-driven INIT for extracting context-specific models from transcriptomics data.
 :::
 
 :::{grid-item-card} Gap-filling
-Identify and fill stoichiometric gaps by LP to restore connectivity or
-enable predicted growth.
+Identify and fill stoichiometric gaps by LP to restore connectivity or enable predicted growth.
 :::
 
 :::{grid-item-card} Model curation
-Check mass and charge balance, dead-end metabolites, and metabolic task
-fulfilment.
+Check mass and charge balance, dead-end metabolites, and metabolic task fulfilment.
 :::
 
 ::::
@@ -127,15 +122,14 @@ fprintf('Growth rate: %.4f h-1\n', sol.f);
 :link: guide/index
 :link-type: doc
 
-Twenty-two task-focused pages, MATLAB and Python side by side, with the
-examples executed and their output checked.
+Twenty-two task-focused pages, MATLAB and Python side by side, with the examples executed and their output checked.
 :::
 
 :::{grid-item-card} API reference
 :link: api/index
 :link-type: doc
 
-Complete function reference for both MATLAB and Python.
+Function reference for both MATLAB and Python.
 :::
 
 :::{grid-item-card} Installation
@@ -149,42 +143,30 @@ Set up RAVEN in MATLAB or raven-toolbox in Python with a solver.
 :link: raven3-vs-raven-toolbox
 :link-type: doc
 
-Which to use for what, what only one of them has, and where the same
-function gives a different answer.
+Use of each implementation, features present in only one of them, and where the same function gives a different answer.
 :::
 
 ::::
 
 ## Citing RAVEN
 
-If you use RAVEN in your research, please cite:
+Cite the following publication when using RAVEN in research:
 
 > Wang H, Marcišauskas S, Sánchez BJ, Domenzain I, Hermansson D, Agren R,
 > Nielsen J, Kerkhoven EJ (2018). **RAVEN 2.0: A versatile toolbox for
 > metabolic network reconstruction and a case study on *Streptomyces
-> coelicolor*.** *PLoS Computational Biology* 14(10): e1006541.
+> coelicolor*.** PLoS Computational Biology 14(10): e1006541.
 > <https://doi.org/10.1371/journal.pcbi.1006541>
 
-See [Citations](references.md) for the full list, including the earlier
-RAVEN paper and the GEM reconstruction protocol.
+[Citations](references.md) holds the full list, including the first RAVEN paper (2013) and the GEM reconstruction protocol.
 
 ## Source code
 
-RAVEN is publicly available under the GPLv3 license at
-[CompMetEng/RAVEN](https://github.com/CompMetEng/RAVEN){.github},
-archived at
-[https://doi.org/10.5281/zenodo.3689518](https://doi.org/10.5281/zenodo.3689518).
-raven-toolbox, the Python port, is under the MIT license at
-[CompMetEng/raven-toolbox](https://github.com/CompMetEng/raven-toolbox){.github}.
+RAVEN is publicly available under the GPLv3 licence at [CompMetEng/RAVEN](https://github.com/CompMetEng/RAVEN){.github}, archived at [https://doi.org/10.5281/zenodo.3689518](https://doi.org/10.5281/zenodo.3689518). raven-toolbox, the Python port, is under the MIT licence at [CompMetEng/raven-toolbox](https://github.com/CompMetEng/raven-toolbox){.github}.
 
 ## Issues and discussions
 
-Report a bug or request a feature on the tracker for the toolbox it concerns:
-[RAVEN issues](https://github.com/CompMetEng/RAVEN/issues){.github} for the
-MATLAB toolbox, [raven-toolbox issues](https://github.com/CompMetEng/raven-toolbox/issues){.github}
-for the Python package. For questions and general discussion, use
-[RAVEN discussions](https://github.com/CompMetEng/RAVEN/discussions){.github}
-or [raven-toolbox discussions](https://github.com/CompMetEng/raven-toolbox/discussions){.github}.
+Bug reports and feature requests go to the tracker of the toolbox concerned: [RAVEN issues](https://github.com/CompMetEng/RAVEN/issues){.github} for the MATLAB toolbox, [raven-toolbox issues](https://github.com/CompMetEng/raven-toolbox/issues){.github} for the Python package. Questions and general discussion go to [RAVEN discussions](https://github.com/CompMetEng/RAVEN/discussions){.github} or [raven-toolbox discussions](https://github.com/CompMetEng/raven-toolbox/discussions){.github}.
 
 ```{toctree}
 :hidden:
