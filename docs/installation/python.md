@@ -1,32 +1,25 @@
 # raven-toolbox (Python)
 
-**raven-toolbox** is the Python implementation of RAVEN, built on
-[cobrapy](https://opencobra.github.io/cobrapy/). It is distributed on PyPI.
+raven-toolbox is the Python implementation of RAVEN, built on [cobrapy](https://opencobra.github.io/cobrapy/). It is distributed on PyPI.
 
 ## Requirements
 
-- **Python ≥ 3.11**
-- **cobrapy**: installed automatically as a dependency
-- A **solver**: GLPK (bundled with cobrapy) works for small and medium models;
-  [Gurobi](https://www.gurobi.com/) is recommended for genome-scale work.
-  See [Choosing a solver](index.md#choosing-a-solver).
+- Python ≥ 3.11
+- cobrapy, installed automatically as a dependency
+- A solver: GLPK (bundled with cobrapy) works for small and medium models, and [Gurobi](https://www.gurobi.com/) is recommended for genome-scale work. See [Choosing a solver](index.md#choosing-a-solver).
 
-:::{tip} Use a virtual environment
+A virtual environment is recommended. Creation and activation:
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 ```
-:::
 
-:::{note} Working offline
-raven-toolbox fetches KEGG data and reconstruction binaries (BLAST+, DIAMOND,
-HMMER) on first use. [Download data and binaries](data-and-binaries.md)
-covers preparing a machine with no network access ahead of time.
-:::
+raven-toolbox fetches KEGG data and reconstruction binaries (BLAST+, DIAMOND, HMMER) on first use. [Download data and binaries](data-and-binaries.md) covers preparing a machine with no network access ahead of time.
 
 ---
 
-## Install
+## Installation
 
 ::::{tab-set}
 :::{tab-item} {octicon}`package;1em` From PyPI
@@ -49,21 +42,18 @@ pip install -e .
 
 ---
 
-## Verify
+## Verification
 
 ```python
 import raven_toolbox
 print(raven_toolbox.__version__)
 ```
 
-:::{note}
-The import package is `raven_toolbox` (underscore); the PyPI distribution
-name is `raven-toolbox` (hyphen).
-:::
+The import package is `raven_toolbox` (underscore) and the PyPI distribution name is `raven-toolbox` (hyphen).
 
 ---
 
-## Upgrade
+## Upgrading
 
 ::::{tab-set}
 :::{tab-item} {octicon}`package;1em` From PyPI
@@ -82,7 +72,7 @@ git pull origin develop
 
 ---
 
-## Remove
+## Removal
 
 ```bash
 pip uninstall raven-toolbox

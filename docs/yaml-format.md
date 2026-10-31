@@ -1,16 +1,16 @@
 # YAML file format
 
-This document describes the YAML format produced and consumed by
+The YAML format is produced and consumed by three tools:
 
-- **cobrapy** ([`cobra.io.{load,save}_yaml_model`](https://github.com/opencobra/cobrapy))
-- **raven-toolbox** (`raven_toolbox.io.yaml.{read,write}_yaml_model`, see [API](api/index.md))
-- **RAVEN MATLAB** (`readYAMLmodel.m` / `writeYAMLmodel.m` in the [RAVEN repo](https://github.com/CompMetEng/RAVEN/tree/develop/io))
+- cobrapy ([`cobra.io.{load,save}_yaml_model`](https://github.com/opencobra/cobrapy))
+- raven-toolbox (`raven_toolbox.io.yaml.{read,write}_yaml_model`, see [API](api/index.md))
+- RAVEN MATLAB (`readYAMLmodel.m` and `writeYAMLmodel.m` in the [RAVEN repo](https://github.com/CompMetEng/RAVEN/tree/develop/io))
 
-The same file can be round-tripped through any of the three. cobrapy is the canonical core; raven-toolbox and RAVEN MATLAB add namespaced extensions (RAVEN curation fields, MIRIAM cross-refs already covered by cobrapy's `annotation`, and the GECKO `ec-*` sections) without disturbing the cobra-known shape.
+The same file can be round-tripped through any of the three. cobrapy defines the core shape. raven-toolbox and RAVEN MATLAB add namespaced extensions (RAVEN curation fields, MIRIAM cross-references already covered by cobrapy's `annotation`, and the GECKO `ec-*` sections) that leave the cobra-known shape intact.
 
 ---
 
-## At a glance
+## Overview
 
 ```yaml
 !!omap
@@ -63,11 +63,11 @@ The same file can be round-tripped through any of the three. cobrapy is the cano
     - e: extracellular
 ```
 
-Three structural rules are non-obvious, and apply throughout the field-by-field detail below:
+Three structural rules apply throughout the field-by-field description:
 
-1. The whole document is one **ordered mapping** (`!!omap`) at the root. Every nested map that should preserve key order is also `!!omap` (metaData, each metabolite / reaction / gene entry, `annotation`, `metabolites`, `compartments`, and the ec sections).
-2. Each metabolite, reaction, and gene is **one `- !!omap` element** of a list. Inside that mapping, every field is written as `- key: value`. This is cobrapy's native shape and is what RAVEN MATLAB's reader keys off.
-3. Strings are **unquoted by default**; quotes appear only when YAML would otherwise misparse the value (leading `-`, `[`, `?` or `:`; embedded `: ` or ` #`; values that look like `true` / `false` / `null`).
+1. The whole document is one ordered mapping (`!!omap`) at the root. Every nested map that preserves key order is also `!!omap` (metaData, each metabolite, reaction and gene entry, `annotation`, `metabolites`, `compartments`, and the ec sections).
+2. Each metabolite, reaction, and gene is one `- !!omap` element of a list. Inside that mapping, every field is written as `- key: value`. This is cobrapy's native shape, and RAVEN MATLAB's reader depends on it.
+3. Strings are unquoted by default. Quotes appear only when YAML would otherwise misparse the value (an empty string; a leading indicator character; `-`, `?` or `:` followed by whitespace; embedded `: ` or ` #`; values that read as `true`, `false`, `y`, `n`, `yes`, `no`, `on`, `off`, `null`, a number or a date). The section on numbers, strings and quoting lists the cases.
 
 ---
 
@@ -87,16 +87,16 @@ Three structural rules are non-obvious, and apply throughout the field-by-field 
 
 | Key | Required | Source | Notes |
 |-----|----------|--------|-------|
-| `metaData` | optional | RAVEN | Provenance block. Holds `id`, `name`, `version`, `date`, `taxonomy`, optionally `givenName` / `familyName` / `email` / `organization` / `note` / `sourceUrl`, plus `defaultLB` / `defaultUB`. Cobrapy ignores this block (no semantic loss for the core model). |
+| `metaData` | optional | RAVEN | Provenance block. Holds `id`, `name`, `version`, `date`, `taxonomy`, optionally `givenName`, `familyName`, `email`, `organization`, `note` and `sourceUrl`, plus `defaultLB` and `defaultUB`. Cobrapy ignores this block, which carries no semantics of the core model. |
 | `metabolites` | yes | cobra core | Ordered list of `- !!omap` entries. |
 | `reactions` | yes | cobra core | Ordered list of `- !!omap` entries. |
 | `genes` | yes | cobra core | Ordered list; may be `genes: []` for a model with no genes. |
 | `compartments` | yes | cobra core | `!!omap` of `<code>: <full name>`. |
-| `gecko_light` | optional | GECKO | Scalar boolean. Cobrapy / raven-toolbox emit this at the top level; the older spelling `geckoLight` inside `metaData` is still accepted on read. |
-| `ec-rxns` | optional | GECKO | Per-reaction kcat / source / enzymes coupling table. |
-| `ec-enzymes` | optional | GECKO | Per-enzyme MW / sequence / concentration table. |
+| `gecko_light` | optional | GECKO | Scalar boolean. Cobrapy and raven-toolbox emit this at the top level; the spelling `geckoLight` inside `metaData` is accepted on read. |
+| `ec-rxns` | optional | GECKO | Per-reaction coupling table of kcat, source and enzymes. |
+| `ec-enzymes` | optional | GECKO | Per-enzyme table of MW, sequence and concentration. |
 
-Cobrapy writes `id` / `name` / `version` at the root level instead of inside `metaData`. The RAVEN readers accept both placements; the RAVEN writers normalize to the `metaData` form.
+Cobrapy writes `id`, `name` and `version` at the root level and not inside `metaData`. The RAVEN readers accept both placements, and the RAVEN writers write the `metaData` form.
 
 ---
 
@@ -124,9 +124,9 @@ Field order (cobra-core first, then RAVEN extensions):
   - metFrom: KEGG            # RAVEN extension
 ```
 
-Cobrapy emits exactly the first seven keys (the cobra-core block). raven-toolbox and RAVEN MATLAB additionally emit `inchis`, `deltaG`, and `metFrom` when those fields are populated. On read, cobrapy puts the RAVEN extensions on the metabolite as attribute fall-through; raven-toolbox captures them into `metabolite.notes` (keyed by their YAML name); RAVEN MATLAB stores them on `model.inchis` / `model.metDeltaG` / `model.metFrom`.
+Cobrapy emits exactly the first seven keys (the cobra-core block). raven-toolbox and RAVEN MATLAB additionally emit `inchis`, `deltaG`, and `metFrom` when those fields are populated. On read, cobrapy puts the RAVEN extensions on the metabolite as attribute fall-through, raven-toolbox captures them into `metabolite.notes` (keyed by their YAML name), and RAVEN MATLAB stores them on `model.inchis`, `model.metDeltaG` and `model.metFrom`.
 
-Annotation entries with multiple values are emitted as a YAML list (`chebi:` then several `-` items). Single-value entries are emitted inline (`kegg.compound: C00002`). SMILES strings live inside the annotation block under the `smiles` key, not as a top-level metabolite field, which is the historical RAVEN MATLAB shape and is still accepted on read for backward compatibility.
+Annotation entries with multiple values are emitted as a YAML list (`chebi:` then several `-` items). Single-value entries are emitted inline (`kegg.compound: C00002`). SMILES strings are stored inside the annotation block under the `smiles` key. A `smiles` field at the top level of a metabolite entry is also accepted on read.
 
 ---
 
@@ -160,16 +160,16 @@ Annotation entries with multiple values are emitted as a YAML list (`chebi:` the
 Some fields are conditional:
 
 - `objective_coefficient` is only written when non-zero (cobrapy convention).
-- The `metabolites` block uses `!!omap []` (flow-style empty omap) when the reaction has no metabolites; this keeps the file a valid YAML 1.2 document.
-- `eccodes` is written inline (`eccodes: 2.7.1.1`) when there is exactly one code, and as a list when there are several. Same for `references`.
+- The `metabolites` block uses `!!omap []` (flow-style empty omap) when the reaction has no metabolites, which keeps the file a valid YAML 1.2 document.
+- `eccodes` is written inline (`eccodes: 2.7.1.1`) when there is one code, and as a list when there are several. The same applies to `references`.
 
-**Notes key naming.** Cobrapy and the current raven-toolbox / RAVEN MATLAB writers use **`notes`**. Older yeast-GEM files used `rxnNotes`; both readers accept that as a legacy alias.
+Cobrapy and the raven-toolbox and RAVEN MATLAB writers use the key `notes`. Some yeast-GEM files use `rxnNotes`, a legacy alias that both readers accept.
 
-**Notes that are a mapping.** A `notes` entry can be a mapping instead of a string. raven-toolbox writes one for notes that have no RAVEN field, for example the base id that `merge_compartments` stores on each merged metabolite, with the free-text note under the key `note`. raven-toolbox reads such a mapping back into `notes`. RAVEN shows it in `metNotes`, and a round trip through RAVEN YAML or a `.mat` file loses it.
+A `notes` entry can be a string or a mapping. raven-toolbox writes one for notes that have no RAVEN field, for example the base id that `merge_compartments` stores on each merged metabolite, with the free-text note under the key `note`. raven-toolbox reads such a mapping back into `notes`. RAVEN shows it in `metNotes`, and a round trip through RAVEN YAML or a `.mat` file does not retain it.
 
-**Gene rules.** raven-toolbox reads `gene_reaction_rule` with the grammar of RAVEN's `parseGrRule`. RAVEN's reader splits rules with `getGenesFromGrRules`, which needs a space on each side of a lowercase `and`/`or` or of `&`/`|` unless the operator touches a bracket, so `G1&G2` is one gene id and `G1 & G2` is two genes joined by `and`. Brackets next to an operator are not a difference: `getGenesFromGrRules` inserts a space in `)and`, `and(`, `)or`, `or(`, `)&`, `&(`, `)|` and `|(`. raven-toolbox also accepts the spellings `AND`, `OR`, `&&` and `||`, which RAVEN's reader leaves inside a gene id.
+raven-toolbox reads `gene_reaction_rule` with the grammar of RAVEN's `parseGrRule`. RAVEN's reader splits rules with `getGenesFromGrRules`, which needs a space on each side of a lowercase `and`, `or`, `&` or `|` unless the operator touches a bracket, so `G1&G2` is one gene id and `G1 & G2` is two genes joined by `and`. Brackets next to an operator make no difference, because `getGenesFromGrRules` inserts a space in `)and`, `and(`, `)or`, `or(`, `)&`, `&(`, `)|` and `|(`. raven-toolbox also accepts the spellings `AND`, `OR`, `&&` and `||`, which RAVEN's reader leaves inside a gene id.
 
-**Bounds typing.** Bounds are emitted as floats with an explicit decimal point (`1000.0`, `-1000.0`), matching Python's float repr and cobrapy's output.
+Bounds are emitted as floats with an explicit decimal point (`1000.0`, `-1000.0`), matching Python's float repr and cobrapy's output.
 
 ---
 
@@ -185,7 +185,7 @@ Some fields are conditional:
   - protein: P04807          # RAVEN extension
 ```
 
-Empty names (`name: ''`) are not emitted (matches RAVEN MATLAB's historical behavior).
+Empty names (`name: ''`) are not emitted (matches RAVEN MATLAB's behaviour).
 
 ---
 
@@ -198,7 +198,7 @@ Empty names (`name: ''`) are not emitted (matches RAVEN MATLAB's historical beha
     - m: mitochondrion
 ```
 
-An `!!omap` of `<short code>: <human-readable name>` pairs. Compartments don't carry their own MIRIAMs in the current format.
+An `!!omap` of `<short code>: <human-readable name>` pairs. Compartments carry no MIRIAM annotations of their own in the format.
 
 ---
 
@@ -221,15 +221,15 @@ An `!!omap` of `<short code>: <human-readable name>` pairs. Compartments don't c
     - sourceUrl: https://github.com/SysBioChalmers/yeast-GEM
 ```
 
-Pure provenance. Cobrapy ignores the block; raven-toolbox keeps the verbatim dictionary on `model.notes['metaData']` and additionally lifts `id` / `name` / `version` to `model.id` / `model.name` / `model.notes['version']` so cobra-shape accessors find them. RAVEN MATLAB populates `model.id` / `model.name` / `model.version` / `model.annotation.*` from the same fields.
+The block holds provenance. Cobrapy ignores the block. raven-toolbox keeps the verbatim dictionary on `model.notes['metaData']` and lifts `id`, `name` and `version` to `model.id`, `model.name` and `model.notes['version']`, where cobra-shape accessors find them. RAVEN MATLAB populates `model.id`, `model.name`, `model.version` and `model.annotation.*` from the same fields.
 
-`date` is preserved across round-trips when present on the model; otherwise the writer fills in `YYYY-MM-DD` of the current date.
+`date` is preserved across round-trips when present on the model. Otherwise the writer fills in `YYYY-MM-DD` of the current date.
 
 ---
 
 ## GECKO sections
 
-For enzyme-constrained models, three additional top-level keys carry the EC layer:
+Enzyme-constrained models carry the EC layer in three additional top-level keys:
 
 ```yaml
 - gecko_light: false        # true for the "light" formulation
@@ -251,17 +251,17 @@ For enzyme-constrained models, three additional top-level keys carry the EC laye
       - concs: .nan
 ```
 
-These map onto `model.ec` in RAVEN MATLAB and `raven_toolbox.io.ec_data.EcData` (attached as `model.ec`) in raven-toolbox. Cobrapy ignores the sections.
+The sections map onto `model.ec` in RAVEN MATLAB and `raven_toolbox.io.ec_data.EcData` (attached as `model.ec`) in raven-toolbox. Cobrapy ignores the sections.
 
 An `- enzymes: !!omap` line with nothing under the tag is read as a reaction with no enzymes.
 
-The older spelling `geckoLight` inside `metaData` is also accepted on read.
+The spelling `geckoLight` inside `metaData` is also accepted on read.
 
 ---
 
 ## Annotations
 
-The `annotation` block uses MIRIAM-style namespace keys. Cobrapy treats the block as a free-form dictionary; raven-toolbox preserves it verbatim through `cobra.Metabolite.annotation` / `Reaction.annotation` / `Gene.annotation`; RAVEN MATLAB maps it to `model.metMiriams` / `rxnMiriams` / `geneMiriams`.
+The `annotation` block uses MIRIAM-style namespace keys. Cobrapy treats the block as a free-form dictionary, raven-toolbox preserves it verbatim through `cobra.Metabolite.annotation`, `Reaction.annotation` and `Gene.annotation`, and RAVEN MATLAB maps it to `model.metMiriams`, `rxnMiriams` and `geneMiriams`.
 
 - A single value is written inline: `kegg.compound: C00002`.
 - Multiple values are written as a YAML list:
@@ -272,43 +272,47 @@ The `annotation` block uses MIRIAM-style namespace keys. Cobrapy treats the bloc
       - CHEBI:30616
   ```
 
-- The `smiles` key inside a metabolite's `annotation` carries the SMILES string (cobrapy convention). RAVEN MATLAB historically emitted `smiles` as a metabolite top-level field; both readers still accept that, but writes are normalized to the annotation block.
+- The `smiles` key inside a metabolite's `annotation` carries the SMILES string (cobrapy convention). Both readers also accept `smiles` as a metabolite top-level field, and the writers use the annotation block.
 - The `sbo` key carries the Systems Biology Ontology term assigned by `assignSBOterms` / `add_sbo_terms`.
 
 ---
 
-## Numbers, strings, quoting
+## Numbers, strings and quoting
 
-**Numbers.** Whole-number floats are written with an explicit `.0` (`1000.0`, `-1000.0`, `0.0`). Other floats use up to 15 significant digits (`-17.39`, `-2768.1`). `NaN` is encoded as `.nan`; `+Inf` / `-Inf` as `.inf` / `-.inf` (YAML 1.2 conventions).
+Whole-number floats are written with an explicit `.0` (`1000.0`, `-1000.0`, `0.0`). Other floats use up to 15 significant digits (`-17.39`, `-2768.1`). `NaN` is encoded as `.nan`, and `+Inf` and `-Inf` as `.inf` and `-.inf` (YAML 1.2 conventions).
 
-**Strings.** Default style is bare (no quotes). The writer falls back to double-quoted style when the value:
+The default string style is bare (no quotes). raven-toolbox and RAVEN MATLAB apply the same rules and use double-quoted style when the value:
 
-- starts with `-`, `?`, `:`, or any flow indicator (`[`, `]`, `{`, `}`, `,`, `&`, `*`, `!`, `|`, `>`, `%`, `@`, `` ` ``, `#`);
-- contains `: ` (would otherwise be parsed as a key/value), ` #` (comment), or one of `[`, `]`, `{`, `}`;
-- has leading or trailing whitespace;
-- spells a YAML reserved word case-insensitively (`true`, `false`, `null`, `yes`, `no`, `on`, `off`, `~`).
+- is empty;
+- starts with one of `#`, `,`, `[`, `]`, `{`, `}`, `&`, `*`, `!`, `|`, `>`, `'`, `"`, `%`, `@` or `` ` ``;
+- is `-`, `?` or `:` alone, or starts with one of them followed by whitespace;
+- contains `:` followed by whitespace or at the end of the value, or `#` after whitespace;
+- has leading or trailing whitespace or contains a line break;
+- would be read as a non-string: `true` or `false` in lower, capitalised or upper case, `y`, `n`, `yes`, `no`, `on` or `off` in any case (the YAML 1.1 booleans), `null`, `Null`, `NULL`, `~`, an integer or float (including hexadecimal, octal, binary, `.inf` and `.nan` forms) or a date in the form `YYYY-MM-DD`.
 
-In a double-quoted string, only `\` and `"` are escaped. Other characters (including Unicode and newlines if the underlying model permitted them) are passed through.
+The characters `[`, `]`, `{` and `}` inside a value do not trigger quoting.
 
-**Quotes the reader repairs.** raven-toolbox reads three quoted shapes that are not valid YAML: `""text""`, a double-quoted scalar with an unescaped inner quote (`"a "b" c"`), and a single-quoted scalar with an inner apostrophe (`'it's'`). The values are `"text"`, `a "b" c` and `it's`, as `readYAMLmodel` reads them. The repair runs when the strict parse fails and does not handle a comment after the closing quote.
+In a double-quoted string, only `\` and `"` are escaped. Other characters (including Unicode, and newlines if the underlying model permits them) are passed through.
+
+The raven-toolbox reader repairs three quoted shapes that are not valid YAML: `""text""`, a double-quoted scalar with an unescaped inner quote (`"a "b" c"`), and a single-quoted scalar with an inner apostrophe (`'it's'`). The values are `"text"`, `a "b" c` and `it's`, as `readYAMLmodel` reads them. The repair runs when the strict parse fails and does not handle a comment after the closing quote.
 
 ---
 
-## Tooling interoperability matrix
+## Tool interoperability
 
-| File written by ↓ \ Reader → | cobrapy | raven-toolbox | RAVEN MATLAB |
+| File written by (rows) and reader (columns) | cobrapy | raven-toolbox | RAVEN MATLAB |
 |---|---|---|---|
-| cobrapy (`save_yaml_model`) | full | full + extras land in `notes` via attribute fall-through | full, including root-level `id` / `name` / `version` |
-| raven-toolbox (`write_yaml_model`) | core (no `metaData`-derived `id`); RAVEN extras live as unknown top-level keys but don't break parsing | full | full |
-| RAVEN MATLAB (`writeYAMLmodel`) | core (no `metaData`-derived `id`); RAVEN extras land via attribute fall-through | full | full |
+| cobrapy (`save_yaml_model`) | full | full, with extras in `notes` via attribute fall-through | full, including root-level `id` / `name` / `version` |
+| raven-toolbox (`write_yaml_model`) | core (no `metaData`-derived `id`); RAVEN extras are unknown top-level keys that do not break parsing | full | full |
+| RAVEN MATLAB (`writeYAMLmodel`) | core (no `metaData`-derived `id`); RAVEN extras via attribute fall-through | full | full |
 
-"Full" = every field read back into its canonical position on the model object; "core" = cobrapy-known fields, RAVEN extensions ignored or kept on the object as attribute fall-through (`reaction.eccodes` etc., not re-emitted on save). A round-trip through cobrapy is therefore **lossy for RAVEN extensions**: only the core fields survive `cobrapy.load → cobrapy.save`. Round-trips through raven-toolbox or RAVEN MATLAB are lossless.
+"Full" means that every field is read back into its canonical position on the model object. "Core" means that cobrapy-known fields are read and RAVEN extensions are ignored or kept on the object as attribute fall-through (for example `reaction.eccodes`, not re-emitted on save). A round-trip through cobrapy is therefore lossy for RAVEN extensions: only the core fields survive `cobrapy.load → cobrapy.save`. Round-trips through raven-toolbox or RAVEN MATLAB are lossless.
 
-Neither writer reproduces cobrapy's own `ruamel`-default layout byte-for-byte (indentation, quoting style, line folding); RAVEN and raven-toolbox instead share a layout with each other, close to cobrapy's structural shape but not identical to it. See [raven-gecko-parity's reconciliation record](https://github.com/CompMetEng/raven-gecko-parity/blob/develop/docs/yaml-reconciliation.md) for why, and for the one scenario (`yaml_roundtrip_smallyeast`) that continuously checks the two writers agree.
+Neither writer reproduces cobrapy's own `ruamel`-default layout byte-for-byte (indentation, quoting style, line folding). RAVEN and raven-toolbox share a layout with each other. The shared layout follows the structure of a cobrapy file and differs from it in details such as indentation and quoting. [raven-gecko-parity's reconciliation record](https://github.com/CompMetEng/raven-gecko-parity/blob/develop/docs/yaml-reconciliation.md) gives the reason and the one scenario (`yaml_roundtrip_smallyeast`) that continuously checks that the two writers agree.
 
 ---
 
-## What round-tripping looks like
+## Round-trip content counts
 
 Loading `yeast-GEM.yml` (2748 metabolites, 4102 reactions, 1143 genes) and re-writing it through any of the three tools preserves every documented piece of content:
 
@@ -323,4 +327,4 @@ Loading `yeast-GEM.yml` (2748 metabolites, 4102 reactions, 1143 genes) and re-wr
 | metabolites with SMILES | 1788 |
 | reactions with notes (rxnNotes) | 1443 |
 
-(Cobrapy round-trips give 2748 / 4102 / 1143 for the core but drop the RAVEN extensions in the rightmost column; that's the documented loss.)
+Cobrapy round-trips give 2748 / 4102 / 1143 for the core and drop the RAVEN extensions in the rightmost column, which is the documented loss.
