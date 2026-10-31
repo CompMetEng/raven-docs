@@ -71,7 +71,7 @@ Both extractions are mixed-integer problems. On Human-GEM, GLPK completed a benc
 
 ## Template preparation
 
-The preparation finds the task-essential reactions, classifies every reaction into omics-independent categories, merges linear stretches, and rescales the stoichiometry to a narrower coefficient range, which is not needed for feasibility at the default `big_m` and shortens the run (83 s against 157 s in [ftINIT parameter calibration and input robustness](../parameter-tuning/studies/init-param-calibration.md)). It depends only on the template and the task list, and not on the expression data, so it is done once and reused for every sample.
+The preparation finds the task-essential reactions, classifies every reaction into omics-independent categories, merges linear stretches, and rescales the stoichiometry to a narrower coefficient range, which is not needed for feasibility at the default `big_m`. In the single runs of [ftINIT parameter calibration and input robustness](../parameter-tuning/studies/init-param-calibration.md), the rescaling shortened the run (83 s against 157 s). It depends only on the template and the task list, and not on the expression data, so it is done once and reused for every sample.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB

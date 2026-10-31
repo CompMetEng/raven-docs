@@ -159,7 +159,7 @@ Three cut-offs control which hits are accepted, and tightening any of them shrin
 
 `maxE` / `max_evalue` (`1e-30`) is the maximum BLAST E-value, the number of hits of at least this quality expected by chance in a database this size. The default is strict by BLAST standards, where `1e-5` is a common threshold, because transferring a reaction on a marginal hit adds a claim about metabolism that nothing downstream questions.
 
-`minLen` / `min_align_len` (`100`) is the minimum aligned length in residues. It rejects hits that align well over a short conserved domain while the rest of the protein is unrelated. The value was measured against KEGG orthology assignments across four organisms ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)): 50 and 100 gave the same score, 150 a score at most 0.003 lower, and 200 and 300 lower scores, mainly through lost recall.
+`minLen` / `min_align_len` (`100`) is the minimum aligned length in residues. It rejects hits that align well over a short conserved domain while the rest of the protein is unrelated. The value was measured against KEGG orthology assignments across four organisms ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)): 50 and 100 gave the same score, 150 a score at most 0.003 lower, and 200 and 300 lower scores. At 200 the loss came mainly from recall; precision and recall were not reported for 300.
 
 `minIde` / `min_identity` (`40`) is the minimum percentage identity across the alignment.
 

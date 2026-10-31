@@ -58,7 +58,7 @@ Scored with F1, which weights precision and recall equally, the optimum moves to
 | 200 (RAVEN 2.11.3) | 0.923 | 0.860 | 0.804 | 0.598 |
 | 300 | 0.885 | 0.816 | 0.764 | 0.571 |
 
-Lengths 50 and 100 gave identical scores and 150 was at most 0.003 lower. The score fell between 150 and 200, by 0.010 to 0.020 from 100 to 200. Compared with 200, a length of 100 raised recall by 3 to 4 points on every organism and lowered precision by at most 0.6 points (precision and recall values not tabulated). No OMA scores were reported for alignment length.
+Lengths 50 and 100 gave identical scores and 150 was at most 0.003 lower. The score fell between 150 and 200, by 0.010 to 0.020 from 100 to 200. Compared with 200, a length of 100 gave 3 to 4 more recall on every organism and lowered precision by at most 0.6 percentage points (precision and recall values not tabulated). The unit of the 3 to 4 is not recorded: percentage points of recall, or per cent more correct matches. No OMA scores were reported for alignment length.
 
 ### E-value
 
@@ -98,7 +98,7 @@ Two more settings control the search that produces the hits. Neither was part of
 | `min_align_len` (`minLen`) | 200 | 100 | 100 scored 0.010 to 0.020 higher than 200 against KEGG; 50 and 100 scored the same, and 100 is the stricter of the two. |
 | `max_evalue` (`maxE`) | 1e-30 | 1e-30 | No change in score from 1e-4 to 1e-50; kept at the RAVEN value. |
 
-The study supports one set of defaults for BLAST and DIAMOND, since both reached the same optimum.
+The study supports one `min_identity` for BLAST and DIAMOND, since both reached the same best identity for every organism. No DIAMOND scores were reported for the length and E-value sweeps, whose base scores equal those of BLAST.
 
 ## Limits
 

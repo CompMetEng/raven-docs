@@ -41,7 +41,7 @@ Yeast9 in the checklist is version 9 of yeast-GEM.
 
 | Study | Parameters and measurement |
 |---|---|
-| [Homology cut-off calibration](studies/homology-cutoff-calibration.md) | `min_align_len`, `min_identity` and `max_evalue` of homology-based reconstruction, measured against an independent KEGG ortholog reference for 4 organisms of increasing distance; `min_identity` was also scored against an OMA reference |
+| [Homology cut-off calibration](studies/homology-cutoff-calibration.md) | `min_align_len`, `min_identity` and `max_evalue` of homology-based reconstruction, measured for 4 organisms of increasing distance against KEGG KO annotations (partly derived from sequence similarity); `min_identity` also against the OMA reference, independent of BLAST |
 | [KEGG HMM cut-off calibration](studies/kegg-hmm-cutoff-calibration.md) | `cutoff`, `min_score_ratio_ko` and `min_score_ratio_g` of KEGG reconstruction with hidden Markov models (HMMs), measured against the KEGG Orthology (KO) annotations of the genes of 4 organisms |
 
 ## Context-specific extraction (ftINIT)

@@ -160,7 +160,7 @@ The table compares the RAVEN 2.11.3 settings `(1e-50, 0.3, 0.8)` with the defaul
 | `eco` | 0.67 → 0.67 | 0.95 → 0.97 | 0.78 → 0.79 | 0.98 → 0.99 | 198 → 173 |
 | `mge` | 0.77 → 0.69 | 0.84 → 0.94 | 0.80 → 0.80 | 0.87 → 0.97 | 29 → 35 |
 
-With the defaults, gene→KO recall rose by 0.10 for `mge` and by 0.01 to 0.03 for the other three organisms. Gene→KO precision fell by 0.02 (`sce`), 0.03 (`cme`) and 0.08 (`mge`), and stayed at 0.67 for `eco`. F1 changed by at most 0.01. The number of novel reactions fell for `sce`, `cme` and `eco` and rose from 29 to 35 for `mge`.
+With the defaults, gene→KO recall rose by 0.10 for `mge` and by 0.01 to 0.03 for the other three organisms. Gene→KO precision fell by 0.02 (`sce`), 0.03 (`cme`) and 0.08 (`mge`), and stayed at 0.67 for `eco`. F1 changed by at most 0.01. The F1 of the defaults was computed from precision and recall rounded to two decimals, which alone moves it by up to 0.005, and the measured F1 is itself rounded to 0.01, so a difference of 0.01 is within the rounding. The number of novel reactions fell for `sce`, `cme` and `eco` and rose from 29 to 35 for `mge`.
 
 ### Whole-model comparison of the two KEGG paths
 
@@ -172,21 +172,21 @@ With the defaults, gene→KO recall rose by 0.10 for `mge` and by 0.01 to 0.03 f
 | metabolites | 1501 | 1567 |
 | genes | 835 | 896 |
 
-The HMM path contained 96.3 % of the reactions of the annotation path (1305 of 1355, Jaccard index 0.86) and 96.6 % of its genes (807 of 835, Jaccard index 0.87). `hmmscan` took ≈ 0.1 s per query against either library on 12 threads (yeast: 6021 queries in 633 s, about 10.5 minutes).
+The HMM path contained 96.3 % of the reactions of the annotation path (1305 of 1355, Jaccard index 0.86) and 96.6 % of its genes (807 of 835, Jaccard index 0.87). The one timed search, `sce` against `eukaryotes.hmm` with `hmmscan` on 12 threads, took 633 s for 6021 queries (about 10.5 minutes, ≈ 0.1 s per query). The `prokaryotes.hmm` library was not timed.
 
 ## Meaning of the results
 
 From 1e-10 to 1e-30 a stricter cut-off raised precision while gene→KO recall fell by at most 0.03 (from 0.98 or 0.99 to between 0.95 and 0.98). Beyond 1e-30 the cut-off traded recall for precision: it removed matched pairs together with novel pairs, and novel pairs remained at every cut-off tested. Across the whole sweep from 1e-10 to 1e-100 precision rose by 0.27 (`sce`, 0.57 to 0.84) to 0.35 (`mge`). The RAVEN 2.11.3 value `1e-50` removes 10 to 50 % of the matched pairs of `mge`, the organism with the weakest matched hits, and 1 to 10 % in the other three.
 
-At `cutoff = 1e-50`, raising `min_score_ratio_g` from 0.80 to 0.95 raised precision by 0.05 to 0.10 for a recall loss of 0.01 to 0.03, and raising it from 0.50 to 0.80 raised precision by 0.15 to 0.27 (`eco`, 0.39 to 0.66). `min_score_ratio_ko` changed precision by 0.01 to 0.03 and recall not at all. The defaults move part of the filtering from the cut-off to `min_score_ratio_g`. On the four organisms the move gained recall, most for `mge`, at the cost of precision in three of them, and left F1 within 0.01 of the RAVEN 2.11.3 settings.
+At `cutoff = 1e-50`, raising `min_score_ratio_g` from 0.80 to 0.95 raised precision by 0.05 to 0.10 for a recall loss of 0.01 to 0.03, and raising it from 0.50 to 0.80 raised precision by 0.15 to 0.27 (`eco`, 0.39 to 0.66). At `min_score_ratio_g = 0.80` and `cutoff = 1e-50`, raising `min_score_ratio_ko` from 0.0 to 0.5 changed precision by 0.01 to 0.03 and recall not at all; its effect at other settings was not reported. The defaults move part of the filtering from the cut-off to `min_score_ratio_g`. On the four organisms the move gained recall, most for `mge`, at the cost of precision in three of them, and left F1 within 0.01 of the RAVEN 2.11.3 settings, a difference within the rounding of the computed F1.
 
 ## Chosen defaults
 
 | parameter | RAVEN 2.11.3 | default (raven-toolbox and RAVEN 3) | basis |
 |---|---|---|---|
 | `cutoff` (`cutOff`) | 1e-50 | 1e-30 | beyond matched p99 for `sce` and `eco`, between p95 and p99 for `cme` and `mge`; with the new `min_score_ratio_g`, `mge` recall 0.84 → 0.94 |
-| `min_score_ratio_g` (`minScoreRatioG`) | 0.8 | 0.9 | from 0.80 to 0.95 it raised precision by 0.05 to 0.10 for a recall loss of 0.01 to 0.03; partly offsets the precision lost to the looser cut-off |
-| `min_score_ratio_ko` (`minScoreRatioKO`) | 0.3 | 0.3 | changed precision by 0.01 to 0.03 and recall not at all; kept at the RAVEN value |
+| `min_score_ratio_g` (`minScoreRatioG`) | 0.8 | 0.9 | from 0.80 to 0.95 it raised precision by 0.05 to 0.10 for a recall loss of 0.01 to 0.03; offsets part of the precision lost to the looser cut-off (inference, 0.9 not swept) |
+| `min_score_ratio_ko` (`minScoreRatioKO`) | 0.3 | 0.3 | at `min_score_ratio_g` 0.80 and `cutoff` 1e-50, 0.0 to 0.5 changed precision by 0.01 to 0.03 and recall not at all; kept at the RAVEN value |
 
 The defaults favour recall: the changed settings raised recall in every organism and lowered precision in three of the four.
 
@@ -194,7 +194,7 @@ The defaults favour recall: the changed settings raised recall in every organism
 
 Three settings next to the cut-offs were not measured in the study. The reasons given for their values are not tested.
 
-`threads` in `run_hmmsearch` and `build_ko_hmm` defaults to every CPU the process may run on. The value rests on the assumption, not tested here, that HMMER's search gives the same hits at any thread count and that E-values differ at most in the last floating-point places. Single-threaded search against the full KO library (more than 26,000 HMMs) is given as 30 to 60 minutes per proteome, against roughly five minutes multi-threaded; no run with a recorded thread count and hardware supports either figure. The one timed run, `sce` against `eukaryotes.hmm` on 12 threads, took 633 s (about 10.5 minutes).
+`threads` in `run_hmmsearch` and `build_ko_hmm` defaults to every CPU the process may run on. The value rests on the assumption, not tested here, that HMMER's search gives the same hits at any thread count and that E-values differ at most in the last floating-point places. The documentation gives single-threaded search against the full KO library (more than 26,000 HMMs) as 30 to 60 minutes per proteome, against roughly five minutes multi-threaded. The source of these figures is not recorded, and no run with a recorded thread count and hardware supports either of them. The one timed run, `sce` against `eukaryotes.hmm` on 12 threads, took 633 s (about 10.5 minutes).
 
 `seq_identity` in `build_ko_hmm` is `0.9`: the identity at which CD-HIT collapses near-duplicate sequences within a KO before the HMM is built; the clustering keeps a KO with many near-identical entries from giving an overfitted profile. It is CD-HIT's recommended value for proteins and the default of `seqIdentity` in RAVEN 2.11.3. `seq_identity=-1` skips the clustering. RAVEN 3's `getKEGGModelForOrganism` uses prebuilt HMM libraries and has no clustering step.
 

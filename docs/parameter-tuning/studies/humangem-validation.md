@@ -6,7 +6,7 @@ raven-toolbox's ftINIT was run on Human-GEM with the RNA sequencing (RNA-seq) da
 
 Software: Human-GEM commit `38567ab8` (v2.1.1 plus 15 commits), RAVEN commit `2d0630e3` on MATLAB 2024b, raven-toolbox commit `94f3940`, and Gurobi 13.0.1 for both tools, with 4 cores per run.
 
-Template preparation is the step that runs once per template model, before any cell line. For RAVEN, the Human-GEM function `prepHumanModelForftINIT` removed the drug reactions, the amino-acid triplet reactions and the duplicate complex I reaction from Human-GEM, set the spontaneous and custom reaction lists, and prepared the model with the essential tasks of `metabolicTasks_Essential.txt`. Its reference model, the prepared model from which RAVEN extracts, has 9730 reactions. For raven-toolbox, `prep_init_model` ran on the same cleaned Human-GEM (11265 reactions). Every reaction in every raven-toolbox result is in RAVEN's reference model, so the reaction identifiers of the two results are compared directly.
+Template preparation is the step that runs once per template model, before any cell line. For RAVEN, the Human-GEM function `prepHumanModelForftINIT` removed the drug reactions, the amino-acid triplet reactions and the duplicate complex I reaction from Human-GEM, set the spontaneous and custom reaction lists, and prepared the model with the essential tasks of `metabolicTasks_Essential.txt`. RAVEN's prepared model, the model from which RAVEN extracts, has 9730 reactions. For raven-toolbox, `prep_init_model` ran on the same cleaned Human-GEM (11265 reactions). Every reaction in every raven-toolbox result is in RAVEN's prepared model, so the reaction identifiers of the two results are compared directly.
 
 Scoring: gene scores are `5·ln(level/1)` of the transcripts per million (TPM) values in the Hart2015 file, clipped to [−5, 10], and reactions take their scores from the gene rules; a reaction without genes scores −2. raven-toolbox computes this with `gene_scores_from_expression` and `score_reactions_from_genes`, RAVEN with `transcrData` and `threshold=1`.
 
@@ -17,7 +17,7 @@ raven-toolbox ran in two variants:
 - **No-task**: the template is prepared without a task list, and the extraction uses the expression scores alone.
 - **Task-constrained**: the template is prepared with the essential metabolic tasks, the reactions that a task needs are kept whatever their score, and `ftinit` adds reactions back until every task is feasible (its default `fill_gaps=True`).
 
-RAVEN's reference result is task-constrained in this sense. A third set of no-task runs used `big_m=100`.
+The RAVEN result is task-constrained in this sense. A third set of no-task runs used `big_m=100`.
 
 Measurements: the result of a run is its set of reaction identifiers. For each cell line the comparison gives the number of reactions in both sets (shared), in one set only, and the Jaccard index, the shared count divided by the size of the union. The comparison covers reactions only; genes, essential genes and task performance of the extracted models were not compared. Each cell line, variant and `big_m` value ran once. Times are wall-clock times of single runs on shared nodes.
 
@@ -86,7 +86,7 @@ Neither tool was run twice on the same input, so the comparison does not separat
 
 The no-task variant shares Jaccard 0.964 to 0.982 with RAVEN. It keeps fewer reactions than RAVEN in every cell line: 0.3 to 0.5 % fewer for four cell lines and 1.6 % fewer for RPE1. The reactions only in the RAVEN model (76 to 186) outnumber those only in the raven-toolbox model (53 to 76).
 
-The no-task variant omits the task layer that RAVEN's reference applies. With the task layer, the reactions only in the RAVEN model fall to 43 to 71 per cell line. That the task layer accounts for most of the surplus is an inference from these counts; the reactions in the surplus were not checked against the task-essential reactions.
+The no-task variant omits the task layer that the RAVEN result includes. With the task layer, the reactions only in the RAVEN model fall to 43 to 71 per cell line. That the task layer accounts for most of the surplus is an inference from these counts; the reactions in the surplus were not checked against the task-essential reactions.
 
 ## Effect of `big_m`
 
@@ -94,7 +94,7 @@ Lowering the cap on the per-reaction big-M from 1000 to 100 changed the Jaccard 
 
 ## Run time
 
-After the template preparation, a task-constrained cell-type model took 146 to 381 s in raven-toolbox and 40 to 91 s in RAVEN; a no-task model took 81 to 91 s. The template preparation took 1556 s (26 min) and 1695 s (28 min) in raven-toolbox and 4320 s (72 min) in RAVEN. The preparations ran with different parallelism (see the run-time table), so the times compare whole runs and not the code alone. The [Reference run](../../guide/init.md#reference-run) of the guide Context-specific models with ftINIT reports a preparation of 47 min in MATLAB and 37 min in Python and an extraction of 797 s in MATLAB and 124 s in Python. That run used RAVEN's `prepINITModel` directly on Human-GEM `6812be2a` (12748 reactions) without the cleaning step, and series `1+0`; the three differences from this validation were not separated, so the times are not comparable.
+After the template preparation, a task-constrained cell-type model took 146 to 381 s in raven-toolbox and 40 to 91 s in RAVEN; a no-task model took 81 to 91 s. The template preparation took 1556 s (26 min) and 1695 s (28 min) in raven-toolbox and 4320 s (72 min) in RAVEN. The preparations ran with different parallelism (see the run-time table), so the times compare whole runs and not the code alone. The [Reference run](../../guide/init.md#reference-run) of the guide Context-specific models with ftINIT reports a preparation of 47 min in MATLAB and 37 min in Python and an extraction of 797 s in MATLAB and 124 s in Python. That run used RAVEN's `prepINITModel` directly on Human-GEM `6812be2a` (12748 reactions) without the cleaning step, and series `1+0`; these four differences from this validation (preparation function, Human-GEM commit, cleaning step, series) were not separated, so the times are not comparable.
 
 ## Numerical settings shared with RAVEN
 
@@ -118,4 +118,4 @@ Each cell line, variant and `big_m` value ran once, without seed repeats, so the
 
 ## Reproduction
 
-The script that ran this validation is not part of the pinned raven-toolbox. Its outputs, kept in the working directory that the analysis scripts take as `--work`, are reused by later studies: the model exported from the RAVEN run as `raven_refModel.xml`, and the prepared Human-GEM of raven-toolbox as `rg_prep.pkl` (no-task) and `rg_prep_tasks.pkl` (task-constrained). `scripts/analyze_init_solvers.py` reads `rg_prep.pkl` and `scripts/analyze_init_robustness.py` reads `rg_prep_tasks.pkl`; both score reactions against `raven_refModel.xml`. `scripts/analyze_init_params.py` reads `raven_refModel.xml` and prepares its own models from it.
+The script that ran this validation is not part of the pinned raven-toolbox. Its outputs, kept in the working directory that the analysis scripts take as `--work`, are reused by later studies: a model exported from the RAVEN run as `raven_refModel.xml`, and the prepared Human-GEM of raven-toolbox as `rg_prep.pkl` (no-task) and `rg_prep_tasks.pkl` (task-constrained). `scripts/analyze_init_solvers.py` reads `rg_prep.pkl` and `scripts/analyze_init_robustness.py` reads `rg_prep_tasks.pkl`; both score reactions against `raven_refModel.xml`. `scripts/analyze_init_params.py` reads `raven_refModel.xml` and prepares its own models from it.

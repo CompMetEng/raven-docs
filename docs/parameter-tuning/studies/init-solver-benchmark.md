@@ -1,10 +1,10 @@
 # ftINIT on different solvers
 
-ftINIT builds mixed-integer linear programs (MILPs) and passes them to a solver through optlang. This benchmark runs ftINIT on Human-GEM with each solver interface that the environment offered, and records whether the run completed, how long it took and which reactions the extracted model contains.
+ftINIT builds mixed-integer linear programs (MILPs) and passes them to a solver through optlang. This benchmark runs ftINIT on Human-GEM with the gurobi, glpk, scipy and hybrid interfaces of optlang, and records whether the run completed, how long it took and which reactions the extracted model contains.
 
 ## Set-up
 
-Every run calls `ftinit()` with the same input: Human-GEM prepared without a task list, reaction scores from HCT116 expression, series `1+1` and `time_limit=900` s. The call also passes `mip_gap=0.001`, which a named series ignores. Software: Human-GEM commit `38567ab8`, raven-toolbox commit `94f3940`, Gurobi 13.0.1 and cobra 0.32.1, on 4 cores. Each setting ran once.
+Every run calls `ftinit()` with the same input: Human-GEM prepared without a task list and with scaled stoichiometry, reaction scores from HCT116 expression, series `1+1` and `time_limit=900` s. The call also passes `mip_gap=0.001`, which a named series ignores. Software: Human-GEM commit `38567ab8`, raven-toolbox commit `94f3940`, Gurobi 13.0.1 and cobra 0.32.1, on 4 cores. Each setting ran once.
 
 The time is the wall-clock time of the whole benchmark step: reading the reference and the prepared model, scoring the reactions and calling `ftinit()`. A failed run reports the time until the failure.
 
@@ -30,7 +30,7 @@ GLPK completed the pipeline in 2182 s. Its MILP solver honours `configuration.ti
 
 ## Interfaces that failed
 
-HiGHS is reached through the `scipy` interface of optlang, which accepts continuous variables only and cannot hold the ftINIT MILP. The run failed with the error in the table after 1521 s. The benchmark selected optlang's `hybrid_interface` for HiGHS, but cobra 0.32.1 does not accept `hybrid` as a solver name; it accepts `glpk_exact`, `glpk`, `gurobi` and `scipy`. The failure came after 10 s, the time spent reading the reference model before the solver name was set.
+HiGHS is reached through the `scipy` interface of optlang, which accepts continuous variables only and cannot hold the ftINIT MILP. The run failed with the error in the table after 1521 s. The script selected optlang's `hybrid_interface` module for HiGHS, but `hybrid` was not among the solver names offered in this environment: the error lists `glpk_exact`, `glpk`, `gurobi` and `scipy`. `glpk_exact` was offered and not run. The failure came after 10 s, the time spent reading the reference model before the solver name was set.
 
 ## Choice of solver
 
@@ -53,4 +53,4 @@ python scripts/analyze_init_solvers.py --cell HCT116 \
     --doc docs/parameter-tuning/studies/init-solver-benchmark.md
 ```
 
-The first command checks the toy networks and runs in seconds. The second runs the genome-scale benchmark, which takes minutes to hours. It resumes per solver and reuses the prepared Human-GEM of [Human-GEM cell-type model validation against RAVEN](humangem-validation.md). The script writes its report to the file given by `--doc`; give another path to keep the page.
+The first command checks the toy networks and runs in seconds. The second runs the genome-scale benchmark, which takes minutes to hours. It resumes per solver and reuses the prepared Human-GEM of [Human-GEM cell-type model validation against RAVEN](humangem-validation.md). The pinned script has no `big_m` option and runs the gurobi, hybrid and glpk interfaces only (`_INTERFACES` in `analyze_init_solvers.py`), so the command does not produce the `big_m=100` and `scipy` rows. The script writes its report to the file given by `--doc`; give another path to keep the page.
