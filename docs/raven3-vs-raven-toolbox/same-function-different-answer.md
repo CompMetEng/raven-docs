@@ -1,86 +1,52 @@
-# Same function, different answer
+# Differences in results between functions
 
-Where the two agree on the job but differ in what they hand back, how they order
-it, or what they do to the model on the way. Deliberately short: an entry is
-added only once the difference has been confirmed in both sources.
+The page lists functions that return a different result, return it in a different order, change the model differently or run for a different time in RAVEN and raven-toolbox, and two cases in which raven-toolbox differs from cobrapy. The list contains a function only after the difference is confirmed in the code of both functions compared.
 
-:::{admonition} Not a complete list
-:class: info
-Absence from this section is not a guarantee of identical behaviour. It only
-means the difference has not been confirmed and written up yet.
-:::
+The list is incomplete: a function that is not listed can still behave differently.
 
-## Duplicate reactions: gene associations are not merged
+## Runtime of metabolic task checking
 
-`contractModel` merges duplicate reactions **and their gene associations**: when
-it collapses a set of duplicates it joins the distinct `grRules` with `or`, so
-every gene that pointed at any of the duplicates still points at the survivor.
+`checkTasks` in RAVEN and `check_tasks` in raven-toolbox return the same pass and fail results and differ in runtime.
 
-`remove_duplicate_reactions` keeps one reaction of each duplicate set and removes
-the rest, without merging gene associations. A gene that was associated *only*
-with a removed duplicate is no longer associated with anything.
+`checkTasks` rebuilds the working model from the original for each task. `check_tasks` applies each task's constraints to one model inside a `with model:` block and reverts them afterwards. `check_tasks` saves and restores direct changes of mass-balance bounds, the one kind of edit that the context manager of cobrapy does not track.
 
-The stoichiometric network is the same either way; the gene–reaction mapping is
-not. If you are contracting a draft assembled from several templates, where the
-same reaction commonly arrives with different gene associations, check the GPRs
-of the survivors afterwards.
+At genome scale, copying the model for each task adds to the runtime of `checkTasks`, and `check_tasks` reuses a single model to avoid it.
 
-## Metabolic tasks: the same result, a different runtime
+## Gap-filling functions
 
-`checkTasks` rebuilds the working model from the original for each task.
-`check_tasks` instead applies each task's constraints to one model inside a
-`with model:` block and reverts them afterwards, restoring by hand the one kind
-of edit cobra's context manager does not track (direct mass-balance bound
-changes).
+`fillGaps` in RAVEN selects one of several algorithms with the `algorithm` option. raven-toolbox splits them into four functions, so porting a `fillGaps` call requires choosing among the functions in this table:
 
-The pass and fail results are the same. The runtime is not: at genome scale,
-copying the model for each task dominates the MATLAB runtime, which is why the
-Python version reuses a single model. This changes runtime comparisons, not
-results.
+| Purpose | RAVEN algorithm | raven-toolbox function |
+|---|---|---|
+| Connecting blocked reactions against template models | `fillGaps` (default `'reference'`) | `connect_blocked_reactions` |
+| Fast filling of a large candidate set by linear programming (LP) | `fillGaps` with `'fastLP'` and `'swiftLP'` | `fill_gaps_fast_lp` (`variant="fast"` and `variant="swift"`) |
+| Filling by mixed-integer linear programming (MILP) with the fewest added reactions that restore growth | `fillGaps` with `'gapfillMILP'` | `fill_gaps_milp` |
+| Finding the gaps without filling them | `fillGaps` with `'topological'` (`gapFillTopological`) | `analyse_topology` |
 
-## Gap-filling: `fillGaps` splits into three functions in raven-toolbox
+The choice among these functions changes the reactions added and the runtime.
 
-`fillGaps` does several different jobs through one function call.
-raven-toolbox splits them, so porting a `fillGaps` call means choosing:
+The RAVEN functions `canExchange`, `checkProduction` and `getAllSubGraphs` find gaps without filling them. raven-toolbox merges them into `gap_report`, the port of `gapReport`, and has no separate function for each of them.
 
-| What you were doing | Use |
-|---|---|
-| Connecting blocked reactions against template models | `connect_blocked_reactions` |
-| Fast LP-based filling of a large candidate set | `fill_gaps_fast_lp` |
-| MILP filling with the fewest added reactions that restore growth | `fill_gaps_milp` |
-| Only *finding* the gaps (`canExchange`, `checkProduction`, `getAllSubGraphs`, `haveFlux`, `gapFillTopological`) | `analyse_topology` |
+## Alternative optima of mixed-integer problems
 
-The choice changes both the reaction set added and the runtime, because each
-of the three functions uses a different algorithm; they are not the same
-algorithm under three different names.
+ftINIT extraction, gap-filling and compartment assignment solve mixed-integer problems that routinely have several optima of equal objective value. Two runs can return different reaction sets that are both correct. Results can differ between implementations, between solvers and between repeat runs of one solver.
 
-## Anything solved by MILP
+The ftINIT reproducibility study measured raven-toolbox only (RAVEN's `ftINIT` was not run): runs of one solver also differ with the seed and the number of threads, and two repeated builds at one seed differed by 2 reactions when a step stopped at its wall-clock limit (see [ftINIT reproducibility: `resolve_ties`, `prove_abs_gap`](../parameter-tuning/studies/ftinit-determinism.md)). No single exact result is expected.
 
-ftINIT extraction, gap-filling, and compartment assignment all solve
-mixed-integer problems that routinely have **several optima of equal objective
-value**. Two runs can return different reaction sets and both be correct; across
-languages, across solvers, and in some configurations across runs of the same
-solver.
+Compare these outputs by the overlap of their reaction sets; do not test them for identity.
 
-Do not compare these outputs for identity. Compare them for overlap, and
-expect a range of acceptable values, not one exact number.
+`resolveTies` in RAVEN's `ftINIT` and `resolve_ties` in raven-toolbox's `ftinit` reduce the difference between runs for the ftINIT MILP. Each step then keeps the score optimum and picks among the tied solutions in phases: the fewest kept removable reactions, then the lowest summed ID rank of those, then the fluxes with the least total absolute flux, then the fluxes with the least ID-rank-weighted backward flux. The last step of `ftINIT` skips the two flux phases.
 
-`resolveTies` in RAVEN's `ftINIT` and `resolve_ties` in raven-toolbox's `ftinit` reduce this spread for the ftINIT MILP. Each step then keeps the score optimum and picks among the tied solutions in phases: the fewest kept removable reactions, then the lowest summed id rank of those, then the fluxes with the least total absolute flux, then the fluxes with the least id-rank-weighted backward flux. The last step skips the two flux phases. The choice does not rely on the solver seed. It can still differ between solvers, and a step that stops at its time limit keeps the solver's own answer. Without `resolveTies` or `resolve_ties`, the caveat above applies in full.
+For a given score optimum, the selected solution does not depend on the seed when every tie-break phase finishes within its time limit. It can differ between solvers, and a step that stops at its time limit keeps the solver's own answer. The primary solve can still reach a different score optimum for a different seed, so the final reaction sets can differ between seeds. Without `resolveTies` or `resolve_ties`, the ftINIT MILP can return any of the tied optima, and results differ between implementations, between solvers and between repeated runs of one solver.
 
-## Elemental balance: an unknown result is not the same as balanced
+## Elemental balance results
 
-Elemental balance checks whether a reaction has the same count of each
-chemical element (carbon, hydrogen, oxygen, and so on) on both sides, the way
-a correct chemical equation must. `getElementalBalance` and
-`get_elemental_balance` each report one of three results per reaction, not
-two: `balanced`, `unbalanced`, or `unknown`. A reaction is `unknown` when one
-of its metabolites has no chemical formula recorded, so the element counts
-cannot be computed at all; that is different from `unbalanced`, which means
-the counts were computed and did not match. The two functions agree on this
-three-way result.
+`getElementalBalance` in RAVEN and `get_elemental_balance` in raven-toolbox check whether each element (carbon, hydrogen, oxygen and so on) has the same count on both sides of a reaction. A reaction is unbalanced when the counts were computed and did not match, and the result is unknown when the counts cannot be computed. The two functions use different codes for these results.
 
-That third case is lost if you switch to plain cobrapy: its
-`check_mass_balance` has no separate `unknown` result, so a reaction with a
-missing formula and a reaction that is genuinely unbalanced can look the
-same. raven-toolbox keeps its own function instead of using cobrapy's
-directly, specifically to keep that distinction.
+`getElementalBalance` returns the numeric field `balanceStructure.balanceStatus` per reaction: 1 for balanced, 0 for unbalanced, -1 for missing information (no formula, or a reaction without metabolites) and -2 for a formula that cannot be parsed. `get_elemental_balance` returns the strings `balanced`, `unbalanced` and `unknown`. It reports `unknown` for a missing formula, for a formula that cobrapy cannot parse and for a reaction without metabolites, so the codes -1 and -2 of RAVEN are one result in raven-toolbox. For a reaction whose metabolites all have parseable formulas, the two functions return the same result.
+
+cobrapy's `check_mass_balance` has no separate `unknown` result and raises an error for a formula that it cannot parse. For a reaction with a missing formula it treats the formula as empty and returns either an element imbalance or an empty result, so it gives the same kind of result as for a reaction with known formulas. raven-toolbox keeps its own function to retain the distinction.
+
+## Parsing of gene-reaction rules
+
+raven-toolbox and the JSON reader of cobrapy parse gene-reaction rules (the `grRules` field in RAVEN) differently. raven-toolbox reads them with `utils.parse_gr_rule` in `read_yaml_model`, `read_matlab_model`, `batch_curate` and the functions that copy or build rules, so `G1&G2` is one gene ID there. The JSON reader of cobrapy splits `G1&G2` into `G1` and `G2`.

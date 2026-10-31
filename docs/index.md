@@ -145,7 +145,7 @@ Complete function reference for both MATLAB and Python.
 Set up RAVEN in MATLAB or raven-toolbox in Python with a solver.
 :::
 
-:::{grid-item-card} RAVEN vs. raven-toolbox
+:::{grid-item-card} Comparison of RAVEN and raven-toolbox
 :link: raven3-vs-raven-toolbox
 :link-type: doc
 

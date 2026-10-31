@@ -410,3 +410,11 @@ can_produce_without_input    # field of the gap_report result (gapfilling/report
 add_metabolites              # cobrapy Model method, named in prose
 co2OUT                       # task identifier on the tasks guide page
 checkInstallation            # removed function, named in the RAVEN 3 migration pages
+globalModel                   # getKEGGModelForOrganism argument
+compartmentMap                # parseScores and getUniProtScores argument
+multipleGeneScoring           # scoreModel argument
+isozymeScoring                # scoreModel argument
+complexScoring                # scoreModel argument
+noGeneScore                   # scoreModel argument
+multipleCellScoring           # scoreModel argument
+hpaLevelScores                # scoreModel argument
