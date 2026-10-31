@@ -116,7 +116,8 @@ its original text unless one of these functions is called on it.
 | `addRxns` (new gene IDs from a grRule) | split on the substrings "and"/"or" anywhere (could shred an ID like `"band1"`) | split only on space-bounded `' and '`/`' or '` tokens |
 | `comparison/diffModels.m` | (function didn't exist) | grRules compared as logical DNF equality, not string equality |
 
-The accepted grRule *syntax* itself is unchanged: `' and '`/`' or '`
-(case-insensitive) still work exactly as before, and
-`manipulation/standardizeGrRules.m` (which runs on import) uses the same
-string-splitting logic it always did.
+`parseGrRule` accepts `and` and `or` in any case and the symbols `&`, `&&`, `|` and `||`. Operators are recognised as whole words, so `G1&G2` is one gene id. A malformed rule raises `RAVEN:badGrRule`.
+
+`manipulation/standardizeGrRules.m` (which runs on import) does not build a parse tree. It converts ` AND ` and ` OR ` to lowercase and splits the rule on the space-bounded strings ` and ` and ` or `, so those are the two spellings of the operators it recognises. It calls `findPotentialErrors`, which parses the rules, to flag problematic ones.
+
+raven-toolbox reads gene rules with `utils.parse_gr_rule` in `read_yaml_model`, `read_matlab_model`, `batch_curate` and the functions that copy or build rules, so `G1&G2` is one gene id there as well. cobra's own JSON reader splits `G1&G2` into `G1` and `G2`.

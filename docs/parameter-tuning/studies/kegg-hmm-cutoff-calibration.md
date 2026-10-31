@@ -192,12 +192,7 @@ weak-hit noise.
 Three settings sit alongside the cut-offs and were left where they are, for
 reasons that did not need a sweep.
 
-`threads` in `run_hmmsearch` and `build_ko_hmm` defaults to one fewer than the
-machine has cores. HMMER's Viterbi search is deterministic across thread counts;
-E-value estimation can differ in the last floating-point places, far below any
-cut-off used here. Single-threaded search against the full KO library (more
-than 26,000 HMMs) takes 30 to 60 minutes per proteome against roughly five
-multi-threaded.
+`threads` in `run_hmmsearch` and `build_ko_hmm` defaults to every CPU the process may run on. HMMER's Viterbi search is deterministic across thread counts; E-value estimation can differ in the last floating-point places, far below any cut-off used here. Single-threaded search against the full KO library (more than 26,000 HMMs) takes 30 to 60 minutes per proteome against roughly five multi-threaded.
 
 `seq_identity` in `build_ko_hmm` is `0.9`, the identity at which CD-HIT collapses
 near-duplicate sequences within a KO before the HMM is built, so that a KO

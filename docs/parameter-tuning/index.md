@@ -82,9 +82,9 @@ The following criteria apply in rough priority order:
 
 | Study | Covers |
 |---|---|
-| [ftINIT parameter calibration](studies/init-param-calibration.md) | `mip_gap`, `time_limit` in ftINIT, measured on genome-scale Human-GEM (multiple cell lines) |
-| [ftINIT reproducibility](studies/ftinit-determinism.md) | What `resolve_ties`/`prove_abs_gap` buy (and cost) on genome-scale Human-GEM, and how `reference_reactions` closes most of the remaining stability gap (13x less spurious essential-gene drift after a template edit) |
-| [Human-GEM validation vs MATLAB RAVEN](studies/humangem-validation.md) | raven-toolbox's ftINIT output validated against MATLAB RAVEN on Human-GEM across 5 cell lines (Jaccard 0.975–0.980) |
+| [ftINIT parameter calibration](studies/init-param-calibration.md) | HCT116 on Human-GEM: `big_m`, `force_on`, stoichiometric scaling, and `mip_gap` in a single step (a named series ignores it) |
+| [ftINIT reproducibility](studies/ftinit-determinism.md) | What `resolve_ties`/`prove_abs_gap` buy and what they cost in run time on genome-scale Human-GEM |
+| [Human-GEM validation vs MATLAB RAVEN](studies/humangem-validation.md) | raven-toolbox's ftINIT output validated against MATLAB RAVEN on Human-GEM across 5 cell lines (Jaccard 0.964–0.988) |
 
 ## Benchmarks
 

@@ -165,6 +165,10 @@ Some fields are conditional:
 
 **Notes key naming.** Cobrapy and the current raven-toolbox / RAVEN MATLAB writers use **`notes`**. Older yeast-GEM files used `rxnNotes`; both readers accept that as a legacy alias.
 
+**Notes that are a mapping.** A `notes` entry can be a mapping instead of a string. raven-toolbox writes one for notes that have no RAVEN field, for example the base id that `merge_compartments` stores on each merged metabolite, with the free-text note under the key `note`. raven-toolbox reads such a mapping back into `notes`. RAVEN shows it in `metNotes`, and a round trip through RAVEN YAML or a `.mat` file loses it.
+
+**Gene rules.** raven-toolbox reads `gene_reaction_rule` with the grammar of RAVEN's `parseGrRule`. RAVEN's reader splits rules with `getGenesFromGrRules`, which needs a space on each side of a lowercase `and`/`or` or of `&`/`|` unless the operator touches a bracket, so `G1&G2` is one gene id and `G1 & G2` is two genes joined by `and`. Brackets next to an operator are not a difference: `getGenesFromGrRules` inserts a space in `)and`, `and(`, `)or`, `or(`, `)&`, `&(`, `)|` and `|(`. raven-toolbox also accepts the spellings `AND`, `OR`, `&&` and `||`, which RAVEN's reader leaves inside a gene id.
+
 **Bounds typing.** Bounds are emitted as floats with an explicit decimal point (`1000.0`, `-1000.0`), matching Python's float repr and cobrapy's output.
 
 ---
@@ -249,6 +253,8 @@ For enzyme-constrained models, three additional top-level keys carry the EC laye
 
 These map onto `model.ec` in RAVEN MATLAB and `raven_toolbox.io.ec_data.EcData` (attached as `model.ec`) in raven-toolbox. Cobrapy ignores the sections.
 
+An `- enzymes: !!omap` line with nothing under the tag is read as a reaction with no enzymes.
+
 The older spelling `geckoLight` inside `metaData` is also accepted on read.
 
 ---
@@ -283,6 +289,8 @@ The `annotation` block uses MIRIAM-style namespace keys. Cobrapy treats the bloc
 - spells a YAML reserved word case-insensitively (`true`, `false`, `null`, `yes`, `no`, `on`, `off`, `~`).
 
 In a double-quoted string, only `\` and `"` are escaped. Other characters (including Unicode and newlines if the underlying model permitted them) are passed through.
+
+**Quotes the reader repairs.** raven-toolbox reads three quoted shapes that are not valid YAML: `""text""`, a double-quoted scalar with an unescaped inner quote (`"a "b" c"`), and a single-quoted scalar with an inner apostrophe (`'it's'`). The values are `"text"`, `a "b" c` and `it's`, as `readYAMLmodel` reads them. The repair runs when the strict parse fails and does not handle a comment after the closing quote.
 
 ---
 

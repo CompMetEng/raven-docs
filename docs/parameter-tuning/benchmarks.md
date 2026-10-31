@@ -1,61 +1,44 @@
 # Parameter benchmarks
 
 Parameters whose defaults were measured but did not need a study of their own.
-Everything here was run on 2026-06-20 unless a row says otherwise, on yeast-GEM
-(4,102 reactions), iJO1366 (2,583) and e_coli_core (95).
+The measurements were run on 2026-06-20 on yeast-GEM (4,102 reactions), iJO1366 (2,583) and e_coli_core (95); the `fseof` and `remove_genes` measurements below were run on 2026-10-30.
 
 The parameters that did get a dedicated campaign are in the studies listed
 under [Parameter tuning](index.md); the current value and one-line reason for every
 parameter on either side is in
 [Tuned parameter defaults](../tuned-parameters.md).
 
-## Two measurements that show MATLAB's default should change
+## Two measurements of defaults: `fseof` and `remove_genes`
 
-### `fseof`: MATLAB classifies targets with no tolerance at all
+### `fseof`: the classifier thresholds are fixed and `flux_eps` does not change the counts on iJO1366 with target `EX_succ_e`
 
-`flux_eps` is the floor below which a reaction's flux trend is treated as noise
-rather than signal. It does three jobs inside the classifier: skip a reaction
-whose flux is flat across the scan, skip one whose regression slope is
-indistinguishable from zero, and call a reaction a knockout when its flux at
-maximum enforcement is effectively zero.
+`fseof` and RAVEN's `FSEOF` classify a reaction from its fluxes across the scan with the same fixed thresholds: a reaction is a target when some absolute flux exceeds `1e-10`, the standard deviation of its absolute flux is above 0 and the correlation reaches `correlation_threshold`; it is a knockout when the slope is negative and the last absolute flux is at most `1e-8`. `flux_eps` is the floor below which the theoretical maximum of the target flux is treated as zero, in which case the scan raises an error. It takes no part in the classification, and RAVEN's `FSEOF` has no `flux_eps` parameter.
 
-On iJO1366:
+Measured on iJO1366 (2,583 reactions) with the model's biomass reaction as objective, `EX_succ_e` as target, `n_steps` 10, `max_fraction` 0.9, `correlation_threshold` 0.9 and the default `equality=False`, with raven-toolbox commit `94f39407`, run on 2026-10-30:
 
 | `flux_eps` | Amplified | Knocked down or out |
 |---|---|---|
-| `1e-8` | 18 | 414 |
-| `1e-7` | 18 | 414 |
-| **`1e-6`** *(default)* | 18 | **393** |
+| `1e-8` | 18 | 408 |
+| `1e-7` | 18 | 408 |
+| **`1e-6`** *(default)* | 18 | **408** |
 
-The 21 extra targets admitted below `1e-6` all have a flux standard deviation
-around `5e-7` across the ten scan steps, Gurobi's primal feasibility tolerance
-accumulated across 2,583 reactions, which is floating-point summation noise
-rather than a metabolic trend. Reporting them would send a user to engineer
-reactions that are functionally zero throughout.
+Of the 408 reactions, 406 are knockdown targets and 2 are knockout targets. The counts are the same at the three values on this model and target. Each level is solved in two steps with the objective held at 0.999999 of its optimum in the second.
 
-MATLAB's `FSEOF.m` compares each step against the previous one as bare floats,
-with no threshold of any kind. That is stricter than the `1e-8` row here, so 21
-is a lower bound on what the MATLAB side would flag, not a measurement of it.
-Giving MATLAB a floor means adding one rather than exposing a value it already
-has.
+### `remove_genes`: both tools constrain a reaction without an enzyme by default
 
-### `remove_genes`: the MATLAB default predicts growth after deleting an essential gene
+`blocked_reactions` in `remove_genes`, and `removeBlockedRxns` in RAVEN's `removeGenes`, decide what happens to a reaction whose gene rule is emptied by a deletion. Deleting `b1779` from e_coli_core removes the only gene for GAPD, which is essential for aerobic growth on glucose. The unmodified model has 95 reactions and predicts a growth rate of 0.874.
 
-`blocked_reactions` decides what happens to a reaction whose gene rule is emptied
-by a deletion. Deleting `b1779` from e_coli_core removes the only gene for GAPD,
-which is essential for aerobic growth on glucose:
-
-| `blocked_reactions` | Reactions left | Predicted growth | |
+| Call | Reactions left | Predicted growth | GAPD |
 |---|---|---|---|
-| `'keep'` *(MATLAB)* | 95 | 0.874 | GAPD survives with an empty rule and runs unconstrained |
-| **`'remove'`** *(Python)* | 94 | **0.000** | GAPD is deleted, glycolysis breaks |
+| `remove_genes(..., blocked_reactions="constrain")` *(default)* | 95 | 0.000 | kept, bounds `(0, 0)` |
+| `remove_genes(..., blocked_reactions="remove")` | 94 | 0.000 | deleted |
+| `remove_genes(..., blocked_reactions="keep")` | 95 | 0.874 | kept, bounds unchanged |
+| `removeGenes(model, genes)` *(`removeBlockedRxns` false, default)* | 95 | 0.000 | kept, bounds `[0 0]` |
+| `removeGenes(model, genes, 'removeBlockedRxns', true)` | 94 | 0.000 | deleted |
 
-Both behaviours are defensible, for different jobs. Keeping the reaction is right
-when editing gene annotations, where the network should not change as a result.
-Removing it is right for essentiality and engineering work, where a reaction with
-no enzyme should not carry flux. The defaults disagree about which job is the
-common one, and the MATLAB default silently produces a false negative in
-essentiality screens.
+`"constrain"` and RAVEN's default give the same model. Both predict no growth after the deletion, because the reaction stays in the network with no capacity to carry flux. `"remove"` and `removeBlockedRxns` true also predict no growth and differ in that the reaction is deleted, which matters when the number of reactions or the reaction identifiers are used afterwards. `"keep"` leaves the reaction with an empty rule and unchanged bounds, so it runs unconstrained and the model predicts growth although the only enzyme of an essential step is gone; it is meant for editing gene annotations, where the network should not change as a result.
+
+Measured on e_coli_core from the cobrapy distribution (bounds as shipped), Gurobi 13.0.1, raven-toolbox commit `94f39407` and RAVEN commit `2d0630e3`, run on 2026-10-30.
 
 ## Literature and convention values, checked
 
@@ -73,3 +56,5 @@ is no longer taken on trust.
 | `fill_gaps_fast_lp.epsilon` | `1e-4` | The fastGapFill paper's value |
 | `fill_gaps_milp.big_m` | `1000.0` | Matches RAVEN-convention bounds |
 | `check_tasks.close_boundaries` | `False` | Matches RAVEN's `checkTasks`, which published task lists were curated against; `True` closes the model's own exchanges so that the task is the whole boundary |
+
+The `fseof.n_steps`, `fseof.max_fraction` and `fseof.correlation_threshold` rows were measured on 2026-06-20 and are not rerun for this page.

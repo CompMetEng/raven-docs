@@ -257,8 +257,7 @@ a deletion can be measured without keeping it.
 
 ## 8.6 Delete a gene, not a reaction
 
-Removing a gene is not the same as knocking it out: the reactions stay, and
-their GPRs are rewritten without it.
+Removing a gene takes the gene and its occurrences in the reaction rules out of the model, and the reactions stay with rewritten GPRs. With the default policy for reactions that lose their last catalyst, the flux state equals that of a knockout (bounds `(0, 0)`); the model differs in that the gene is gone.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -294,12 +293,7 @@ PGI rule: 'YLR354C'
 :::
 ::::
 
-`removeGenes` rewrites each affected GPR without the removed gene. Its
-`removeBlockedRxns` flag, off by default, additionally deletes reactions that
-lose their last catalyst, which turns a gene deletion into a reaction deletion;
-[16. Deletions and essentiality](deletions.md) covers when that is the
-question being asked. `standardizeRules`, on by default, normalises the
-rewritten rules.
+`removeGenes` and `remove_genes` rewrite each affected GPR without the removed gene. A reaction that loses its last catalyst stays in the model with its rule dropped and its bounds set to `(0, 0)`: this is the default of `remove_genes` (`blocked_reactions="constrain"`), while `removeGenes` does it when `removeBlockedRxns` is false, its default, and it is the bound state that `knock_out_model_genes` leaves. With `blocked_reactions="keep"` the blocked reactions keep their bounds; setting `removeBlockedRxns` to true, or `blocked_reactions="remove"`, deletes them instead, which turns a gene deletion into a reaction deletion; [16. Deletions and essentiality](deletions.md) covers when that is the question being asked. When at least one requested gene is in the model, genes that no remaining reaction used are removed as well, also when they were not requested; when none is in the model, no gene is removed. In `removeGenes`, `standardizeRules`, on by default, normalises the rewritten rules.
 
 :::{warning} What can go wrong
 - **Editing `model.S` by hand.** It leaves `model.rev`, the bounds and the

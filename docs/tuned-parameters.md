@@ -55,7 +55,7 @@ RAVEN MATLAB: `FSEOF`. raven-toolbox: `fseof`.
 | `n_steps` | `10` | Literature: [Choi et al. 2010](https://doi.org/10.1128/AEM.00115-10). |
 | `max_fraction` | `0.9` | Literature: [Choi et al. 2010](https://doi.org/10.1128/AEM.00115-10); measured: values below 0.9 pick up spurious targets on iJO1366. |
 | `correlation_threshold` | `0.9` | Literature: [Choi et al. 2010](https://doi.org/10.1128/AEM.00115-10); measured: 0.7 adds 4 spurious amplification targets on iJO1366. |
-| `flux_eps` | `1e-6` on the Python side; MATLAB has no threshold at all | Measured: an explicit `1e-6` floor avoids classifying accumulated solver noise as a false-positive knockdown target on genome-scale models. MATLAB's target classification is a bare float comparison with no tolerance whatsoever, stricter than any fixed floor; real solver noise there is expected to produce at least as many spurious classifications as measured here, likely more. |
+| `flux_eps` | `1e-6` | Measured on iJO1366: the classification uses the fixed thresholds `1e-10` and `1e-8`, as RAVEN does; `flux_eps` gates the check against the theoretical maximum, and the target counts are identical at `1e-8`, `1e-7` and `1e-6`. |
 
 **Full detail:** [Parameter benchmarks](parameter-tuning/benchmarks.md)
 
@@ -75,13 +75,13 @@ across both algorithms say so.
 |---|---|---|
 | `prod_weight` | `0.5` | Literature: [Ågren et al. 2012](https://doi.org/10.1371/journal.pcbi.1002518) (the original INIT paper). |
 | `allow_excretion` | `False` | Measured zero effect at the default `prod_weight` across all three INIT entry points as they stood then; raven-toolbox has since dropped the two tINIT ones. |
-| `mip_gap` | `None` on the Python side (solver default); `0.0004` on the MATLAB side | Measured on genome-scale Human-GEM: the solver's own gap (~1e-4 on Gurobi) is already at least as tight as the measured-good value, so Python's `None` needs no change; genome-scale users get concrete numbers (`0.01` for the full ftINIT pipeline) documented rather than a single hardcoded default, since the right value depends on single-step vs. full-pipeline use. |
-| `time_limit` | `None` (uncapped) on the Python side; `5000 ms` on the MATLAB side | The same genome-scale study found the MATLAB value too tight by orders of magnitude (real solves took 42–901s+) but also a real >75-minute uncapped runaway case on degraded input on the Python side; `None` was kept as the safer default there, with the measured working range (120–600s/step) documented for hard or noisy input. |
+| `mip_gap` | `None` on the Python side (solver default); `0.0004` on the MATLAB side | Acts on the step-0 solve and on any step without a schedule of MILP runs; a named series such as `1+1` ignores it, because every step runs its own schedule. Measured on Human-GEM (HCT116) in the step-0 solve: the time is flat at 24 to 25 s, the Jaccard index to the 0.001 result is about 0.99 at 0.01, and the Jaccard index to the tightest result falls below 0.97 from 0.03. Python's `None` needs no change. |
+| `time_limit` | `None` on the Python side; `5000` seconds on the MATLAB side | RAVEN's `ftINIT` sets the Gurobi `TimeLimit` of a MILP run without its own limit to 5000 seconds, and the step schedules of `getINITSteps` use runs of 120 s, 5000 s and 5 s. In Python, `ftinit` with a named series caps each scheduled run by its own limit and `time_limit` lowers that cap further; `time_limit=None` leaves an ad-hoc step or a `run_ftinit` call uncapped, but no scheduled run. Measured on Human-GEM HCT116 (single runs): single-step solves took 23 to 30 s and full pipelines 82 to 118 s. In the [robustness setup](parameter-tuning/studies/init-param-calibration.md) (degraded input, task layer on), an unbounded gap-fill MILP on one 90 %-dropout model ran longer than 75 minutes. `None` is the default; the working range for hard or noisy input is 120 to 600 s per step. |
 | `series` | `'1+1'` | Literature: [Gustafsson et al. 2023](https://doi.org/10.1073/pnas.2217868120) (the ftINIT paper). |
 | `force_on` | `0.1` | RAVEN's original value; measured near-insensitive across a 0.02–0.5 range. |
-| `big_m` | `100.0` | RAVEN's original value; confirmed as an intentional LP-relaxation tightener (not a flux cap); see the linked study for why. |
+| `big_m` | `1000.0` | The cap on each scored reaction's own big-M, as in `ftINITInternalAlg`: the big-M of a reaction is `max(min(ub, big_m), min(-lb, big_m), 0)`, raised to `force_on` where the "on" floor needs it, and an infinite bound counts as `big_m`. The cap limits the flux a reaction can carry when it is on (it is the largest big-M of a scored reaction in its on/off constraint); it is not a bound set on the reaction in the model. |
 | `eps` | `1.0` | Same on both sides. |
-| `resolve_ties`, `prove_abs_gap`, `reference_reactions` | `False`, `None`, `None`, all opt-in; MATLAB has the first two as `resolveTies`/`proveAbsGap` at the same defaults, and not the third | Measured on genome-scale Human-GEM: the MILP is degenerate (99.7% of removable reactions tied), so the default escalation is both non-deterministic across seeds and, separately, silently suboptimal (351 kept reactions vs. the true optimum's 349). `resolve_ties=True` halves the seed-to-seed swing in predicted essential genes; `prove_abs_gap=1.0` recovers the true optimum. `reference_reactions` (requires `resolve_ties=True`) anchors a re-extraction to a prior build's kept set, cutting spurious essential-gene drift after a small template edit 13x (13 → 1 flips) in one measured case, the stability lever the other two don't provide. |
+| `resolve_ties`, `prove_abs_gap` | `False`, `None`, both opt-in; MATLAB has them as `resolveTies`/`proveAbsGap` at the same defaults | `resolve_ties` fixes the answer among equal-score optima in phases: it holds the score objective at its optimum, minimises the count of kept removable (negative-score) reactions, then among those minimises the summed id rank of the kept ones (a merged reaction is ranked by the smallest original id of its group), then takes the fluxes with the least total absolute flux (relative and absolute gap 1e-6), then those with the least id-rank-weighted backward flux. The last ftINIT step skips the last two phases, because no later step reads its fluxes. Measured on Human-GEM v2.0.0-38 (one cell line, seeds 1234 and 7): with the default escalation the seed-to-seed difference is 110 reactions and 17 predicted essential genes. `resolve_ties=True` gives identical reaction sets at a fixed seed and reduces the seed-to-seed difference to 41 reactions and 1 gene, at about 3.6 times the run time (about 14 min against 4 min at `time_limit=1800`). With `prove_abs_gap=1.0` as well, the difference is 1 reaction and 0 genes, at about 26 times the baseline run time (about 100 min), of which step 1 takes about 60 % (3300 to 3650 s), mostly in its two flux phases, and step 2 another 1650 to 2500 s; no build without `resolve_ties` was run with `prove_abs_gap`. The flux phases (`phase2c-minflux`, `phase2d-direction`) reach the time limit in most builds, and a warning names each phase adopted at the limit. A tie-break that finds no incumbent in phase 2a or 2b is dropped without a warning, and the baseline escalation raises no warning and ends 4 to 12 below the step 1 optimum, so a build without a warning is not necessarily proven or tie-broken. |
 | `factor`, `max_score`, `min_score` (in `gene_scores_from_expression`) | `5.0`, `10.0`, `-5.0` | RAVEN's own formula; previously attributed to "Wang et al. 2012" here, which was checked and could not be confirmed; no source in either implementation cites a paper for it. |
 | `score_reactions_from_genes` / `classify_reactions` arguments | various | Same on both sides / standard practice. |
 
@@ -89,11 +89,9 @@ across both algorithms say so.
 (the primary measurement, genome-scale Human-GEM) ·
 [INIT solver benchmark](parameter-tuning/studies/init-solver-benchmark.md) ·
 [ftINIT reproducibility](parameter-tuning/studies/ftinit-determinism.md)
-(recommend `resolve_ties=True, prove_abs_gap=1.0` for determinism; add
-`reference_reactions` for stability under a curated template, 13x less spurious
-essential-gene drift, measured) ·
+(`resolve_ties=True` gives identical reaction sets at a fixed seed and a seed-to-seed difference of 41 reactions and 1 gene; adding `prove_abs_gap=1.0` reduces it to 1 reaction and 0 genes at about 26 times the run time) ·
 [Human-GEM validation vs MATLAB RAVEN](parameter-tuning/studies/humangem-validation.md)
-(Jaccard 0.975–0.980 across 5 cell lines)
+(Jaccard 0.964–0.988 against RAVEN across 5 cell lines)
 
 ## Gap-filling
 
@@ -119,7 +117,7 @@ RAVEN MATLAB: `getModelFromHomology`, `getBlast`, `getDiamond`. raven-toolbox:
 |---|---|---|
 | `evalue` (`run_blast`) | `1e-4` | Matches MATLAB's `getBlast` (hardcodes `-evalue 10e-5`); measured to have no effect on the final model either way, since `get_model_from_homology`'s much stricter filters dominate downstream. |
 | `evalue` (`run_diamond`) | `1e-3` | Matches MATLAB's `getDiamond`, which passes no `-evalue` flag and so inherits DIAMOND's own default. Deliberately *not* the same value as `run_blast`; each aligner tracks its own MATLAB call, not the other Python aligner. |
-| `threads` | `max(1, cpu_count-1)` (Python); dynamic "all cores" (MATLAB) | Measured deterministic across thread counts, pure performance change, ~1.9–4× speedup. Not treated as a "value" that needs unifying, since both sides already mean "use the available cores". |
+| `threads` | every CPU the process may run on (Python); the cores assigned to MATLAB (MATLAB) | Measured deterministic across thread counts, pure performance change, ~1.9–4× speedup. Both sides use all available cores. |
 | `max_evalue` | `1e-30` | Measured **inert** from `1e-4` to `1e-50`; identity and alignment-length have already excluded whatever a looser e-value would admit. |
 | `min_align_len` | `100` on the Python side; MATLAB still uses `200` | Measured against independent KEGG and OMA ortholog references across a 4-organism relatedness series: recovers 3–4 points of recall over `200` for ≤0.6 points of precision cost. A MATLAB back-port is proposed but not yet done. |
 | `min_identity` | `40` | Same study: the binding filter and the measured optimum, weighting a wrongly-transferred reaction as worse than a missing one. |
@@ -145,7 +143,7 @@ name hasn't been independently confirmed). raven-toolbox: `assign_kos`,
 | `min_score_ratio_g` (in `assign_kos`) | `0.9` on the Python side; MATLAB still uses `0.8` | Same study: the real precision lever (0.8→0.95 lifts precision ~0.07–0.10 for ~0.02 recall). MATLAB's port is still pending. |
 | `min_score_ratio_ko` (in `assign_kos`) | `0.3` | Same study: measured empirically **inert** (varying it changes precision/recall by ≤0.02); kept at the original value since it does nothing either way. |
 | `seq_identity` (in `build_ko_hmm`) | `0.9` | Literature: CD-HIT's own recommendation for protein clustering. |
-| `threads` (`run_hmmsearch`, `build_ko_hmm`) | `max(1, cpu_count-1)` | Performance-only; HMMER is deterministic (to within insignificant float noise) across thread counts. |
+| `threads` (`run_hmmsearch`, `build_ko_hmm`) | every CPU the process may run on | Performance-only; HMMER is deterministic (to within insignificant float noise) across thread counts. |
 | `keep_spontaneous`, `keep_undefined_stoich`, `keep_incomplete`, `keep_general` (`get_kegg_model_*`) | `True`, `True`, `True`, `False` | Same on both sides / standard draft-reconstruction practice. |
 
 **Full detail:** [KEGG HMM cut-off calibration study](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md)
@@ -186,7 +184,7 @@ RAVEN MATLAB: `removeGenes`, `mergeModels`, `addRxns`, `addTransport`, `simplify
 
 | Parameter | Default | How determined |
 |---|---|---|
-| `blocked_reactions` (in `remove_genes`) | `'remove'` on the Python side; MATLAB's equivalent policy keeps the reaction | Measured on e_coli_core: keeping the reaction gives false-positive growth after an essential gene is removed (it survives with an empty gene rule). `'remove'` is correct for gene-essentiality / metabolic-engineering use; the keep-style policy remains available on the Python side too, for annotation-curation workflows. MATLAB's port of this fix is still pending. |
+| `blocked_reactions` (in `remove_genes`) | `'constrain'` on the Python side; MATLAB's `removeGenes` with `removeBlockedRxns` false does the same | Measured on e_coli_core: keeping a reaction unchanged after it loses its last gene gives false-positive growth after an essential gene is removed (it survives with an empty gene rule). `'constrain'` sets the bounds of such a reaction to 0 and keeps the reaction; `'remove'` deletes it and is opt-in, for gene-essentiality or metabolic-engineering use where the reaction should disappear; `'keep'` leaves it unchanged. |
 | `eps` (in `constrain_reversible_reactions`) | `1e-9` | Matches Gurobi's own default primal feasibility tolerance. |
 | `match_by` (in `merge_models`) | `'name'` (Python) / `'metNames'` (MATLAB) | Same semantic field (metabolite display name), different schema field name, not a value disagreement to resolve. |
 | `remove_orphans`, `mets_by`, `ignore_direction`, `reversible`, `only_to_existing` | various | Python-side additions/refinements; no direct MATLAB equivalent to compare against. |
@@ -220,8 +218,6 @@ change, or explains why it stays split.
 | `get_model_from_homology.min_align_len` | `100` ✓ done | `200` | **`100`** | Python done; MATLAB pending | High | Directly measured: [homology cut-off calibration study](parameter-tuning/studies/homology-cutoff-calibration.md) |
 | `assign_kos.cutoff` | `1e-30` | `1e-50` | **`1e-30`** | MATLAB | High | Directly measured: [KEGG HMM cut-off calibration study](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md) |
 | `assign_kos.min_score_ratio_g` | `0.9` | `0.8` | **`0.9`** | MATLAB | High | Directly measured, same study |
-| `fseof.flux_eps` | `1e-6` | implicit `1e-8` | **`1e-6`** | MATLAB (needs exposing as a tunable first) | High | Measured: `1e-8` catches 21 solver-noise false positives (std≈5e-7, below Gurobi's feasibility tolerance accumulated genome-wide); see `parameter-tuning/benchmarks.md` |
-| `remove_genes.blocked_reactions` | `'remove'` | `'keep'` | **`'remove'` semantics** | MATLAB | High | Measured on e_coli_core: `'keep'` gives false-positive growth after an essential gene is removed; see `parameter-tuning/benchmarks.md` |
 | `get_init_model.allow_excretion` | `False` ✓ done | `False` | **`False`** | ~~Python~~ done (2026-06-20) | High | Zero effect at default `prod_weight`, pure inconsistency; see `parameter-tuning/benchmarks.md` |
 
 ### Resolved without unifying: `run_init`/`run_ftinit` `mip_gap`/`time_limit`
@@ -232,29 +228,10 @@ data. That test already existed
 HCT116/Hart2015); it just hadn't been connected to this question. It resolves
 both parameters, but not by matching MATLAB's numbers:
 
-- **`mip_gap`:** solve time is flat across the gap at single-step scale (model
-  build dominates), so a tight gap is nearly free there; the full genome-scale
-  pipeline *does* benefit from loosening to `0.01` (~37% faster, Jaccard 0.995).
-  Neither number is MATLAB's `0.0004` specifically, and the right choice depends
-  on single-step vs. full-pipeline use, so this stays a documented choice rather
-  than a new hardcoded default. **Keep `None`** (Gurobi's own `~1e-4` default is
-  at least as tight as the measured-good `0.001`); docstring updated with the
-  measured numbers.
-- **`time_limit`:** the more consequential finding. MATLAB's `5000 ms` cap is far
-  too tight for genome scale (measured solves there took 42-901s+); Python's
-  uncapped `None` has a real, measured failure mode, one severely-degraded-input
-  case ran **>75 minutes** before being manually killed. The study's own working
-  values are `120-600 s/step` (ftINIT) and `400 s` (tINIT). **Keep `None`** as the
-  code default (still correct for clean-data / single-step use where it's never
-  observed to run away), but the docstring now states the measured working values
-  and the >75 min risk explicitly, so users degrading input quality know to set a
-  cap rather than discovering the runaway case themselves.
+- **`mip_gap`:** solve time is flat across the gap in the single step-0 solve (model build dominates), so a tight gap is nearly free there. A named series such as `1+1` ignores `mip_gap` and `mip_gap_abs`, because every step runs its own schedule of MILP runs, so the full pipeline gives the same result at 0.001, 0.003 and 0.01. Neither 0.001 nor 0.01 is MATLAB's `0.0004`. **Keep `None`** (Gurobi's own `~1e-4` default is at least as tight as the measured-good `0.001`).
+- **`time_limit`:** RAVEN's `ftINIT` limits a MILP run to 5000 seconds when the run sets none, and its schedules use 120 s, 5000 s and 5 s runs. Python's `ftinit` with a named series caps each scheduled run by the same limits, and `time_limit` lowers the cap; `time_limit=None` leaves an ad-hoc step or a `run_ftinit` call uncapped, but no scheduled run. Measured step-0 solves took 23 to 30 s and full pipelines 82 to 118 s. In the robustness setup, one unbounded gap-fill MILP on a 90 %-dropout model ran longer than 75 minutes. The working values of the study are `120-600 s/step`. **Keep `None`** as the code default (correct for clean-data and single-step use, where no run-away has been observed); the docstring states the working values.
 
-This doesn't touch the separate, still-valid finding in the
-[INIT solver benchmark](parameter-tuning/studies/init-solver-benchmark.md) that GLPK
-ignores `configuration.timeout` entirely and HiGHS doesn't work with cobra in
-this stack; Gurobi remains the only backend genome-scale numbers above were
-measured on, and the only one a `time_limit` value does anything on today.
+The [INIT solver benchmark](parameter-tuning/studies/init-solver-benchmark.md) measured GLPK honouring the 900 s limit: both steps of the full pipeline hit it, the run took 2182 s and kept 6758 reactions (Jaccard 0.892 against Gurobi). The `scipy` interface (HiGHS) fails because it supports continuous variables only. Gurobi is the backend the genome-scale numbers above were measured on, and the only one that completed without a step hitting the limit.
 
 ### Keep different: forcing identical values would break correctness
 
@@ -267,22 +244,18 @@ measured on, and the only one a `time_limit` value does anything on today.
 | `run_diamond.evalue` | `1e-3` | `1e-3` (implicit) | Not actually different: both already agree at `1e-3`, matching DIAMOND's own default. `getDiamond` passes no `-evalue` flag at all, so it inherits DIAMOND's default rather than following `getBlast`'s explicit `1e-4`. `run_blast` and `run_diamond` deliberately stay unpaired: each tracks its own aligner's MATLAB call, not each other. |
 | `predict_localization.time_limit` | `None` | `maxTime=15` (minutes) | Confirmed by reading `core/predictLocalization.m` directly (2026-08-28): MATLAB solves the problem with simulated annealing (`maxTime` is its search budget; more time generally improves the heuristic answer, no optimality guarantee either way), while Python solves a deterministic MILP (`time_limit` is a solver cutoff; returns a proven-bounded incumbent). The same number plays a structurally different role in each; not a value to unify. Previously listed as a tentative unify-at-`None` candidate, which assumed both sides were solving the same kind of problem. |
 | `predict_localization.default_compartment` | `'c'` | required arg (no default) | MATLAB has no default at all; Python's `'c'` is a convenience default for the near-universal correct choice, produces no output difference (a MATLAB user must already supply `'c'` explicitly in the common case). Optional, low-priority: MATLAB could add the same default. |
-| `run_blast`/`run_diamond`/`run_hmmsearch`/`build_ko_hmm` `threads` | `max(1, cpu_count-1)` | all cores | Confirmed deterministic regardless of thread count; doesn't affect output, so this is a resource-policy choice (leave one core free), not a correctness-relevant value. Both are dynamic ("use available cores") in spirit. |
 
 ## Changes needed in MATLAB RAVEN for parity
 
 All rows below were re-checked directly against `core/*.m` on `origin/develop` in
-the RAVEN MATLAB repo on 2026-08-28 (not just inferred from raven-toolbox's own
-prior write-ups, which is how the FSEOF and localization rows below turned out
-to need correcting from an earlier version of this table).
+the RAVEN MATLAB repo on 2026-08-28 (not inferred from raven-toolbox's own
+prior write-ups).
 
 | Change | Priority | Evidence |
 |---|---|---|
 | `getKEGGModelForOrganism`'s `cutOff` parameter: `10^-50` → `10^-30` | High | [KEGG HMM cut-off calibration study](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md); current value confirmed directly in `external/kegg/getKEGGModelForOrganism.m` |
 | Same function, `minScoreRatioG`: `0.8` → `0.9` | High | Same study and same confirmation |
 | `getModelFromHomology`'s `minLen`: `200` → `100` | Medium | [homology cut-off calibration study](parameter-tuning/studies/homology-cutoff-calibration.md); confirmed directly in `core/getModelFromHomology.m`. A fix already exists as an uncommitted local branch (`fix/homology-minlen`) but is stale relative to current `origin/develop` (file moved `reconstruction/homology/` → `core/`) and hasn't been pushed. |
-| `removeGenes`'s `removeBlockedRxns` parameter (default `false`, i.e. keep blocked reactions): default to `true` instead, matching raven-toolbox's `'remove'` | Medium | `parameter-tuning/benchmarks.md`, measured false-positive growth on e_coli_core after essential-gene deletion. Confirmed directly in `core/removeGenes.m`: `removeBlockedRxns` defaults to `false`. |
-| `FSEOF`: add an explicit noise floor; currently there is **no tolerance at all** (bare `>0`/`<0`/`>`/`<` float comparison), not merely a looser fixed one as an earlier version of this row said | Medium | `parameter-tuning/benchmarks.md` measured `1e-8` catching solver-noise false positives *in raven-toolbox*; confirmed directly in `core/FSEOF.m` that MATLAB has no threshold whatsoever, which was not previously checked and is likely a worse version of the same problem, though not independently measured on the MATLAB side |
 
 Localisation's time-budget parameter was removed from this table: `core/predictLocalization.m`
 confirmed MATLAB solves the problem with simulated annealing (`maxTime`, default 15 minutes,

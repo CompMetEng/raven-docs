@@ -105,13 +105,7 @@ model = get_kegg_model_from_sequences("hanpo.faa", domain="eukaryotes")
 :::
 ::::
 
-This is the expensive route. The eukaryotic HMM library alone is **129 MB
-compressed**, and `hmmsearch` against every KO takes tens of minutes to hours for
-a full proteome, which is why `outDir` exists in the MATLAB version: results are
-kept per-KO so an interrupted run can resume rather than start again. It also
-needs HMMER, which has no bundle for every platform;
-[Download data and binaries](../installation/data-and-binaries.md) has the
-matrix.
+This is the expensive route. The eukaryotic HMM library alone is **129 MB compressed**, and `hmmsearch` against every KO takes tens of minutes to hours for a full proteome, which is why `outDir` exists in the MATLAB version: results are kept per-KO so an interrupted run can resume rather than start again. It also needs HMMER, which has no bundle for every platform; [Download data and binaries](../installation/data-and-binaries.md) has the matrix. Without `threads`, `run_hmmsearch`, `get_kegg_model_from_sequences`, `build_ko_hmm` and `build_hmm_library` use every CPU the process may run on; `getKEGGModelForOrganism` runs `hmmsearch` on the cores assigned to MATLAB (`feature('numcores')`) and has no `threads` option.
 
 The organism id still matters even here. It sets the phylogenetic distance used
 to weight the KO assignments, so pick the closest relative KEGG does have.

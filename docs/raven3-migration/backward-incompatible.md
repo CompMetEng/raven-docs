@@ -38,7 +38,9 @@ linked section for the full explanation of each.
 | `simplifyModel` (used by task-based gap-filling) | No longer drops a task's boundary constraint on a metabolite with no reactions: a task that used to silently pass may now correctly fail; [§9](#ftinit) |
 | `ftINITInternalAlg` | `allowExcretion` constraint sign corrected |
 | `ravenCobraWrapper` | Gene-ID-to-MIRIAM matching no longer breaks on gene IDs containing regex metacharacters; [§6](#raven-cobra-interoperability) |
-| `permuteModel`, `randomSampling`, `optimizeProb`, `getFluxZ`, `mergeCompartments`, `convertToIrrev`, `replaceMets`, `setExchangeBounds`, `fitParameters`, `guessComposition` | Each had a pre-existing bug fixed; output differs only for models/inputs that triggered it |
+| `mergeCompartments` | The merged metabolite is the copy already in compartment `s`, otherwise the copy whose id sorts first (character code order), with every field of that copy. RAVEN 2 kept the copy that came first in `model.mets`. |
+| `simplifyModel` with `constrainReversible` on a model without a reversible reaction | This step changes nothing. RAVEN 2 raised an error, because `getAllowedBounds` took the empty reaction list for all reactions. |
+| `permuteModel`, `randomSampling`, `optimizeProb`, `getFluxZ`, `convertToIrrev`, `replaceMets`, `setExchangeBounds`, `fitParameters`, `guessComposition` | Each had a pre-existing bug fixed; output differs only for models/inputs that triggered it |
 
 None of these are API changes; the same call with the same arguments now
 returns a different, corrected result.

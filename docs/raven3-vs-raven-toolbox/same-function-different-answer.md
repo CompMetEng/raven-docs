@@ -48,7 +48,7 @@ raven-toolbox splits them, so porting a `fillGaps` call means choosing:
 | Connecting blocked reactions against template models | `connect_blocked_reactions` |
 | Fast LP-based filling of a large candidate set | `fill_gaps_fast_lp` |
 | MILP filling with the fewest added reactions that restore growth | `fill_gaps_milp` |
-| Only *finding* the gaps (`canExchange`, `checkProduction`, `getAllSubGraphs`, `haveFlux`) | `analyse_topology` |
+| Only *finding* the gaps (`canExchange`, `checkProduction`, `getAllSubGraphs`, `haveFlux`, `gapFillTopological`) | `analyse_topology` |
 
 The choice changes both the reaction set added and the runtime, because each
 of the three functions uses a different algorithm; they are not the same
@@ -64,6 +64,8 @@ solver.
 
 Do not compare these outputs for identity. Compare them for overlap, and
 expect a range of acceptable values, not one exact number.
+
+`resolveTies` in RAVEN's `ftINIT` and `resolve_ties` in raven-toolbox's `ftinit` reduce this spread for the ftINIT MILP. Each step then keeps the score optimum and picks among the tied solutions in phases: the fewest kept removable reactions, then the lowest summed id rank of those, then the fluxes with the least total absolute flux, then the fluxes with the least id-rank-weighted backward flux. The last step skips the two flux phases. The choice does not rely on the solver seed. It can still differ between solvers, and a step that stops at its time limit keeps the solver's own answer. Without `resolveTies` or `resolve_ties`, the caveat above applies in full.
 
 ## Elemental balance: an unknown result is not the same as balanced
 

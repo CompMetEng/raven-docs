@@ -23,13 +23,7 @@ Four tables, each optional, except that the two reaction tables go together:
 | reactions | `rxnIdx`, `rxnNames`, `grRules`, `lb`, `ub`, `rev`, `subSystems`, `eccodes`, `rxnNotes`, `rxnReferences`, `rxnConfidenceScores`, then MIRIAM |
 | reaction coefficients | `rxnIdx`, `rxnNames`, `metNames`, `comps`, `coefficient`, one row per reaction and metabolite |
 
-Columns are found by their header, so their order does not matter and any of
-the optional ones can be left out. Entities are matched by **name**, not by
-identifier: metabolites on
-`metaboliteName[comp]`, genes on the gene name, reactions on the stoichiometry of
-their reactants and products. A row that matches nothing adds a new entity; a row
-that matches an existing one overwrites it. `rxnIdx` ties the two reaction tables
-together and is local to the files, not an identifier in the model.
+Columns are found by their header, so their order does not matter and any of the optional ones can be left out. A `grRules` cell is read with the grammar of `parseGrRule` in both tools, so `G1&G2` is one gene id, while `G1 & G2` is two genes joined by `and`. Entities are matched by **name**, not by identifier: metabolites on `metaboliteName[comp]`, genes on the gene name, reactions on the stoichiometry of their reactants and products. A row that matches nothing adds a new entity; a row that matches an existing one overwrites it. `rxnIdx` ties the two reaction tables together and is local to the files, not an identifier in the model.
 
 ## Setup
 

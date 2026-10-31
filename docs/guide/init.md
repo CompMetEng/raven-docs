@@ -53,12 +53,7 @@ per-task merge). That MILP-formulation split (`fillGaps` merging per task vs.
 genuinely differs, not `getINITModel` vs. `ftINIT` themselves.
 
 :::{warning} The outputs on this page were produced by hand, not by the build
-Every other page in this guide is re-executed on every commit. This one is
-not: preparing Human-GEM took **113 minutes** in MATLAB and **126 minutes**
-in Python, the MATLAB run producing a **159 MB** artefact, which no
-documentation build should attempt. The numbers below come
-from one real run (Human-GEM `main`, RAVEN 3, Gurobi 13.0.2) and
-are quoted with their wall-clock so you can plan around them.
+The other pages in this guide are re-executed on every commit; the outputs on this page come from one run made by hand, because preparing Human-GEM took **47 minutes** in MATLAB and **37 minutes** in Python, the MATLAB run producing a **174 MB** artefact, which no documentation build should attempt. The numbers below come from one real run (Human-GEM `main` at commit `6812be2a`, RAVEN commit `2d0630e3`, raven-toolbox commit `94f39407`, Gurobi 13.0.1, four cores, 2026-10-30) and are quoted with their wall-clock so you can plan around them.
 
 For the same MATLAB workflow as the model's own documentation presents it,
 including comparison of the extracted models, see the
@@ -94,19 +89,18 @@ git clone --depth=1 https://github.com/SysBioChalmers/Human-GEM.git
 
 | File | What it is |
 |---|---|
-| `model/Human-GEM.mat` (or `.xml`, `.yml`) | the template: 12 931 reactions, 2 848 genes |
+| `model/Human-GEM.mat` (or `.xml`, `.yml`) | the template: 12 748 reactions, 2 870 genes |
 | `model/reactions.tsv` | reaction annotations, including which reactions are spontaneous |
 | `data/metabolicTasks/metabolicTasks_Essential.txt` | 57 tasks the extracted model must still pass |
 | `data/datasets/Hart2015_RNAseq.txt` | TPM for five cell lines: DLD1, GBM, HCT116, HELA, RPE1 |
 
-Both extractions are mixed-integer problems, so **GLPK will not do**: set Gurobi
-up first ([6. Solvers and configuration](solvers.md)).
+Both extractions are mixed-integer problems. On Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi), so set Gurobi up first ([6. Solvers and configuration](solvers.md)). That benchmark used Human-GEM `38567ab8` (cleaned), the no-task scaled prep, series `1+1` and `time_limit=900`, a different input from the `6812be2a` template with task preparation on this page. Without `time_limit`, the scheduled runs of a series get 120 s and 5000 s for GLPK as for Gurobi.
 
 ## 14.1 Prepare the template: once
 
 The preparation finds the task-essential reactions, classifies every reaction
 into omics-independent categories, merges linear stretches, and rescales the
-stoichiometry so that a single big-M works across the model. It depends only on
+stoichiometry to a narrower coefficient range, which is not needed for feasibility at the default `big_m` and shortens the run (83 s against 157 s in the [calibration](../parameter-tuning/studies/init-param-calibration.md)). It depends only on
 the template and the task list, **not on your data**, so it is done once and
 reused for every sample.
 
@@ -129,7 +123,7 @@ save('prepData.mat', 'prepData', '-v7.3');
 ```
 
 ```text
-prepData.mat: 159 MB
+prepData.mat: 174 MB
 ```
 
 Human-GEM also has a wrapper, `prepHumanModelForftINIT`, which reads those
@@ -162,18 +156,13 @@ prep = prep_init_model(model, tasks, ext_comp="e", spontaneous=spont)
 ```
 
 ```text
-load 115s
-prep_init_model 7552s
+load 11s
+prep_init_model 2216s
 ```
 
-Reading Human-GEM from SBML alone takes about **two minutes**, and the
-preparation itself **126 minutes**, the same order as MATLAB's 113, on the
-same machine and solver. Two things affect the run:
+Reading Human-GEM from SBML alone takes about **11 seconds**, and the preparation itself **37 minutes** in Python and 47 minutes in MATLAB. The two preparations were separate Slurm jobs on the same node type with four cores each. MATLAB used a pool of 4 workers and Python ran with `processes = 1`, so the two times compare the whole runs, not the code alone. Two things affect the run:
 
-- `prep_init_model` runs cobrapy's FVA, which spawns worker processes. Where
-  that is not permitted (a locked-down Windows machine, some CI runners), it
-  fails with `PermissionError: [WinError 5] Access is denied`. Setting
-  `processes = 1` trades the parallelism for a run that finishes.
+- `prep_init_model` runs cobrapy's FVA, which spawns worker processes by default; the Python run above used `processes = 1`. Where worker processes are not permitted (a locked-down Windows machine, some CI runners), the default fails with `PermissionError: [WinError 5] Access is denied`, and `processes = 1` trades the parallelism for a run that finishes.
 - `essential_cache_path` caches the slow task-essential discovery, so a
   second preparation of the same template skips it.
 :::
@@ -350,7 +339,7 @@ for gene, score in sorted(scores.items()):
 ```
 
 ```text
-{'High': 20.0, 'Medium': 15.0, 'Low': 10.0, 'Not detected': -8.0, 'Strong': 20.0, 'Moderate': 15.0, 'Weak': 10.0, 'Negative': -8.0}
+{'High': 20.0, 'Medium': 15.0, 'Low': 10.0, 'None': -8.0, 'Not detected': -8.0, 'Strong': 20.0, 'Moderate': 15.0, 'Weak': 10.0, 'Negative': -8.0}
   ENSG00000067225  +20.0
   ENSG00000106633  +15.0
   ENSG00000111640  +20.0
@@ -421,7 +410,7 @@ contextModel = ftINIT(prepData, 'HCT116', [], [], ...
 ```
 
 ```text
-9595 rxns, 1761 genes
+9544 rxns, 1785 genes
 ```
 
 Two argument traps, both of which fail without mentioning the argument you
@@ -441,7 +430,7 @@ got wrong:
 ```python
 from raven_toolbox.init import ftinit
 
-context = ftinit(prep, rxn_scores, series="1+0", gene_scores=gene_scores)
+context = ftinit(prep, rxn_scores=rxn_scores, series="1+0", gene_scores=gene_scores)
 print(len(context.reactions), "reactions,", len(context.genes), "genes")
 ```
 
@@ -452,10 +441,7 @@ optional and prunes negative-scoring genes from the GPRs that survive;
 :::
 ::::
 
-**`1+0` or `1+1`?** `1+0` leaves out most reactions that have no gene rule and
-takes 30–60 s per sample; `1+1` adds a second optimisation over those reactions,
-takes two to three times longer, and gives a smaller model. The run above is
-`1+0`: **12 931 → 9 595 reactions and 2 848 → 1 761 genes, in 70 seconds.**
+**`1+0` or `1+1`?** `1+0` leaves out most reactions that have no gene rule; in the sample above it ran in 124 s in Python and 797 s in MATLAB. `1+1` adds a second optimisation over those reactions. The run above is `1+0`: **12 748 → 9 543 reactions and 2 870 → 1 783 genes in Python (124 seconds), 12 748 → 9 544 reactions and 2 870 → 1 785 genes in MATLAB (797 seconds).**
 
 ## 14.4 Check what came out
 
@@ -496,12 +482,12 @@ covers comparing many extracted models at once.
 - **Identifiers that do not match.** Human-GEM speaks ENSEMBL, and so does
   `Hart2015_RNAseq.txt`, which is why no mapping step appears above. With
   symbols or systematic names you need one; score a handful of genes and
-  check they are not all at the floor before spending two hours on the
-  preparation.
+  check they are not all at the floor before spending 37 to 47 minutes on
+  the preparation.
 - **Re-preparing per sample.** The preparation depends only on the template
   and the tasks. Do it once, save it, and reuse it; separating preparation
   from extraction is what makes that possible.
-- **No MILP solver.** Both extractions are mixed-integer; GLPK cannot.
+- **No Gurobi.** Both extractions are mixed-integer problems; on Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi; Human-GEM `38567ab8`, no-task scaled prep, series `1+1`, `time_limit=900`, a different input from this page's).
 - **A model that no longer does what you assumed.** Without a task list there
   is nothing to repair against, and the extraction is free to remove
   capabilities you never thought to check.
