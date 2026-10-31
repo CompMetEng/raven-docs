@@ -1,25 +1,16 @@
 # Tutorial 3: Knockouts and omics data
 
-This exercise shows how to run FBA simulations and gene deletion analysis, and
-how a GEM can serve as a scaffold for interpreting microarray data. It uses a
-simplified model of yeast metabolism (`smallYeast.yml`), imported with
-`readYAMLmodel`.
+This exercise shows how to run FBA simulations and gene deletion analysis, and how a GEM can be used as a scaffold for interpreting microarray data. It uses a simplified model of yeast metabolism (`smallYeast.yml`), imported with `readYAMLmodel`.
 
-It is assumed you have completed Tutorial 2.
+It is assumed that Tutorial 2 is completed.
 
-:::{note} Skeleton and solutions
-`tutorial3.m` is a skeleton script for you to work through. The completed
-answers are in the companion script `tutorial3_solutions.m`. The code
-excerpts below follow the solutions; try to derive them yourself before
-looking.
-:::
+`tutorial3.m` is a skeleton script to work through. The completed answers are in the companion script `tutorial3_solutions.m`. The code excerpts follow the solutions; try to derive them before looking.
 
 ## Step by step
 
-### 1. Import and check ATP yield
+### 1. Importing and checking ATP yield
 
-Import the model, restrict it to anaerobic glucose growth, and maximize ATP
-hydrolysis (`ATPX`):
+Import the model, restrict it to anaerobic glucose growth, and maximise ATP hydrolysis (`ATPX`):
 
 ```matlab
 model = readYAMLmodel('smallYeast.yml');
@@ -29,13 +20,11 @@ sol = solveLP(model);
 printFluxes(model, sol.x, false);
 ```
 
-The ATP production rate should be 2.0. It was 4.0 in Tutorial 2, but there
-sucrose was used instead of glucose.
+The ATP production rate should be 2.0. It was 4.0 in Tutorial 2, where sucrose was the substrate.
 
-### 2. Check product yields
+### 2. Checking product yields
 
-Switch to fully aerobic conditions and check the yield of different products,
-maximizing each in turn:
+Switch to fully aerobic conditions and check the yield of different products, maximising each in turn:
 
 ```matlab
 model = setParam(model, 'ub', {'glcIN' 'o2IN'}, [1 1000]);
@@ -44,13 +33,11 @@ sol = solveLP(model);
 fprintf(['Yield of ethanol is ' num2str(sol.f) ' mol/mol\n']);
 ```
 
-The same is repeated for acetate (`acOUT`), glycerol (`glyOUT`) and biomass
-(`biomassOUT`).
+The same is repeated for acetate (`acOUT`), glycerol (`glyOUT`) and biomass (`biomassOUT`).
 
-### 3. Aerobic vs. limited oxygen
+### 3. Aerobic and limited oxygen conditions
 
-Solve for biomass production under full aeration, then restrict the oxygen
-uptake upper bound to 0.5 and solve again:
+Solve for biomass production under full aeration, then restrict the oxygen uptake upper bound to 0.5 and solve again:
 
 ```matlab
 solA = solveLP(model);
@@ -60,9 +47,7 @@ solB = solveLP(model);
 
 ### 4. Single gene deletions with FBA
 
-Set the model to anaerobic growth maximizing biomass, then scan single gene
-deletions. After running the deletion scan, keep only solutions that still grow
-and look for the one giving the highest glycerol production:
+Set the model to anaerobic growth maximising biomass, then scan single gene deletions. After running the deletion scan, keep only solutions that grow and look for the one giving the highest glycerol production:
 
 ```matlab
 model = setParam(model, 'eq', {'o2IN'}, 0);
@@ -80,10 +65,7 @@ fprintf(['Glycerol production is ' num2str(maxGlycerol) ...
     ' after deletion of ' originalGenes{genes(okSolutions(J),:)} '\n']);
 ```
 
-The model predicts a glycerol production of 0.23 mmol/gDW/h for the unperturbed
-anaerobic case. The best gene deletion corresponds to turning off the `ZWF`
-reaction (`ZWF1`, `YNL241C`). Compare the deletion strain to wild type and
-follow the changed fluxes around the redox metabolites:
+The model predicts a glycerol production of 0.23 `mmol/gDW/h` for the unperturbed anaerobic case. The best gene deletion corresponds to turning off the `ZWF` reaction (`ZWF1`, `YNL241C`). Compare the deletion strain to wild type and follow the changed fluxes around the redox metabolites:
 
 ```matlab
 model2 = setParam(model, 'eq', {'ZWF'}, 0);
@@ -94,9 +76,7 @@ compareFluxes(model, sol.x, sol2.x, 'cutoff', 10^-2, ...
 
 ### 5. Reporter metabolites from microarray data
 
-A GEM can highlight the metabolites around which significant transcriptional
-changes cluster. Reload the model first (the steps above changed its bounds and
-objective), then load the expression data and run the reporter-metabolites test:
+A GEM can highlight the metabolites around which significant transcriptional changes cluster. Reload the model first (the preceding steps changed its bounds and objective), then load the expression data and run the reporter-metabolites test:
 
 ```matlab
 model = readYAMLmodel('smallYeast.yml');

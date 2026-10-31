@@ -2,31 +2,25 @@
 
 ## Software
 
-This protocol runs in **MATLAB** (R2013b or later; no extra MathWorks toolboxes
-required), complemented with software for reconstructing and analysing GEMs.
-Most of it is open source or available under an academic license.
+This protocol runs in MATLAB (R2013b or later; no extra MathWorks toolboxes required), together with software for reconstructing and analysing GEMs. Most of it is open source or available under an academic licence.
 
 | Software | Dependency | Source |
 |---|---|---|
-| MATLAB | License | <https://mathworks.com/products/matlab.html> |
+| MATLAB | Licence | <https://mathworks.com/products/matlab.html> |
 | RAVEN | libSBML, solver | <https://github.com/CompMetEng/RAVEN> |
 | COBRA | MATLAB | <https://github.com/opencobra/cobratoolbox> |
-| Gurobi | License | <https://www.gurobi.com/products/gurobi-optimizer/> |
+| Gurobi | Licence | <https://www.gurobi.com/products/gurobi-optimizer/> |
 | libSBML | MATLAB | <http://sbml.org/Software/libSBML> |
 
-- **RAVEN** is the toolbox that drives the reconstruction.
-- **libSBML** enables import/export of the community-standard SBML (`.xml`)
-  format.
-- A **linear-programming solver** is needed for simulation. This protocol uses
-  **Gurobi** (free academic license); RAVEN can alternatively use the
-  open-source **GLPK** solver bundled with COBRA.
+- RAVEN is the toolbox that drives the reconstruction.
+- libSBML enables import and export of the community-standard SBML (`.xml`) format.
+- A linear-programming solver is needed for simulation. This protocol uses Gurobi (free academic licence); RAVEN can alternatively use the open-source GLPK solver bundled with COBRA.
 
 See [Installation](../installation/raven.md) for the full setup.
 
 ## Files
 
-Homology-based reconstruction requires files for both the **target** organism
-and the **template** organisms.
+Homology-based reconstruction requires files for both the target organism and the template organisms.
 
 | File type | Usage | Organism | Source |
 |---|---|---|---|
@@ -38,45 +32,30 @@ and the **template** organisms.
 | DNA FASTA | Biomass curation | *H. polymorpha* | NCBI `GCF_001664045.1_Hanpo2` |
 | GenBank | Biomass curation | *H. polymorpha* | NCBI `GCF_001664045.1_Hanpo2` |
 
-For the target organism you need (1) a protein FASTA of all proteins in its
-genome, (2) a DNA FASTA for nucleotide ratios, and (3) a GenBank file for
-ribonucleotide ratios. For each template you need a protein FASTA and a model
-file in SBML format.
+The target organism requires (1) a protein FASTA of all proteins in its genome, (2) a DNA FASTA for nucleotide ratios, and (3) a GenBank file for ribonucleotide ratios. Each template requires a protein FASTA and a model file in SBML format.
 
 :::{important} Matching identifiers
-For automatic gene matching, the protein FASTA and the model file of each
-template **must use the same gene identifiers**.
+For automatic gene matching, the protein FASTA and the model file of each template must use the same gene identifiers.
 :::
 
-All required files for *H. polymorpha* are provided in the
-[hanpo-GEM](https://github.com/SysBioChalmers/hanpo-GEM) repository; clone it to
-get a local copy.
+All required files for *H. polymorpha* are provided in the [hanpo-GEM](https://github.com/SysBioChalmers/hanpo-GEM) repository; clone it to get a local copy.
 
 ## Literature data
 
-Model quality improves by leveraging any known metabolic behaviour of the target
-organism: macromolecule fractions of biomass, essential/non-essential genes,
-usable nutrient sources, and growth rate. A short literature search yields total
-protein, lipid and carbohydrate content for *H. polymorpha*, used to set the
-biomass stoichiometric coefficients ([Biomass composition](biomass.md)). Where
-organism-specific data is missing, values from related organisms can be used.
+Model quality improves by using any known metabolic behaviour of the target organism: macromolecule fractions of biomass, essential and non-essential genes, usable nutrient sources, and growth rate. A short literature search yields total protein, lipid and carbohydrate content for *H. polymorpha*, used to set the biomass stoichiometric coefficients ([Biomass composition](biomass.md)). Where organism-specific data is missing, values from related organisms can be used.
 
-## Install RAVEN
+## Installing RAVEN
 
-After obtaining the software and files, install RAVEN (see
-[Installing RAVEN](../installation/raven.md)). Use `pathtool` to add the
-RAVEN, libSBML and Gurobi subfolders to the MATLAB path, then verify with:
+After obtaining the software and files, install RAVEN (see [Installing RAVEN](../installation/raven.md)). Use `pathtool` to add the RAVEN, libSBML and Gurobi subfolders to the MATLAB path, then verify with:
 
 ```matlab
 checkRaven
 ```
 
-See [Installing RAVEN](#verify) for what a
-successful run looks like.
+See [Installing RAVEN](#verify) for what a successful run looks like.
 
-:::{warning}
-If `checkRaven` reports that importing SBML format **failed**, uninstall
-MATLAB's **Text Analytics Toolbox**, which conflicts with RAVEN's Excel
-parser. For support, see the
-[RAVEN issues](https://github.com/CompMetEng/RAVEN/issues) page.
+:::{warning} Troubleshooting
+- Problem: `checkRaven` reports Fail for Export Excel format.
+- Possible reason: The protocol script reports that MATLAB's Text Analytics Toolbox can conflict with reading Excel files.
+- Solution: uninstall the Text Analytics Toolbox. For support, see the [RAVEN issues](https://github.com/CompMetEng/RAVEN/issues) page.
 :::
