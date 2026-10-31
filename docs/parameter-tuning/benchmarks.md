@@ -1,55 +1,72 @@
-# Parameter benchmarks
+# Benchmarks of `fseof`, `remove_genes` and other defaults
 
-Parameters whose defaults were measured but did not need a study of their own.
-The measurements were run on 2026-06-20 on yeast-GEM (4,102 reactions), iJO1366 (2,583) and e_coli_core (95); the `fseof` and `remove_genes` measurements in the next section were run on 2026-10-30.
+These benchmarks record parameters whose defaults were measured or checked without a study of their own. Two of them were run with raven-toolbox commit `94f39407` on 2026-10-30: the effect of `flux_eps` on the targets of `fseof`, and the handling of reactions without an enzyme in `remove_genes`. A table lists literature and convention values, checked on 2026-06-20, with what supports each of them.
 
-The parameters that had a dedicated campaign are in the studies listed under [Parameter tuning](index.md); the current value and one-line reason for every parameter on either side is in [Tuned parameter defaults](../tuned-parameters.md).
+The parameters with a measurement campaign of their own have studies listed under [Parameter tuning](index.md). [Tuned parameter defaults](../tuned-parameters.md) gives the current value and a one-line reason for every parameter of both implementations.
 
-## Measurements of `fseof` and `remove_genes` defaults
+## Set-up
 
-### `fseof` classifier thresholds and `flux_eps`
+The `fseof` benchmark ran on iJO1366 (2,583 reactions) with the biomass reaction of the model as objective and `EX_succ_e` (succinate exchange) as target. The other arguments were `n_steps` 10, `max_fraction` 0.9, `correlation_threshold` 0.9 and the default `equality=False`, which sets each enforced flux as the lower bound of the target reaction.
 
-`fseof` and RAVEN's `FSEOF` classify a reaction from its fluxes across the scan with the same fixed thresholds: a reaction is a target when some absolute flux exceeds `1e-10`, the standard deviation of its absolute flux is above 0 and the correlation reaches `correlation_threshold`; it is a knockout when the slope is negative and the last absolute flux is at most `1e-8`. `flux_eps` is the floor below which the theoretical maximum of the target flux is treated as zero, in which case the scan raises an error. It takes no part in the classification, and RAVEN's `FSEOF` has no `flux_eps` parameter. On iJO1366 with target `EX_succ_e`, `flux_eps` does not change the counts.
+`fseof` solves each enforced level in two steps, as RAVEN's `FSEOF` does: it maximises the objective, then minimises the sum of fluxes with the objective held at 0.999999 of that optimum. A reaction is a target when its absolute flux exceeds `1e-10` at some level, the standard deviation of its absolute flux is above 0, the absolute correlation between its absolute flux and the enforced flux reaches `correlation_threshold`, and the slope of the linear fit of its absolute flux against the enforced flux is not 0. A target with a positive slope is an amplify target. A target with a negative slope is a knockout target when its last absolute flux is at most `1e-8`, and a knockdown target otherwise. `fseof` and RAVEN's `FSEOF` use these thresholds as fixed values.
 
-Measured on iJO1366 (2,583 reactions) with the model's biomass reaction as objective, `EX_succ_e` as target, `n_steps` 10, `max_fraction` 0.9, `correlation_threshold` 0.9 and the default `equality=False`, with raven-toolbox commit `94f39407`, run on 2026-10-30:
+The `remove_genes` benchmark ran on e_coli_core (95 reactions) from the cobrapy distribution, with bounds as shipped, Gurobi 13.0.1, raven-toolbox commit `94f39407` and RAVEN commit `2d0630e3`. It deleted `b1779`, the only gene of GAPD (glyceraldehyde-3-phosphate dehydrogenase), with each setting of `blocked_reactions` in `remove_genes` and of `removeBlockedRxns` in RAVEN's `removeGenes`. The predicted growth is the optimal flux through the biomass reaction of the model, in h⁻¹. The unmodified model has 95 reactions and predicts a growth rate of 0.874 h⁻¹.
 
-| `flux_eps` | Amplified | Knocked down or out |
+The checks of literature and convention values ran on 2026-06-20 with yeast-GEM (4,102 reactions), iJO1366 (2,583) and e_coli_core (95). The table names the model for the `fseof` rows only.
+
+## Results
+
+### `fseof` targets at three values of `flux_eps`
+
+| `flux_eps` | Amplify targets | Knockdown and knockout targets |
 |---|---|---|
 | `1e-8` | 18 | 408 |
 | `1e-7` | 18 | 408 |
-| **`1e-6`** *(default)* | 18 | **408** |
+| `1e-6` (default) | 18 | 408 |
 
-Of the 408 reactions, 406 are knockdown targets and 2 are knockout targets. The counts are the same at the three values on this model and target. Each level is solved in two steps with the objective held at 0.999999 of its optimum in the second.
+Of the 408 reactions, 406 are knockdown targets and 2 are knockout targets.
 
-### `remove_genes` handling of reactions without an enzyme
+### `remove_genes` after deletion of `b1779` from e_coli_core
 
-`blocked_reactions` in `remove_genes`, and `removeBlockedRxns` in RAVEN's `removeGenes`, decide what happens to a reaction whose gene rule is emptied by a deletion. Both tools constrain such a reaction by default. Deleting `b1779` from e_coli_core removes the only gene for GAPD, which is essential for aerobic growth on glucose. The unmodified model has 95 reactions and predicts a growth rate of 0.874.
-
-| Call | Reactions left | Predicted growth | GAPD |
+| Call | Reactions left | Predicted growth (h⁻¹) | GAPD |
 |---|---|---|---|
-| `remove_genes(..., blocked_reactions="constrain")` *(default)* | 95 | 0.000 | kept, bounds `(0, 0)` |
+| `remove_genes(..., blocked_reactions="constrain")` (default) | 95 | 0.000 | kept, bounds `(0, 0)` |
 | `remove_genes(..., blocked_reactions="remove")` | 94 | 0.000 | deleted |
 | `remove_genes(..., blocked_reactions="keep")` | 95 | 0.874 | kept, bounds unchanged |
-| `removeGenes(model, genes)` *(`removeBlockedRxns` false, default)* | 95 | 0.000 | kept, bounds `[0 0]` |
+| `removeGenes(model, genes)` (`removeBlockedRxns` false, default) | 95 | 0.000 | kept, bounds `[0 0]` |
 | `removeGenes(model, genes, 'removeBlockedRxns', true)` | 94 | 0.000 | deleted |
 
-`"constrain"` and RAVEN's default give the same model. Both predict no growth after the deletion, because the reaction stays in the network with no capacity to carry flux. `"remove"` and `removeBlockedRxns` true also predict no growth and differ in that the reaction is deleted, which matters when the number of reactions or the reaction identifiers are used afterwards. `"keep"` leaves the reaction with an empty rule and unchanged bounds, so it runs unconstrained and the model predicts growth although the only enzyme of an essential step is gone; it is meant for editing gene annotations, where the network should not change as a result.
+### Checked literature and convention values
 
-Measured on e_coli_core from the cobrapy distribution (bounds as shipped), Gurobi 13.0.1, raven-toolbox commit `94f39407` and RAVEN commit `2d0630e3`, run on 2026-10-30.
+Both implementations have the same value or behaviour for each of these parameters, and none was changed. The third column gives what supports the value; only the three `fseof` rows record a sweep.
 
-## Checked literature and convention values
-
-These values were swept and confirmed, and none was changed. Both implementations agree on each, so there is nothing to reconcile; the value of the check is that each number rests on a measurement.
-
-| Parameter | Value | What the sweep showed |
+| Parameter | Value | Basis |
 |---|---|---|
-| `fseof.n_steps` | `10` | Choi et al. 2010's value; 5 and 20 give the same target set on iJO1366 |
-| `fseof.max_fraction` | `0.9` | Choi et al. 2010; below 0.9 admits spurious targets, 0.99 finds nothing extra |
-| `fseof.correlation_threshold` | `0.9` | Choi et al. 2010; 0.7 adds four spurious amplification targets |
-| `connect_blocked_reactions.eps` | `1.0` | Correct for RAVEN-convention models, where exchanges carry ±1000 bounds |
-| `connect_blocked_reactions.allow_net_production` | `False` | The stricter question, and the one the function exists to ask |
-| `fill_gaps_fast_lp.epsilon` | `1e-4` | The fastGapFill paper's value |
-| `fill_gaps_milp.big_m` | `1000.0` | Matches RAVEN-convention bounds |
-| `check_tasks.close_boundaries` | `False` | Matches RAVEN's `checkTasks`, which published task lists were curated against; `True` closes the model's own exchanges so that the task is the whole boundary |
+| `fseof.n_steps` | `10` | Value of [Choi et al. 2010](https://doi.org/10.1128/AEM.00115-10); 5 and 20 gave the same target set on iJO1366 |
+| `fseof.max_fraction` | `0.9` | [Choi et al. 2010](https://doi.org/10.1128/AEM.00115-10); values below 0.9 admitted spurious targets on iJO1366, and 0.99 found no further targets |
+| `fseof.correlation_threshold` | `0.9` | [Choi et al. 2010](https://doi.org/10.1128/AEM.00115-10); 0.7 added four spurious amplify targets on iJO1366 |
+| `connect_blocked_reactions.threshold` | `1.0` | Correct for models in the RAVEN convention, where exchange reactions have bounds of ±1000; RAVEN's `fillGaps` uses a fixed threshold of 1 |
+| `connect_blocked_reactions.allow_net_production` | `False` | Keeps the steady-state balance `S @ v == 0`, the stricter test; `True` relaxes it to `S @ v >= 0` |
+| `fill_gaps_fast_lp.epsilon` | `1e-4` | Value of the fastGapFill paper, [Thiele et al. 2014](https://doi.org/10.1093/bioinformatics/btu321) |
+| `fill_gaps_milp.big_m` | `1000.0` | Matches the ±1000 bounds of the RAVEN convention |
+| `check_tasks.close_boundaries` | `False` | Matches RAVEN's `checkTasks`, against which published task lists were curated; `True` closes the exchange reactions of the model so that the task defines the whole boundary |
 
-The `fseof.n_steps`, `fseof.max_fraction` and `fseof.correlation_threshold` rows were measured on 2026-06-20 and were not rerun for this page.
+The three `fseof` rows date from 2026-06-20 and were not repeated with commit `94f39407`.
+
+## `flux_eps` in `fseof`
+
+`flux_eps` is the floor below which `fseof` treats the theoretical maximum of the target flux as zero; the scan then raises an error. The classification of targets does not read `flux_eps`, and RAVEN's `FSEOF` has no such parameter. On iJO1366 with target `EX_succ_e`, the three values gave 18 amplify targets and 408 knockdown and knockout targets each. From the code, two values of `flux_eps` give different results only when the theoretical maximum of the target lies between them: `fseof` then raises at the larger value and runs at the smaller.
+
+## Reactions without an enzyme in `remove_genes`
+
+`blocked_reactions` in `remove_genes`, and `removeBlockedRxns` in RAVEN's `removeGenes`, decide what happens to a reaction whose gene rule is emptied by a deletion. By default both keep such a reaction with bounds of zero, and the two defaults gave the same model. After deletion of `b1779`, that model predicts no growth, because GAPD stays in the network with no capacity to carry flux. `"remove"` and `removeBlockedRxns` true also predicted no growth; they delete GAPD, which changes the number of reactions and the set of reaction identifiers. `"keep"` leaves GAPD with an empty gene rule and its original bounds, so the model predicted the growth of the unmodified model, 0.874 h⁻¹, although the only gene of GAPD was deleted. GAPD is essential for aerobic growth on glucose in e_coli_core, so the growth predicted with `"keep"` is a false positive. The docstring of `remove_genes` states no use for `"keep"`; a use suggested for it is editing gene annotations without changing the network (unverified, no source in the code).
+
+## Choice of defaults
+
+The measurement gives no reason to change `flux_eps` from `1e-6`. `blocked_reactions="constrain"` stays the default of `remove_genes`; it gives the model that RAVEN's `removeGenes` gives by default. `"remove"` and `"keep"` are available on request.
+
+## Limits
+
+Each benchmark used one model: iJO1366 with one target for `fseof`, and e_coli_core with one deleted gene for `remove_genes`. Criterion 1 of the [evaluation methodology](index.md#evaluation-methodology) asks for a large and a small model. The solver of the `fseof` runs and the number of runs per value are not recorded, and the criterion for a spurious target in the 2026-06-20 sweeps is not recorded. The rows of the checked values without a sweep rest on the literature or on a convention.
+
+raven-toolbox contains no script for these benchmarks. The unit tests `tests/test_analysis_fseof.py` and `tests/test_manipulation_remove.py` of raven-toolbox check, on small test networks, the classification thresholds of `fseof` and the three settings of `blocked_reactions`.

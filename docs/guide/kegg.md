@@ -85,7 +85,7 @@ This method is expensive. The eukaryotic HMM library alone is 129 MB compressed,
 
 With a `fastaFile`, the organism id only names the model; the search uses no phylogenetic distance and ignores `maxPhylDist`.
 
-Three cut-offs shape the assignment. `cutOff` is the HMMER significance a hit needs at all. `minScoreRatioKO` drops genes that fit a KO far worse than the best gene in it, and `minScoreRatioG` drops KOs that fit a gene far worse than that gene's best KO; the two prune the same matrix from opposite sides. All three were measured in the [KEGG HMM cut-off study](../parameter-tuning/studies/kegg-hmm-cutoff-calibration.md); `cutOff` and `minScoreRatioG` changed from the RAVEN 2 values, while `minScoreRatioKO` proved inert and keeps its original value.
+Three cut-offs shape the assignment. `cutOff` is the HMMER significance a hit needs at all. `minScoreRatioKO` drops genes that fit a KO far worse than the best gene in it, and `minScoreRatioG` drops KOs that fit a gene far worse than that gene's best KO; the two prune the same matrix from opposite sides. All three were measured in [KEGG HMM cut-off calibration](../parameter-tuning/studies/kegg-hmm-cutoff-calibration.md); `cutOff` and `minScoreRatioG` changed from the RAVEN 2 values. Raising `minScoreRatioKO` from 0.0 to 0.5 changed precision by 0.01 to 0.03 and recall not at all, and it keeps its original value of 0.3.
 
 ## Contents of a KEGG draft
 

@@ -67,11 +67,11 @@ git clone --depth=1 https://github.com/SysBioChalmers/Human-GEM.git
 | `data/metabolicTasks/metabolicTasks_Essential.txt` | 57 tasks the extracted model must pass |
 | `data/datasets/Hart2015_RNAseq.txt` | TPM for five cell lines: DLD1, GBM, HCT116, HELA, RPE1 |
 
-Both extractions are mixed-integer problems. On Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi), so set Gurobi up first ([Solvers and configuration](solvers.md)). That benchmark used Human-GEM `38567ab8` (cleaned), the no-task scaled prep, series `1+1` and `time_limit=900`, a different input from the `6812be2a` template with task preparation used here. In raven-toolbox, without `time_limit`, the scheduled runs of a series keep their own limits (120 s and 5000 s, plus a 5 s first run in the last step of `1+1` and `2+1`; 10000 s for `full`, which runs once), for GLPK as for Gurobi. With `setRavenSolver('glpk')`, RAVEN does not pass the `TimeLimit` of the schedule to GLPK: `optimizeProb` sets a 1000 s limit on every GLPK MILP.
+Both extractions are mixed-integer problems. On Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi), so set Gurobi up first ([Solvers and configuration](solvers.md)). That benchmark ([ftINIT on different solvers](../parameter-tuning/studies/init-solver-benchmark.md)) used Human-GEM `38567ab8` (cleaned), prepared without a task list and with scaled stoichiometry, series `1+1` and `time_limit=900`, a different input from the `6812be2a` template with task preparation used here. In raven-toolbox, without `time_limit`, the scheduled runs of a series keep their own limits (120 s and 5000 s, plus a 5 s first run in the last step of `1+1` and `2+1`; 10000 s for `full`, which runs once), for GLPK as for Gurobi. With `setRavenSolver('glpk')`, RAVEN does not pass the `TimeLimit` of the schedule to GLPK: `optimizeProb` sets a 1000 s limit on every GLPK MILP.
 
 ## Template preparation
 
-The preparation finds the task-essential reactions, classifies every reaction into omics-independent categories, merges linear stretches, and rescales the stoichiometry to a narrower coefficient range, which is not needed for feasibility at the default `big_m` and shortens the run (83 s against 157 s in the [calibration](../parameter-tuning/studies/init-param-calibration.md)). It depends only on the template and the task list, and not on the expression data, so it is done once and reused for every sample.
+The preparation finds the task-essential reactions, classifies every reaction into omics-independent categories, merges linear stretches, and rescales the stoichiometry to a narrower coefficient range, which is not needed for feasibility at the default `big_m` and shortens the run (83 s against 157 s in [ftINIT parameter calibration and input robustness](../parameter-tuning/studies/init-param-calibration.md)). It depends only on the template and the task list, and not on the expression data, so it is done once and reused for every sample.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -388,7 +388,7 @@ Compare the result against the template and against the other samples: [Quality 
 
 - Identifiers that do not match. Human-GEM uses ENSEMBL identifiers, and so does `Hart2015_RNAseq.txt`, so no mapping step appears in the workflow. Expression data with symbols or systematic names needs a mapping; score a few genes and check that they are not all at the floor before spending 37 to 47 minutes on the preparation.
 - Re-preparing per sample. The preparation depends only on the template and the tasks. Do it once, save it, and reuse it; preparation and extraction are separate, which makes that possible.
-- No Gurobi. Both extractions are mixed-integer problems; on Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi; Human-GEM `38567ab8`, no-task scaled prep, series `1+1`, `time_limit=900`, a different input from the one in this workflow).
+- No Gurobi. Both extractions are mixed-integer problems; on Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi; Human-GEM `38567ab8` prepared without a task list and with scaled stoichiometry, series `1+1`, `time_limit=900`, a different input from the one in this workflow).
 - A model without capabilities assumed of it. Without a task list there is nothing to repair against, and the extraction is free to remove capabilities that were never checked.
 :::
 

@@ -15,8 +15,8 @@ RAVEN MATLAB: `randomSampling` (`method='achr'|'chrr'|'random_objective'`), `sam
 | Parameter | Default | How determined |
 |---|---|---|
 | `method` | `'achr'` (Python); `'achr'` (RAVEN 3, `randomSampling`) | Literature: ACHR gives near-uniform interior sampling, and the random-objective method draws polytope vertices. All three methods are selectable in both implementations (`'randomObjective'` in MATLAB, `'random_objective'` in Python). RAVEN 2.11.3 had only the random-objective method. |
-| `thinning` | `100` | Upstream convention (cobrapy's own ACHR default, inherited by RAVEN's Python side). Measured insufficient at genome scale: yeast-GEM gives only ~12 effective samples from 300 stored (ESS), and independent chains frequently disagree entirely (median Gelman-Rubin R-hat fails the convergence threshold). No cheap fix found; see the [convergence study](parameter-tuning/studies/sampling-convergence-calibration.md). |
-| `warmup` | `1000` | Upstream convention (cobrapy). |
+| `thinning` | `100` | Upstream convention (cobrapy's own ACHR default). Measured insufficient at genome scale: on yeast-GEM one ACHR chain had an effective sample size (ESS) of about 12 from 300 stored samples, and 4 chains disagreed (median Gelman-Rubin R-hat 1.1671, 67.5 % of scored reactions above 1.1); `thinning` up to 500 did not fix it. See [Flux sampling convergence and settings](parameter-tuning/studies/sampling-convergence-calibration.md). |
+| `warmup` | `1000` | Used by `method='chrr'` only (the steps discarded before the first stored sample); the ACHR sampler of cobrapy has no such parameter. Same as `nBurnin` of RAVEN's `sampleCHRR` and `randomSampling`, which also applies to CHRR only. Not measured. |
 | `n_objectives` | `2` | Literature: [Bordel et al. 2010](https://doi.org/10.1371/journal.pcbi.1000859). |
 | `replace_max_bound` | `False` | Measured: applying the alternative (`True`) inside the Python and cobrapy solver stack makes the sampler unbounded on standard RAVEN-convention models (±1000 bounds). Kept different between the implementations by design, because of a solver-stack constraint. Whether MATLAB's own solver path handles it safely was not tested here. |
 | `loopless_good_reactions` | `True` | Loopless FVA excludes only reactions that take part in infeasible cycles, at higher cost; the alternative fixed-threshold (±999) heuristic also excludes reactions that legitimately reach capacity. The loopless technique is implemented in Python only; porting it is a larger project than changing a default. |
@@ -25,7 +25,7 @@ RAVEN MATLAB: `randomSampling` (`method='achr'|'chrr'|'random_objective'`), `sam
 | `maxiter` (in `max_volume_ellipsoid`) | `150` | Literature: [Zhang & Gao 2003](https://doi.org/10.1137/S1052623401397230). |
 | `tol`, `reg` (in `max_volume_ellipsoid`) | `1e-6`, `1e-8` | Same in both implementations. |
 
-Full detail: [sampling convergence study](parameter-tuning/studies/sampling-convergence-calibration.md) (the primary measurement)
+Full detail: [Flux sampling convergence and settings](parameter-tuning/studies/sampling-convergence-calibration.md) (the primary measurement)
 
 ## FSEOF
 
@@ -38,7 +38,7 @@ RAVEN MATLAB: `FSEOF`. raven-toolbox: `fseof`.
 | `correlation_threshold` | `0.9` | Literature: [Choi et al. 2010](https://doi.org/10.1128/AEM.00115-10); measured: 0.7 adds 4 spurious amplification targets on iJO1366. |
 | `flux_eps` | `1e-6` | Measured on iJO1366: the classification uses the fixed thresholds `1e-10` and `1e-8`, as RAVEN does; `flux_eps` gates the check against the theoretical maximum, and the target counts are identical at `1e-8`, `1e-7` and `1e-6`. |
 
-Full detail: [Parameter benchmarks](parameter-tuning/benchmarks.md)
+Full detail: [Benchmarks of `fseof`, `remove_genes` and other defaults](parameter-tuning/benchmarks.md)
 
 ## INIT / ftINIT
 
@@ -49,9 +49,9 @@ Only MATLAB has tINIT (`runINIT`, `getINITModel`); raven-toolbox implements ftIN
 | Parameter | Default | How determined |
 |---|---|---|
 | `prod_weight` | `0.5` | Literature: [Ågren et al. 2012](https://doi.org/10.1371/journal.pcbi.1002518) (the original INIT paper). |
-| `allow_excretion` | `False` | Measured zero effect at the default `prod_weight` across all three INIT entry points that existed at the time of measurement; raven-toolbox has dropped the two tINIT ones. |
-| `mip_gap` | `None` in Python (solver default); `0.0004` in MATLAB | Acts on the step-0 solve and on any step without a schedule of MILP runs; a named series such as `1+1` ignores it, because every step runs its own schedule. Measured on Human-GEM (HCT116) in the step-0 solve: the time is flat at 24 to 25 s, the Jaccard index to the 0.001 result is about 0.99 at 0.01, and the Jaccard index to the tightest result falls below 0.97 from 0.03. The Python default `None` needs no change. |
-| `time_limit` | `None` in Python; `5000` seconds in MATLAB | RAVEN's `ftINIT` sets the Gurobi `TimeLimit` of a MILP run without its own limit to 5000 seconds, and the step schedules of `getINITSteps` use runs of 120 s, 5000 s and 5 s. In Python, `ftinit` with a named series caps each scheduled run by its own limit and `time_limit` lowers that cap further; `time_limit=None` leaves an ad-hoc step or a `run_ftinit` call uncapped, but no scheduled run. Measured on Human-GEM HCT116 (single runs): single-step solves took 23 to 30 s and full pipelines 82 to 118 s. In the [robustness setup](parameter-tuning/studies/init-param-calibration.md) (degraded input, task layer on), an unbounded gap-fill MILP on one 90 %-dropout model ran longer than 75 minutes. `None` is the default, and the working range for hard or noisy input is 120 to 600 s per step. |
+| `allow_excretion` | `False` | Reported to have no effect at the default `prod_weight` in the three INIT entry points that existed at the time; no measurement is recorded on this site. raven-toolbox has dropped the two tINIT ones. |
+| `mip_gap` | `None` in Python (solver default); `0.0004` in MATLAB | Acts on the step-0 solve and on any step without a schedule of MILP runs; a named series such as `1+1` ignores it, because every step runs its own schedule. Measured on Human-GEM (HCT116) in the step-0 solve: the time is flat at 24 to 25 s, the Jaccard index to the result at the tightest gap (0.0002) is 0.9976 at 0.001 and 0.9908 at 0.01, and falls below 0.97 from 0.03. The Python default `None` needs no change. |
+| `time_limit` | `None` in Python; `5000` seconds in MATLAB | RAVEN's `ftINIT` sets the Gurobi `TimeLimit` of a MILP run without its own limit to 5000 seconds, and the step schedules of `getINITSteps` use runs of 120 s, 5000 s and 5 s. In Python, `ftinit` with a named series caps each scheduled run by its own limit and `time_limit` lowers that cap further; `time_limit=None` leaves an ad-hoc step or a `run_ftinit` call uncapped, but no scheduled run. The task gap-fill of `ftinit` is a separate MILP with a fixed limit of 300 s per task and does not read `time_limit`. Measured on Human-GEM HCT116 (single runs): step-0 solves took 23 to 30 s, and full pipelines 81 to 119 s with scaling and 157 s without. In the robustness runs of [ftINIT parameter calibration and input robustness](parameter-tuning/studies/init-param-calibration.md) (degraded input, with tasks), the gap-fill of one 90 %-dropout model ran longer than 75 minutes; the time limit of that run is not recorded. `None` is the default. The study ran its full pipelines at `time_limit=600` and its robustness runs at 120 s, and the working range for hard or noisy input is 120 to 600 s per step. |
 | `series` | `'1+1'` | Literature: [Gustafsson et al. 2023](https://doi.org/10.1073/pnas.2217868120) (the ftINIT paper). |
 | `force_on` | `0.1` | RAVEN's original value; measured near-insensitive across the range 0.02–0.5. |
 | `big_m` | `1000.0` | The cap on each scored reaction's own big-M, as in `ftINITInternalAlg`: the big-M of a reaction is `max(min(ub, big_m), min(-lb, big_m), 0)`, raised to `force_on` where the "on" floor needs it, and an infinite bound counts as `big_m`. The cap limits the flux a reaction can carry when it is on (it is the largest big-M of a scored reaction in its on/off constraint) and sets no bound on the reaction in the model. |
@@ -60,7 +60,7 @@ Only MATLAB has tINIT (`runINIT`, `getINITModel`); raven-toolbox implements ftIN
 | `factor`, `max_score`, `min_score` (in `gene_scores_from_expression`) | `5.0`, `10.0`, `-5.0` | RAVEN's own formula. An attribution to "Wang et al. 2012" was checked and could not be confirmed; no source in either implementation cites a paper for it. |
 | `score_reactions_from_genes` and `classify_reactions` arguments | various | Same in both implementations or standard practice. |
 
-Full detail: [INIT parameter calibration study](parameter-tuning/studies/init-param-calibration.md) (the primary measurement, genome-scale Human-GEM) · [INIT solver benchmark](parameter-tuning/studies/init-solver-benchmark.md) · [ftINIT reproducibility](parameter-tuning/studies/ftinit-determinism.md) (`resolve_ties=True` gives identical reaction sets at a fixed seed and a seed-to-seed difference of 41 reactions and 1 gene; adding `prove_abs_gap=1.0` reduces it to 1 reaction and 0 genes at about 26 times the run time) · [Human-GEM validation against MATLAB RAVEN](parameter-tuning/studies/humangem-validation.md) (Jaccard 0.964–0.988 against RAVEN across 5 cell lines)
+Full detail: [ftINIT parameter calibration and input robustness](parameter-tuning/studies/init-param-calibration.md) (the primary measurement, genome-scale Human-GEM) · [ftINIT on different solvers](parameter-tuning/studies/init-solver-benchmark.md) · [ftINIT reproducibility with `resolve_ties` and `prove_abs_gap`](parameter-tuning/studies/ftinit-determinism.md) (`resolve_ties=True` gives identical reaction sets at a fixed seed and a seed-to-seed difference of 41 reactions and 1 gene; adding `prove_abs_gap=1.0` reduces it to 1 reaction and 0 genes at about 26 times the run time) · [Human-GEM cell-type model validation against RAVEN](parameter-tuning/studies/humangem-validation.md) (Jaccard index against RAVEN across 5 cell lines of 0.964 to 0.982 for models extracted without tasks and 0.981 to 0.988 for task-constrained models)
 
 ## Gap-filling
 
@@ -69,11 +69,11 @@ RAVEN MATLAB: `fillGaps` (connectivity mode), ported as `connect_blocked_reactio
 | Parameter | Default | How determined |
 |---|---|---|
 | `epsilon` (in `fill_gaps_fast_lp`) | `0.0001` | Literature: [Thiele et al. 2014](https://doi.org/10.1093/bioinformatics/btu321) (the fastGapFill paper). |
-| `eps` (in `connect_blocked_reactions`) | `1.0` | Measured on a synthetic supply-limited model; a reliable noise filter for RAVEN-convention (±1000-bound) models; lower it for tightly constrained exchanges. |
+| `threshold` (in `connect_blocked_reactions`) | `1.0` | The flux a reaction must be able to exceed to count as unblocked. Same as the fixed threshold of 1 in RAVEN's `fillGaps`, and suited to models in the RAVEN convention, where exchange reactions have bounds of ±1000. Not measured. |
 | `penalty`, `allow_net_production` (in `connect_blocked_reactions`) | `1.0`, `False` | Measured or standard practice for reconstruction use (as against curation use). |
 | `big_m` (in `fill_gaps_milp`) | `1000.0` | Matches RAVEN's ±1000 bound convention. It caps an unbounded template reaction only when the merged model has no finite bound; otherwise the largest finite bound does. |
 
-Full detail: [Parameter benchmarks](parameter-tuning/benchmarks.md)
+Full detail: [Benchmarks of `fseof`, `remove_genes` and other defaults](parameter-tuning/benchmarks.md)
 
 ## Homology-based reconstruction
 
@@ -81,17 +81,17 @@ RAVEN MATLAB: `getModelFromHomology`, `getBlast`, `getDiamond`. raven-toolbox: `
 
 | Parameter | Default | How determined |
 |---|---|---|
-| `evalue` (`run_blast`) | `1e-4` | Matches MATLAB's `getBlast` (hardcodes `-evalue 10e-5`); measured to have no effect on the final model, because the filters of `get_model_from_homology` (`max_evalue` `1e-30`) dominate downstream. |
+| `evalue` (`run_blast`) | `1e-4` | Matches MATLAB's `getBlast` (hardcodes `-evalue 10e-5`). On *H. polymorpha* against *S. cerevisiae*, loosening it from `1e-5` to `1e-4` added 5,204 raw hits (8.9 % of the table), all of which fail the `max_evalue` filter (`1e-30`) of `get_model_from_homology`. |
 | `evalue` (`run_diamond`) | `1e-3` | Matches MATLAB's `getDiamond`, which passes no `-evalue` flag and so inherits DIAMOND's own default. The value is deliberately different from `run_blast`; each aligner follows its own MATLAB call. |
-| `threads` | every CPU the process may run on (Python); the cores assigned to MATLAB (MATLAB) | Measured deterministic across thread counts; the change affects performance only, with a speedup of ~1.9–4×. Both sides use all available cores. |
-| `max_evalue` | `1e-30` | Measured inert from `1e-4` to `1e-50`; identity and alignment length exclude whatever a looser e-value would admit. |
-| `min_align_len` | `100`; RAVEN 2.11.3 used `200` | Measured against independent KEGG and OMA ortholog references across a 4-organism relatedness series: recovers 3–4 points of recall over `200` at a cost of ≤0.6 points of precision. RAVEN 3's `getModelFromHomology` uses `minLen` 100 too. |
-| `min_identity` | `40` | Same study: the binding filter and the measured optimum, with a wrongly transferred reaction weighted as worse than a missing one. |
+| `threads` | every CPU the process may run on (Python); the cores assigned to MATLAB (MATLAB) | A 500-query BLAST subset returned the same 2,469 hits at one thread and at four, in 45.2 s and 23.7 s (1.9 times faster). Both sides use all available cores. |
+| `max_evalue` | `1e-30` | The score was identical from `1e-4` to `1e-50` on the two organisms tested (at identity 40 % and length 200) and fell at `1e-100`. That identity and alignment length already exclude whatever a looser E-value would admit is an inference, not checked against the hit tables. |
+| `min_align_len` | `100`; RAVEN 2.11.3 used `200` | Measured against the KEGG ortholog reference for 4 organisms of increasing distance from *S. cerevisiae*: compared with `200`, a length of 100 raised the score (F0.5) by 0.010 to 0.020, with 3 to 4 points more recall and at most 0.6 points less precision; 50 and 100 gave the same score. No OMA scores were reported for length. RAVEN 3's `getModelFromHomology` uses `minLen` 100 too. |
+| `min_identity` | `40` | Same study: the setting with the largest effect on the score. With a wrongly transferred reaction weighted as worse than a missing one (F0.5), the optimum was 35 or 40 % against KEGG and 35 or 45 % against OMA, depending on the organism. |
 | `bidirectional` | `True` | Same in both implementations. |
 
 An arm of the study that scored against curated GEMs (hanpo-GEM, rhto-GEM) built by the same reconstruction method was retired because the result was circular: agreement with the curated model peaked at exactly the build settings of that model and collapsed one step past them.
 
-Full detail: [homology cut-off calibration study](parameter-tuning/studies/homology-cutoff-calibration.md) (the primary measurement, including the retired curated-GEM arm)
+Full detail: [Homology cut-off calibration](parameter-tuning/studies/homology-cutoff-calibration.md) (the primary measurement, including the retired curated-GEM arm)
 
 ## KEGG-based reconstruction
 
@@ -99,14 +99,14 @@ RAVEN MATLAB: `getKEGGModelForOrganism` (the exact internal name of the KO-assig
 
 | Parameter | Default | How determined |
 |---|---|---|
-| `cutoff` (in `assign_kos`) | `1e-30`; RAVEN 2.11.3 used `1e-50` | Measured against real KEGG gene→KO annotations across 4 organisms of varying study depth: the tighter value lies inside the tail of real matches (~20 orders of magnitude above the noise floor) and discards correct hits without gain. RAVEN 3's `getKEGGModelForOrganism` uses `cutOff` `10^-30` too. |
-| `min_score_ratio_g` (in `assign_kos`) | `0.9`; RAVEN 2.11.3 used `0.8` | Same study: the precision lever with an effect (0.8→0.95 raises precision by ~0.07–0.10 at a cost of ~0.02 recall). RAVEN 3's `getKEGGModelForOrganism` uses `minScoreRatioG` `0.9` too. |
-| `min_score_ratio_ko` (in `assign_kos`) | `0.3` | Same study: measured inert (varying it changes precision and recall by ≤0.02); kept at the original value, since it does nothing either way. |
+| `cutoff` (in `assign_kos`) | `1e-30`; RAVEN 2.11.3 used `1e-50` | Measured against real KEGG gene→KO annotations across 4 organisms of varying study depth: `1e-50` lies inside the E-value distribution of the matched pairs and removes 1 to 10 % of them in three organisms and 10 to 50 % in *M. genitalium*. Precision rose with every stricter cut-off (*S. cerevisiae* 0.72 at `1e-30`, 0.78 at `1e-50`) at a cost in recall. Together with `min_score_ratio_g` 0.9, the default raised recall in all four organisms and kept F1 within 0.01. RAVEN 3's `getKEGGModelForOrganism` uses `cutOff` `10^-30` too. |
+| `min_score_ratio_g` (in `assign_kos`) | `0.9`; RAVEN 2.11.3 used `0.8` | Same study: from 0.80 to 0.95 it raised precision by 0.05 to 0.10 at a recall loss of 0.01 to 0.03, and from 0.50 to 0.80 by 0.15 to 0.27; 0.9 itself was not swept. RAVEN 3's `getKEGGModelForOrganism` uses `minScoreRatioG` `0.9` too. |
+| `min_score_ratio_ko` (in `assign_kos`) | `0.3` | Same study: from 0.0 to 0.5 it changed precision by 0.01 to 0.03 and recall not at all; kept at the RAVEN value. |
 | `seq_identity` (in `build_ko_hmm`) | `0.9` | Literature: the CD-HIT recommendation for protein clustering. |
 | `threads` (`run_hmmsearch`, `build_ko_hmm`) | every CPU the process may run on | Affects performance only; HMMER is deterministic across thread counts (to within insignificant float noise). |
 | `keep_spontaneous`, `keep_undefined_stoich`, `keep_incomplete`, `keep_general` (`get_kegg_model_*`) | `True`, `True`, `True`, `False` | Same in both implementations or standard draft-reconstruction practice. |
 
-Full detail: [KEGG HMM cut-off calibration study](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md) (the primary measurement, 4 organisms against real KEGG annotations)
+Full detail: [KEGG HMM cut-off calibration](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md) (the primary measurement, 4 organisms against real KEGG annotations)
 
 ## Sub-cellular localisation
 
@@ -134,7 +134,7 @@ RAVEN MATLAB: `removeGenes`, `mergeModels`, `addRxns`, `addTransport`, `simplify
 | `match_by` (in `merge_models`) | `'name'` (Python) and `'metNames'` (MATLAB) | Same semantic field (metabolite display name) under a different schema field name; no values disagree. |
 | `remove_orphans`, `mets_by`, `ignore_direction`, `reversible`, `only_to_existing` | various | Python additions and refinements; no direct MATLAB equivalent exists for comparison. |
 
-Full detail: [Parameter benchmarks](parameter-tuning/benchmarks.md)
+Full detail: [Benchmarks of `fseof`, `remove_genes` and other defaults](parameter-tuning/benchmarks.md)
 
 ## Tasks
 
@@ -144,7 +144,7 @@ RAVEN MATLAB: `checkTasks`. raven-toolbox: `check_tasks`, `find_task_essential_r
 |---|---|---|
 | `close_boundaries` (both functions) | `False` | Matches RAVEN's `checkTasks`, which leaves the model's own exchange reactions open; published task lists were curated against that. `True` makes the task the whole boundary, as `closeModel` does in RAVEN. |
 
-Full detail: [Parameter benchmarks](parameter-tuning/benchmarks.md)
+Full detail: [Benchmarks of `fseof`, `remove_genes` and other defaults](parameter-tuning/benchmarks.md)
 
 ## Cross-toolbox parity decisions
 
@@ -155,25 +155,25 @@ Policy: where Python and MATLAB RAVEN disagree on a default, one value is chosen
 | Parameter | Python now | MATLAB now | Unify at | Side that changes | Confidence | Evidence |
 |---|---|---|---|---|---|---|
 | `run_blast.evalue` | `1e-4` ✓ done | `1e-4` | `1e-4` | ~~Python~~ done | High | No downstream effect measured either way (`get_model_from_homology`'s `1e-30` dominates); matches `develop`'s independent PR #91 call |
-| `get_model_from_homology.min_align_len` | `100` ✓ done | `100` ✓ done (`200` in RAVEN 2.11.3) | `100` | ~~Python and MATLAB~~ done | High | Directly measured: [homology cut-off calibration study](parameter-tuning/studies/homology-cutoff-calibration.md) |
-| `assign_kos.cutoff` | `1e-30` ✓ done | `1e-30` ✓ done (`1e-50` in RAVEN 2.11.3) | `1e-30` | ~~MATLAB~~ done | High | Directly measured: [KEGG HMM cut-off calibration study](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md) |
+| `get_model_from_homology.min_align_len` | `100` ✓ done | `100` ✓ done (`200` in RAVEN 2.11.3) | `100` | ~~Python and MATLAB~~ done | High | Directly measured: [Homology cut-off calibration](parameter-tuning/studies/homology-cutoff-calibration.md) |
+| `assign_kos.cutoff` | `1e-30` ✓ done | `1e-30` ✓ done (`1e-50` in RAVEN 2.11.3) | `1e-30` | ~~MATLAB~~ done | High | Directly measured: [KEGG HMM cut-off calibration](parameter-tuning/studies/kegg-hmm-cutoff-calibration.md) |
 | `assign_kos.min_score_ratio_g` | `0.9` ✓ done | `0.9` ✓ done (`0.8` in RAVEN 2.11.3) | `0.9` | ~~MATLAB~~ done | High | Directly measured, same study |
-| `get_init_model.allow_excretion` | `False` ✓ done | `False` | `False` | ~~Python~~ done (2026-06-20) | High | Zero effect at default `prod_weight`, pure inconsistency; see `parameter-tuning/benchmarks.md` |
+| `run_ftinit.allow_excretion` | `False` ✓ done | `False` | `False` | ~~Python~~ done (2026-06-20) | High | Zero effect at default `prod_weight`, pure inconsistency; the measurement is not recorded on a page of [Parameter tuning](parameter-tuning/index.md). Within `ftinit`, the step schedule sets the value (`allow_met_secr`) |
 
 ### Settings resolved without unification
 
-The INIT parameters `mip_gap` and `time_limit` of `run_init` and `run_ftinit` are resolved by the genome-scale test with real expression data in the [INIT parameter calibration study](parameter-tuning/studies/init-param-calibration.md) (Human-GEM HCT116 and Hart2015), without matching the MATLAB numbers:
+The INIT parameters `mip_gap` and `time_limit` of `run_init` and `run_ftinit` are resolved by the genome-scale test with real expression data in [ftINIT parameter calibration and input robustness](parameter-tuning/studies/init-param-calibration.md) (Human-GEM HCT116 and Hart2015), without matching the MATLAB numbers:
 
 - `mip_gap`: solve time is flat across the gap in the single step-0 solve (model build dominates), so a tight gap is nearly free there. A named series such as `1+1` ignores `mip_gap` and `mip_gap_abs`, because every step runs its own schedule of MILP runs, so the full pipeline gives the same result at 0.001, 0.003 and 0.01. Neither 0.001 nor 0.01 is MATLAB's `0.0004`. Keep `None` (Gurobi's own `~1e-4` default is at least as tight as the measured-good `0.001`).
-- `time_limit`: RAVEN's `ftINIT` limits a MILP run to 5000 seconds when the run sets none, and its schedules use 120 s, 5000 s and 5 s runs. Python's `ftinit` with a named series caps each scheduled run by the same limits, and `time_limit` lowers the cap; `time_limit=None` leaves an ad-hoc step or a `run_ftinit` call uncapped, but no scheduled run. Measured step-0 solves took 23 to 30 s and full pipelines 82 to 118 s. In the robustness setup, one unbounded gap-fill MILP on a 90 %-dropout model ran longer than 75 minutes. The working values of the study are `120-600 s/step`. Keep `None` as the code default (correct for clean-data and single-step use, where no run-away has been observed); the docstring states the working values.
+- `time_limit`: RAVEN's `ftINIT` limits a MILP run to 5000 seconds when the run sets none, and its schedules use 120 s, 5000 s and 5 s runs. Python's `ftinit` with a named series caps each scheduled run by the same limits, and `time_limit` lowers the cap; `time_limit=None` leaves an ad-hoc step or a `run_ftinit` call uncapped, but no scheduled run. Measured step-0 solves took 23 to 30 s, and full pipelines 81 to 119 s with scaling and 157 s without. In the robustness setup, the gap-fill of one 90 %-dropout model ran longer than 75 minutes; the gap-fill has its own fixed limit of 300 s per task and does not read `time_limit`. The study ran its full pipelines at 600 s and its robustness runs at 120 s. Keep `None` as the code default; the docstring of `run_ftinit` states the working values, `120-600 s/step`.
 
-The [INIT solver benchmark](parameter-tuning/studies/init-solver-benchmark.md) measured GLPK honouring the 900 s limit: both steps of the full pipeline hit it, the run took 2182 s and kept 6758 reactions (Jaccard 0.892 against Gurobi). The `scipy` interface (HiGHS) fails because it supports continuous variables only. Gurobi is the backend the genome-scale numbers above were measured on, and the only one that completed without a step hitting the limit.
+[ftINIT on different solvers](parameter-tuning/studies/init-solver-benchmark.md) measured GLPK honouring the 900 s limit: both steps of the full pipeline hit it, the run took 2182 s and kept 6758 reactions (Jaccard 0.892 against Gurobi). The `scipy` interface (HiGHS) fails because it supports continuous variables only. Gurobi is the backend the genome-scale numbers above were measured on, and the only one that completed without a step hitting the limit.
 
 ### Values kept different
 
 | Parameter | Python | MATLAB | Why |
 |---|---|---|---|
-| `random_sampling.replace_max_bound` | `False` | `True` | Applying MATLAB's `True` inside cobrapy and optlang makes the sampler unbounded on standard RAVEN-convention models (measured; see `sampling.md`). Whether MATLAB's own solver path handles `True` safely was not tested here; in both cases the difference is a solver-stack constraint. |
+| `random_sampling.replace_max_bound` | `False` | `True` | Applying MATLAB's `True` inside cobrapy and optlang makes the sampler unbounded on standard RAVEN-convention models (measured; see [Flux sampling convergence and settings](parameter-tuning/studies/sampling-convergence-calibration.md)). Whether MATLAB's own solver path handles `True` safely was not tested here; in both cases the difference is a solver-stack constraint. |
 | `random_sampling.loopless_good_reactions` | `True` (loopless FVA) | heuristic (exclude FVA ≥ 999) | The two are different techniques. Loopless FVA excludes only reactions that take part in infeasible cycles, and the MATLAB heuristic also excludes reactions that legitimately reach capacity. Porting the loopless technique to MATLAB is a larger project than changing a default. |
 | `merge_models.match_by` | `'name'` | `'metNames'` | Same semantic field (metabolite display name) under a different field name, which results from the cobrapy and COBRA Toolbox schemas; the field name is not tunable. |
 | `run_diamond.evalue` | `1e-3` | `1e-3` (implicit) | Both agree at `1e-3`, matching the DIAMOND default. `getDiamond` passes no `-evalue` flag, so it inherits the DIAMOND default and does not follow the explicit `1e-4` of `getBlast`. `run_blast` and `run_diamond` deliberately stay unpaired: each follows the MATLAB call of its own aligner. |
@@ -194,7 +194,7 @@ The time-budget parameter of the localisation needs no port: `predictLocalizatio
 
 ## Open items
 
-- Genome-scale ACHR sampling convergence has no cheap fix. At genome scale (yeast-GEM, default ACHR settings) the median reaction fails the R-hat>1.1 threshold. Neither follow-up fixes it cheaply: reallocating the same step budget onto a larger `thinning` makes no measurable difference, and `method='chrr'` converges on a small model, but its genome-scale cost (a fixed per-chain rounding step alone costing ~80 min in a minimal probe) makes it impractical as a drop-in fix at the time of the study. The [sampling convergence calibration study](parameter-tuning/studies/sampling-convergence-calibration.md) describes the investigation, including a possible future unblock (caching the CHRR rounding transform across calls, an engineering change and not a parameter default, so out of scope here).
+- Genome-scale ACHR sampling convergence has no cheap fix. At genome scale (yeast-GEM, default ACHR settings) the median reaction fails the R-hat>1.1 threshold. Neither follow-up fixes it cheaply: reallocating the same step budget onto a larger `thinning` makes no measurable difference, and `method='chrr'` converges on a small model, but its genome-scale cost makes it impractical as a drop-in fix: a probe of 2 chains × 20 samples on yeast-GEM took 80 min in total, and the share of the rounding step in that time was not measured. [Flux sampling convergence and settings](parameter-tuning/studies/sampling-convergence-calibration.md) describes the investigation, including a possible future unblock (caching the CHRR rounding transform across calls, an engineering change and not a parameter default, so out of scope here).
 - The `gene_scores_from_expression` scoring constants (`factor=5.0`, `max_score=10.0`, `min_score=-5.0`) have no confirmed literature source on either side; see the INIT section.
 
 ## References

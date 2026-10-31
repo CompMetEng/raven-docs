@@ -106,7 +106,7 @@ Both call the same BLAST+ executables with the same parameters, so the hit count
 
 Without `threads`, `run_blast`, `run_diamond` and `run_supporth` use every CPU the process may run on. In MATLAB, `getBlast`, `getDiamond` and `runSuppOrth` use the cores assigned to MATLAB (`feature('numcores')`); `runSuppOrth` is the one of the three with a `threads` option.
 
-`getDiamond` and `run_diamond` are drop-in alternatives that search with DIAMOND instead. DIAMOND indexes the database and searches in reduced amino-acid alphabets, which makes it one to two orders of magnitude faster on a full proteome pair (minutes against hours), and less sensitive for distant homologs, where the seeds it uses are less likely to match. For a template within the same genus the difference is small; for a template several hundred million years away, BLASTP finds pairs DIAMOND misses.
+`getDiamond` and `run_diamond` are drop-in alternatives that search with DIAMOND instead. DIAMOND indexes the database and searches in reduced amino-acid alphabets, which made it 10.5 and 19.7 times faster than BLASTP on two full proteome pairs (34 s against 358 s and 40 s against 788 s in [Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)), and less sensitive for distant homologs, where the seeds it uses are less likely to match. For a template within the same genus the difference is small; for a template several hundred million years away, BLASTP finds pairs DIAMOND misses.
 
 `makeFakeBlastStructure` and `make_ortholog_hits` wrap orthology assignments from another source (OrthoFinder, OMA, a published table) in the structure the transfer step expects, so no search is run.
 
@@ -159,7 +159,7 @@ Three cut-offs control which hits are accepted, and tightening any of them shrin
 
 `maxE` / `max_evalue` (`1e-30`) is the maximum BLAST E-value, the number of hits of at least this quality expected by chance in a database this size. The default is strict by BLAST standards, where `1e-5` is a common threshold, because transferring a reaction on a marginal hit adds a claim about metabolism that nothing downstream questions.
 
-`minLen` / `min_align_len` (`100`) is the minimum aligned length in residues. It rejects hits that align well over a short conserved domain while the rest of the protein is unrelated. The value was measured against KEGG and OMA orthology assignments across four organisms: anything at or below 150 gave the same result, and higher values discarded genuine orthologs whose alignment was interrupted.
+`minLen` / `min_align_len` (`100`) is the minimum aligned length in residues. It rejects hits that align well over a short conserved domain while the rest of the protein is unrelated. The value was measured against KEGG orthology assignments across four organisms ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)): 50 and 100 gave the same score, 150 a score at most 0.003 lower, and 200 and 300 lower scores, mainly through lost recall.
 
 `minIde` / `min_identity` (`40`) is the minimum percentage identity across the alignment.
 
