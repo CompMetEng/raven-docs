@@ -62,7 +62,7 @@ absent.
 
 | | |
 |---|---|
-| [What each has that the other doesn't](raven3-vs-raven-toolbox/what-each-has.md) | Capabilities that exist on only one side: cobrapy's foundation and KEGG artefact generation on the Python side; tINIT, COBRA Toolbox conversion, dynamic FBA, and MATLAB-specific plumbing on the MATLAB side. |
+| [Features specific to each implementation](raven3-vs-raven-toolbox/what-each-has.md) | Capabilities that exist on only one side: cobrapy's foundation and KEGG artefact generation on the Python side; tINIT, COBRA Toolbox conversion, dynamic FBA, and MATLAB-specific plumbing on the MATLAB side. |
 | [Same function, different answer](raven3-vs-raven-toolbox/same-function-different-answer.md) | Where both sides do the same job but hand back a different result: gene-association merging, task-checking runtime, gap-filling's three-way split, MILP alternate optima, and elemental balance. |
 
 ## Solvers

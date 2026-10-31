@@ -1,75 +1,43 @@
-# What each has that the other doesn't
+# Features specific to each implementation
 
-## What only raven-toolbox has
+## Features specific to raven-toolbox
 
-### Built on cobrapy
+### Model type
 
-The largest difference is not a feature but a foundation: a raven-toolbox model
-**is** a `cobra.Model`. Every cobrapy tool, and everything in the wider COBRA
-Python ecosystem, works on it without conversion. RAVEN's own model is a MATLAB
-struct, and `ravenCobraWrapper` converts between that and the COBRA Toolbox
-format as an explicit step.
+A raven-toolbox model is a `cobra.Model`. Every cobrapy function, and the wider COBRA Python ecosystem, applies to it without conversion. RAVEN uses a MATLAB struct as the model, and `ravenCobraWrapper` converts between that struct and the COBRA Toolbox format.
 
-The practical consequence: FBA, FVA, knockouts, media handling and the rest come
-from cobrapy rather than from raven-toolbox, which is why so many RAVEN
-functions have a *cobrapy* row rather than a Python counterpart in the mapping
-table.
+FBA, FVA, knockouts and media handling, among other functions, are provided by cobrapy and not by raven-toolbox. The mapping table therefore gives a *cobrapy* row, not a raven-toolbox function, for the corresponding RAVEN functions.
 
 ### KEGG artefact generation
 
-raven-toolbox can build the KEGG reference artefacts themselves, parsing a KEGG
-release into reaction and compound tables, assembling the reference model,
-building the per-KO FASTA sets and HMM libraries, and deriving the phylogenetic
-distance matrix. RAVEN consumes pre-built artefacts; it does not produce them.
+raven-toolbox builds the KEGG reference artefacts: it parses a KEGG release into reaction and compound tables, assembles the reference model, builds the per-KO FASTA sets and HMM libraries, and derives the phylogenetic distance matrix. RAVEN uses pre-built artefacts and does not produce them.
 
-This is what keeps the KEGG route reproducible against a stated KEGG release
-rather than against whichever artefact is currently distributed.
+This makes the KEGG route reproducible for a stated KEGG release, independent of which artefact is currently distributed.
 
-### Smaller additions
+### Further functions
 
-- **Growth conditions**: apply a named, versioned growth condition to a model.
-- **Batch curation**: apply a table of curation edits to a model in one pass.
-- **ΔG and SBO annotation**: load and save thermodynamic data through CSV, and
-  assign SBO terms.
-- **Biomass helpers**: sum a biomass composition, rescale a pseudoreaction, and
-  scale a fraction to a measured value.
-- **Checksummed provisioning**: both toolboxes now fetch BLAST+, DIAMOND,
-  HMMER and the KEGG artefacts on demand rather than bundling them, from the
-  same release. What is Python-only is the baked registry that pins a given
-  release to the exact assets it was tested against; RAVEN resolves from the
-  published release each time. See
-  [Download data and binaries](../installation/data-and-binaries.md).
+| Area | Description |
+|---|---|
+| Growth conditions | Apply a named, versioned growth condition to a model. |
+| Batch curation | Apply a table of curation edits to a model in one pass. |
+| ΔG and SBO annotation | Load and save thermodynamic data through CSV, and assign SBO terms. |
+| Biomass helpers | Sum a biomass composition, rescale a pseudoreaction, and scale a fraction to a measured value. |
+| Checksummed provisioning | Both toolboxes fetch BLAST+, DIAMOND, HMMER and the KEGG artefacts on demand from the same release and do not bundle them. Only raven-toolbox has the baked registry that pins a release to the exact assets it was tested against; RAVEN resolves from the published release each time. See [Download data and binaries](../installation/data-and-binaries.md). |
 
-## What only RAVEN has
+## Features specific to RAVEN
 
 ### tINIT
 
-`getINITModel` and `runINIT` are the original tINIT implementation. RAVEN keeps
-them for the models already built with them; raven-toolbox, a new
-implementation with no such installed base, carries ftINIT alone. A tINIT model
-has to be reproduced in MATLAB; see
-[14. Context-specific models](../guide/init.md).
+`getINITModel` and `runINIT` are the original tINIT implementation. RAVEN keeps them for models built with them. raven-toolbox is a new implementation without such an installed base and provides ftINIT only. A tINIT model has to be reproduced in MATLAB; see [14. Context-specific models](../guide/init.md).
 
 ### COBRA Toolbox conversion
 
-`ravenCobraWrapper` converts between the RAVEN and COBRA Toolbox model
-structures. There is nothing to convert in Python: the model is already a
-`cobra.Model`, so no equivalent exists or is needed.
+`ravenCobraWrapper` converts between the RAVEN and COBRA Toolbox model structures. In Python the model is a `cobra.Model`, so no conversion is needed and no equivalent exists.
 
 ### Dynamic FBA
 
-`runDynamicFBA` has no Python counterpart, deliberately. Several maintained
-Python packages already cover dynamic FBA well
-([dfba](https://pypi.org/project/dfba/),
-[reframed](https://pypi.org/project/reframed/),
-[mewpy](https://pypi.org/project/mewpy/)), and reimplementing it would add a
-second-rate version of something that already exists.
+`runDynamicFBA` has no Python counterpart by design. Maintained Python packages cover dynamic FBA ([dfba](https://pypi.org/project/dfba/), [reframed](https://pypi.org/project/reframed/), [mewpy](https://pypi.org/project/mewpy/)), and raven-toolbox does not duplicate them.
 
-### MATLAB-specific plumbing
+### MATLAB-specific functions
 
-A large share of RAVEN's function count is MATLAB housekeeping with nothing to
-map to: path management (`addRavenToUserPath`, `findRAVENroot`), argument
-handling (`parseRAVENargs`, `convertCharArray`), progress and printing
-(`setRavenProgress`, `printOrange`), and the solver abstraction
-(`optimizeProb`, `setRavenSolver`), which in Python is cobrapy's solver
-interface via optlang.
+A large share of the RAVEN functions are MATLAB housekeeping without a Python counterpart: path management (`addRavenToUserPath`, `findRAVENroot`), argument handling (`parseRAVENargs`, `convertCharArray`), progress and printing (`setRavenProgress`, `printOrange`), and the solver abstraction (`optimizeProb`, `setRavenSolver`), which in Python is the solver interface of cobrapy (optlang).
