@@ -38,7 +38,7 @@ raven-toolbox function name; some RAVEN functions map to cobrapy instead
 (`solveLP` → `model.optimize()`), and some have no Python counterpart at all
 (there is no Excel reader). Look each one up in the
 [API reference](../api/index.md), and see
-[RAVEN vs. raven-toolbox](../raven3-vs-raven-toolbox.md) for what maps where.
+[Comparison of RAVEN and raven-toolbox](../raven3-vs-raven-toolbox.md) for what maps where.
 :::
 
 ```{toctree}

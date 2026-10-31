@@ -71,7 +71,7 @@ setRavenSolver('cobra');
 
 `ravenCobraWrapper` converts a model between the RAVEN struct and the COBRA
 Toolbox structure; see
-[RAVEN vs. raven-toolbox](../raven3-vs-raven-toolbox.md#solvers).
+[COBRA Toolbox conversion](../raven3-vs-raven-toolbox/what-each-has.md#cobra-toolbox-conversion).
 
 ---
 

@@ -48,10 +48,9 @@ aliases:
 
   # Gap-filling and topology
   fillGaps: connect_blocked_reactions
-  canExchange: analyse_topology
-  checkProduction: analyse_topology
-  getAllSubGraphs: analyse_topology
-  haveFlux: analyse_topology
+  canExchange: gap_report
+  checkProduction: gap_report
+  getAllSubGraphs: gap_report
 
   # INIT / ftINIT
   fitTasks: fill_tasks
@@ -118,6 +117,7 @@ cobrapy:
   grRuleToString: cobra.core.gene.GPR
   getGenesFromGrRules: cobra.core.gene.GPR
   getAllRxnsFromGenes: cobra.Gene.reactions
+  haveFlux: cobra.flux_analysis.find_blocked_reactions
 
 not_ported:
   getINITModel: >-

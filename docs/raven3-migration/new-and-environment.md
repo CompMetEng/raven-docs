@@ -1,77 +1,96 @@
-# New functionality, dependencies, and error handling
+# New functionality, dependencies and error handling
+
+Gap-filling, context-specific model extraction with `ftINIT`, new functions, MATLAB toolbox dependencies and error handling differ between RAVEN 2 and RAVEN 3.
 
 (ftinit)=
-## 1. Gap-filling and context-specific model extraction
+## Gap-filling and context-specific model extraction
 
-| | RAVEN 2 | RAVEN 3 |
+| Aspect | RAVEN 2 | RAVEN 3 |
 |---|---|---|
-| `fillGaps` algorithm | one built-in MILP connectivity-maximization strategy | same strategy is still the default; `algorithm` option adds `'fastLP'`/`'swiftLP'` (FASTCORE/SWIFTCORE-style LP relaxation), `'gapfillMILP'` (growth-floor MILP with directionality repair), `'topological'` (BFS producibility pre-screen, no model modification). `fillGaps` calls `gapFillTopological` with the defaults of that function: the seeds are the metabolites of every reaction that has only substrates and a negative lower bound or only products and a positive upper bound, and the targets are the metabolites of the first objective reaction, substrates and products. `fillGaps` passes neither seeds nor targets, so a model without an objective reaction always raises `RAVEN:badInput` there. |
-| `fillGaps` positional arguments | `allowNetProduction, useModelConstraints, supressWarnings, rxnScores` | unchanged; new options are name-value-only |
-| `ftINIT` tie-breaking | depends on solver seed | optional `resolveTies` reduces the dependence of the answer on the solver seed. Each MILP step keeps the score optimum and then picks among the tied solutions in phases: the fewest kept removable reactions, the lowest summed id rank of those (a merged reaction is ranked by the smallest original id of its group), the fluxes with the least total absolute flux, and the fluxes with the least id-rank-weighted backward flux. |
-| `ftINIT` MILP optimality proof | escalating relative-gap search only | optional `proveAbsGap` proves each stage to a fixed absolute gap in one solve |
-| `ftINIT` positional arguments | preserved | unchanged; `resolveTies`/`proveAbsGap` are name-value-only, default off |
-| `ftINITInternalAlg` tie-break arguments | (not present) | `rankKeys` (14th argument, default `model.rxns`) gives the key each reaction is ranked by in the id-rank phases of `resolveTies`; `pinFluxes` (15th, default `true`) set to `false` skips the two flux phases of `resolveTies`. `ftINIT` passes `false` in its last step. |
-| `getINITModel`/`runINIT` | supported, no runtime notice | supported, now under `INIT/tINIT/`; one-time "legacy, use `ftINIT`" notice (see [§5](#renamed-merged-and-consolidated-functions)) |
-| `fitTasks` gap-fill mode | one behavior (equivalent to today's `'merge'`) | `gapFillMode`: `'merge'` (default, same as before) or `'preMerged'` (faster, ftINIT-style) |
+| `fillGaps` algorithm | One built-in mixed-integer linear programming (MILP) connectivity-maximisation strategy | The same strategy remains the default; the `algorithm` option adds `'fastLP'`, `'swiftLP'`, `'gapfillMILP'` and `'topological'` |
+| `fillGaps` positional arguments | `allowNetProduction, useModelConstraints, supressWarnings, rxnScores` | Unchanged; new options are name-value-only |
+| `ftINIT` tie-breaking | Depended on the solver seed | Optional `resolveTies` makes the answer less dependent on the solver seed |
+| `ftINIT` MILP optimality proof | Escalating relative-gap search only | Optional `proveAbsGap` proves each stage to a fixed absolute gap in one solve |
+| `ftINITInternalAlg` tie-break arguments | (not present) | `rankKeys` (14th argument) and `pinFluxes` (15th argument) |
+| `getINITModel` and `runINIT` | Supported, no runtime notice | Supported, under `INIT/tINIT/`; one-time "legacy, use `ftINIT`" notice (see [Renamed and merged functions](#renamed-merged-and-consolidated-functions)) |
+| `fitTasks` gap-fill mode | One behaviour (equivalent to `'merge'`) | `gapFillMode`: `'merge'` (default, same as in RAVEN 2) or `'preMerged'` |
 | `fitTasks` outputs | `[outModel, addedRxns]` | `[outModel, addedRxns, failedTasks]` |
-| Task requiring net production of a metabolite with no reactions | boundary constraint silently dropped before gap-filling; task could incorrectly report as passing | constraint preserved; task correctly reports failing if the reference model can't produce it |
+| Task requiring net production of a metabolite with no reactions | Boundary constraint dropped before gap-filling without a message; the task could be reported as passing incorrectly | Constraint preserved; the task is reported as failing if the reference model cannot produce the metabolite |
+
+With `gapFillMode` set to `'preMerged'`, `fitTasks` expects a reference model that already contains the model's own reactions, so no merge is needed for each task, and `ftINITFillGaps` fills the gaps.
+
+The `algorithm` option of `fillGaps` selects among the following:
+
+- `'fastLP'` and `'swiftLP'`: FASTCORE-style and SWIFTCORE-style linear programming (LP) relaxation.
+- `'gapfillMILP'`: growth-floor MILP with directionality repair.
+- `'topological'`: breadth-first search producibility pre-screen, without model modification.
+
+`fillGaps` calls `gapFillTopological` with the defaults of that function: the seeds are the metabolites of every reaction that has only substrates and a negative lower bound or only products and a positive upper bound, and the targets are the metabolites of the first objective reaction, substrates and products. `fillGaps` passes neither seeds nor targets, so a model without an objective reaction always raises `RAVEN:badInput` there.
+
+With `resolveTies`, each `ftINIT` MILP step keeps the score optimum and then picks among the tied solutions in phases: the fewest kept removable reactions, the lowest summed ID rank of those (a merged reaction is ranked by the smallest original ID of its group), the fluxes with the least total absolute flux, and the fluxes with the least ID-rank-weighted backward flux. The arguments `resolveTies` and `proveAbsGap` are name-value-only and default to off; the positional arguments of `ftINIT` are unchanged.
+
+In `ftINITInternalAlg`, `rankKeys` (default `model.rxns`) gives the key each reaction is ranked by in the ID-rank phases of `resolveTies`. Setting `pinFluxes` (default `true`) to `false` skips the two flux phases of `resolveTies`. `ftINIT` passes `false` in its last step.
 
 ---
 
 (new-functionality)=
-## 2. New functionality
+## New functionality
 
-All additive; none of this replaces or changes behavior of existing RAVEN 2
-functions, except where noted.
+RAVEN 3 adds the functions in the table; except where noted they do not change RAVEN 2 functions.
 
-| Area | New function(s) | What it adds |
+| Area | New functions | Added capability |
 |---|---|---|
-| Flux sampling (`analysis/`) | `sampleACHR`, `sampleCHRR`, `sampleMaxVolEllipse`, `sampleChebyshevCenter`, `sampleWarmupPoints` | `randomSampling` becomes a dispatcher (`'method'` option) across RAVEN 2's original random-objective method (now `'randomObjective'`) plus two new near-uniform MCMC samplers: ACHR (hit-and-run) and CHRR (hit-and-run with rounding, better mixing on ill-conditioned polytopes) |
-| Flux analysis / QC | `compareFluxes`, `getMinimalMedium`, `traceFluxPath`, `walkFluxes`, `modelSummary` | structured flux-vector diffing; MILP-based minimal-medium search; highest-flux-fraction path tracing between two reactions; interactive flux-neighborhood navigation; model/flux summary printing |
-| Model comparison (`comparison/`) | `diffModels` | structured, ID-keyed diff between two models: stoichiometry, bounds, objective, grRule (as logical DNF equality), EC codes, metabolite properties; distinct from the existing overlap-style `compareMultipleModels` |
-| Manipulation | `findDuplicateRxns`, `findPotentialErrors` | standalone duplicate-stoichiometry query; parse-tree-based non-DNF grRule detection (see [§8](#gpr-parsing)) |
-| Genome-based curation (`curation/`, new folder) | `downloadGenomeData`, `getGeneData`, `processProteinFastaFile`, `renameModelGenes`, `curateModelFromTables` | pipeline from an NCBI genome accession to a gene ID mapping table to bulk gene renaming in a model; `curateModelFromTables` bulk-curates mets/rxns/genes from `.tsv` files against an existing model |
-| Biomass composition (`biomass/`) | `getBiomassFractions`, `scaleBiomassFraction`, `scaleBiomassPseudoreaction`, `setGAM` | organism-agnostic biomass-composition and growth-associated-maintenance (GAM) calibration; `tutorial/tutorial7.m` demonstrates the workflow |
-| Localization (`localization/`) | `assignCompartments`, `defaultCompartmentMap`, `getUniProtScores` | deterministic MILP compartment assignment (alternative to the heuristic `predictLocalization`); `parseScores` gains `'deeploc'`/`'cello'`/`'mulocdeep'`/`'compartments'`/`'uniprot'` predictors (replacing WoLF PSORT; see [§3](../raven3-migration/backward-incompatible.md#backward-incompatible-changes)) |
-| Annotation (`annotation/`) | `assignSBOterms`, `loadDeltaGCSV`/`saveDeltaGCSV` | organism-agnostic SBO term assignment; ΔG thermodynamic data CSV round-trip |
-| Conditions (`conditions/`, new folder) | `applyCondition` | applies a data-driven growth/media condition (a YAML file, not code) to a model in a fixed sequence: exchange bounds, optional cofactor-pseudoreaction edits, optional biomass-stoichiometry deltas, per-reaction bound overrides |
-| Internal infrastructure | `ravenModelFields` | central registry of every 1-D model field (entity type, default value), backing `permuteModel`/`removeReactions` internally |
+| Flux sampling (`analysis/`) | `sampleACHR`, `sampleCHRR`, `sampleMaxVolEllipse`, `sampleChebyshevCenter`, `sampleWarmupPoints` | ACHR (hit-and-run) and CHRR (hit-and-run with rounding), two near-uniform Markov chain Monte Carlo (MCMC) samplers |
+| Flux sampling (`analysis/`) | `randomSampling` (changed) | Becomes a dispatcher (`'method'` option) over the RAVEN 2 random-objective method (now `'randomObjective'`) and the two new samplers |
+| Flux analysis and quality control (QC) | `compareFluxes` | Diffs flux vectors |
+| Flux analysis and QC | `getMinimalMedium` | Searches a minimal medium with a MILP |
+| Flux analysis and QC | `traceFluxPath` | Traces the path of highest flux fraction between two reactions |
+| Flux analysis and QC | `walkFluxes` | Navigates the flux neighbourhood interactively |
+| Flux analysis and QC | `modelSummary` | Prints a model and flux summary |
+| Model comparison (`comparison/`) | `diffModels` | Diffs two models by ID: stoichiometry, bounds, objective, `grRules` (logical equality in disjunctive normal form, DNF), EC codes, metabolite properties |
+| Manipulation | `findDuplicateRxns` | Standalone duplicate-stoichiometry query |
+| Manipulation | `findPotentialErrors` | Function of its own (a local function of `core/standardizeGrRules.m` in RAVEN 2); parse-tree-based detection of `grRules` that are not in DNF and of rules that cannot be parsed (see [Parsing of gene-reaction rules](#gpr-parsing)) |
+| Genome-based curation (`curation/`, new folder) | `downloadGenomeData`, `getGeneData`, `processProteinFastaFile` | Pipeline from an NCBI genome accession to a gene ID mapping table |
+| Genome-based curation (`curation/`, new folder) | `renameModelGenes` | Bulk gene renaming in a model |
+| Genome-based curation (`curation/`, new folder) | `curateModelFromTables` | Bulk curation of metabolites, reactions and genes from `.tsv` files against an existing model |
+| Biomass composition (`biomass/`) | `getBiomassFractions`, `scaleBiomassFraction`, `scaleBiomassPseudoreaction`, `setGAM` | Organism-agnostic biomass-composition and growth-associated-maintenance (GAM) calibration; `tutorials/tutorial7.m` demonstrates the workflow |
+| Localisation (`localization/`) | `assignCompartments`, `defaultCompartmentMap`, `getUniProtScores` | Deterministic MILP compartment assignment (alternative to the heuristic `predictLocalization`) |
+| Localisation (`localization/`) | `parseScores` (changed) | Gains `'mulocdeep'`, `'compartments'` and `'uniprot'`; `'deeploc'` reads DeepLoc 2 output; the default predictor is `'deeploc'` (RAVEN 2: `'wolf'`); WoLF PSORT is removed (see [Backward-incompatible changes](#backward-incompatible-changes)) |
+| Annotation (`annotation/`) | `assignSBOterms`, `loadDeltaGCSV`, `saveDeltaGCSV` | Organism-agnostic SBO term assignment; ΔG thermodynamic data CSV round-trip |
+| Conditions (`conditions/`, new folder) | `applyCondition` | Applies a data-driven growth or media condition, given as a YAML file, to a model |
+| Internal infrastructure | `ravenModelFields` | Central registry of every 1-D model field (entity type, default value), used internally by `permuteModel`, `removeReactions` and `curateModelFromTables` |
+
+`sampleCHRR` rounds the polytope before sampling, so mixing stays fast on strongly elongated polytopes, such as enzyme-constrained models, unlike `sampleACHR`.
+
+`diffModels` is separate from `compareMultipleModels`, the existing overlap-style comparison. `applyCondition` applies the parts of a condition in a fixed sequence: exchange bounds, optional cofactor-pseudoreaction edits, optional biomass-stoichiometry deltas and per-reaction bound overrides.
 
 ---
 
 (toolbox-deps)=
-## 3. Toolbox dependencies and installation
+## Toolbox dependencies and installation
 
-| | RAVEN 2 | RAVEN 3 |
+| Aspect | RAVEN 2 | RAVEN 3 |
 |---|---|---|
-| MATLAB version | no pinned/documented minimum (guidance: avoid very new MATLAB syntax, to accommodate older installs) | CI is tested against **R2024b** |
-| Statistics Toolbox | required (`combnk`) | not required (`nchoosek`, base MATLAB) |
-| Bioinformatics Toolbox | required (`fastaread`/`fastawrite`) | not required (`io/readFasta.m`/`io/writeFasta.m`) |
-| Optimization Toolbox | required for `qMOMA`/`solveQP` | not required (both removed) |
-| Excel I/O | bundled Apache POI (Java) | dependency-free OOXML writer |
-| LP/MILP solver | required (bundled `glpk`, or Gurobi/SCIP/COBRA) | unchanged, still required |
-| External binaries (BLAST+, DIAMOND, HMMER, cd-hit, MAFFT) | committed to the repository, available offline immediately after clone | fetched on demand from the `raven-data` GitHub release on first use (per-platform ZIPs); an offline `*-full`/`*-binaries` release bundle is available for air-gapped installs |
-| KEGG HMM libraries / reference data | manual download or local build required | fetched on demand from `raven-data`, cached locally after first use |
-| Installation self-check | `installation/checkInstallation.m`; ran the full test suite to populate its pass/fail table | renamed `checkRaven`, moved to the repo root; does fast, targeted checks (a small import/export round-trip, a trivial LP per solver) instead of invoking the full test classes, and proactively offers to download missing binaries |
+| MATLAB version | No pinned or documented minimum (guidance: avoid very new MATLAB syntax, to accommodate older installs) | Tested in continuous integration with R2024b |
+| Statistics Toolbox | Required (`combnk`) | Not required (`nchoosek`, base MATLAB) |
+| Bioinformatics Toolbox | Required (`fastaread` and `fastawrite`) | Not required (`io/readFasta.m` and `io/writeFasta.m`) |
+| Optimization Toolbox | Required for `qMOMA` and `solveQP` | Not required (both removed) |
+| Excel I/O | Bundled Apache POI (Java) | Dependency-free OOXML writer |
+| LP and MILP solver | Required (bundled `glpk`, or Gurobi, SCIP or COBRA) | Unchanged, still required |
+| External binaries | Committed to the repository, available offline immediately after clone | BLAST+, DIAMOND and HMMER are fetched on demand on first use (per-platform ZIPs); an offline `*-binaries` release bundle is available for air-gapped installs |
+| KEGG HMM libraries and reference data | Manual download or local build required | Fetched on demand, cached locally after first use |
+| Installation self-check | `installation/checkInstallation.m` ran the full test suite to populate its pass/fail table | `checkRaven` in the repository root runs targeted checks and downloads missing binaries without a prompt (see [Renamed and merged functions](#renamed-merged-and-consolidated-functions)) |
 
-Net effect: a bare RAVEN 3 clone is far smaller and installs with fewer MATLAB
-toolbox prerequisites. The trade-off: it needs network access the first time
-KEGG- or homology-based reconstruction functions actually run.
+All downloads come from releases of `toolbox-assets`. KEGG data comes from the release tag that `keggDataVersion()` returns (`src/reconstruction/kegg/KEGG_VERSION.md`, tag `kegg118`). The binaries come from fixed tags set in `src/installation/downloadRavenBinaries.m`: `blast-2.17.0`, `diamond-2.1.17`, `hmmer-3.4.0` and, on Windows, `hmmer-3.3.2`. The checksums of downloaded files come from `manifest.json` of the `manifest-v3` release, read at download time.
+
+`checkRaven` runs a small import and export round-trip and a two-reaction LP per solver, without invoking the full test classes.
+
+A RAVEN 3 clone fetches binaries and data on demand, which requires network access.
 
 ---
 
-## 4. Error and warning handling
+## Error and warning handling
 
-RAVEN 2's `dispEM` always raised errors with an empty identifier, so no RAVEN 2
-`try/catch` could have matched on `err.identifier`; RAVEN 3's move to native
-`error()`/`warning()` with real (mostly `RAVEN:*`) identifiers is additive from
-that angle, not breaking. Message text is preserved for most existing checks,
-so text-matching `try/catch` blocks are unaffected either way. See
-[§3](../raven3-migration/backward-incompatible.md#backward-incompatible-changes) for the details and the new
-`utils/ravenList.m` message-formatting helper.
+RAVEN 3 raises errors and issues warnings with native `error()` and `warning()` calls that carry identifiers, mostly `RAVEN:*`. The identifiers are additive, and message text is preserved for most existing checks, so `try/catch` blocks that match on message text keep working for those checks. [Backward-incompatible changes](#backward-incompatible-changes) gives the details of the `dispEM` replacement, and [Removed functionality](#removed-functionality) names the new `utils/ravenList.m` helper.
 
-One related, purely additive change: `queries/checkModelStruct.m`, called *with*
-an output argument (`issues = checkModelStruct(model)`), now returns a
-structured array of findings (`category`/`target`/`message`) instead of only
-throwing or printing, useful for programmatic model QC. The no-output-argument
-calling convention (throws/warns directly) is unchanged.
+RAVEN 3 adds an output argument to `queries/checkModelStruct.m`: `issues = checkModelStruct(model)` returns a structured array of the problems (`category`, `target` and `message`) for programmatic model QC and raises no error. Without an output argument it raises errors or issues warnings directly, as in RAVEN 2.
