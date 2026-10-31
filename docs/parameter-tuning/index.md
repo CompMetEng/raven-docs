@@ -1,57 +1,21 @@
 # Parameter tuning
 
-RAVEN, both the MATLAB toolbox and raven-toolbox (Python), ships many
-functions with numerical defaults: solver tolerances, cut-offs, iteration
-limits, literature constants. [Tuned parameter defaults](../tuned-parameters.md)
-gives the short version of every one of them: current value, one-line reason,
-grouped by capability. This section is the detail behind that page: the
-methodology used to evaluate a default, the full write-up for every parameter
-that got a dedicated measurement campaign, and the quicker per-function
-working notes produced along the way (**benchmarks**).
+RAVEN, both the MATLAB toolbox and raven-toolbox (Python), ships many functions with numerical defaults: solver tolerances, cut-offs, iteration limits, literature constants. [Tuned parameter defaults](../tuned-parameters.md) gives the short version of every one of them: current value, one-line reason, grouped by capability. The detail behind that page comprises the methodology for evaluating a default, the full write-up for every parameter that had a dedicated measurement campaign, and the quicker per-function working notes (**benchmarks**) produced along the way.
 
 ## Evaluation methodology
 
-A default value is *well-chosen* when a user who does not read the docstring
-gets a result that is correct and useful for the most common case.
+A default value is well-chosen when a user who does not read the docstring gets a correct and useful result for the most common case.
 
-**On MATLAB/Python parity:** neither implementation's defaults were
-systematically validated from the start; MATLAB RAVEN's were often chosen by
-trial-and-error, copied from earlier tools, or never reconsidered, and
-raven-toolbox inherited a mix of ported MATLAB values and upstream (cobrapy)
-conventions. An existing default in either toolbox is a useful *prior*: it
-reflects years of practical use, or a well-tested upstream library, but it is
-not necessarily correct. Where the two implementations differ, the right
-response is to run both and measure, not to assume whichever came first is
-correct.
+**MATLAB and Python parity.** The defaults of both implementations were not systematically validated from the start. MATLAB RAVEN's defaults were often chosen by trial and error, copied from earlier tools, or never reconsidered, and raven-toolbox inherited a mix of ported MATLAB values and upstream (cobrapy) conventions. An existing default in either toolbox is a prior: it reflects years of practical use or a well-tested upstream library, and it is not necessarily correct. Where the two implementations differ, the response is to run both and measure; the value that came first is not assumed to be correct.
 
 The following criteria apply in rough priority order:
 
-1. **Empirical correctness on real models.** Run the function with the
-   candidate default on at least one large model (Yeast9, Human-GEM) and one
-   small model (iJO1366 or similar). Compare the result against a known-good
-   answer (a published reconstruction, a literature flux distribution, a
-   validated gene-essentiality set). The default must produce a result that is
-   meaningfully better than the alternatives tested, or at least no worse.
-2. **Sensitivity envelope.** Vary the parameter by ±1 order of magnitude (or
-   ±50% for non-log-scale values) and measure result change. If output is
-   insensitive across the range, the exact default value matters little;
-   document that and move on. If output is highly sensitive, the default must
-   land in a plateau region (neither too loose nor too tight) and must be
-   documented with the sensitivity profile.
-3. **Literature anchor.** Algorithm-specific numerical parameters should match
-   the value used in the original paper or the most-cited open-source
-   implementation (cobrapy, COBRA Toolbox). Treat this as corroborating
-   evidence, not authority.
-4. **Cross-implementation check.** Where a raven-toolbox function ports a
-   MATLAB RAVEN function (or vice versa), note what the other side uses. A
-   difference is a question to investigate empirically, not automatically a
-   bug in either direction.
-5. **User expectation alignment.** Prefer values that match what a competent
-   user would supply without thinking (e.g. `verbose=True` for a long-running
-   MILP, `sort_ids=False` for round-trip-safe export).
-6. **No undocumented `None` behavior.** `None`/empty defaults are fine for
-   optional features, but any resulting change to algorithmic behaviour must
-   be documented in the fallback.
+1. **Empirical correctness on real models.** Run the function with the candidate default on at least one large model (Yeast9, Human-GEM) and one small model (iJO1366 or similar). Compare the result against a known-good answer (a published reconstruction, a literature flux distribution, a validated gene-essentiality set). The default must produce a result that is meaningfully better than the alternatives tested, or at least no worse.
+2. **Sensitivity envelope.** Vary the parameter by ±1 order of magnitude (or ±50 % for non-log-scale values) and measure the change in the result. If the output is insensitive across the range, the exact default value matters little; document that. If the output is highly sensitive, the default must lie in a plateau region (neither too loose nor too tight) and must be documented with the sensitivity profile.
+3. **Literature anchor.** Algorithm-specific numerical parameters should match the value used in the original paper or the most-cited open-source implementation (cobrapy, COBRA Toolbox). Agreement with the literature is corroborating evidence and is not authority.
+4. **Cross-implementation check.** Where a raven-toolbox function ports a MATLAB RAVEN function (or vice versa), note what the other side uses. A difference is to be investigated empirically and is not automatically a bug in either implementation.
+5. **User expectation alignment.** Prefer values that match what a competent user would supply without thinking (for example `verbose=True` for a long-running MILP, `sort_ids=False` for round-trip-safe export).
+6. **No undocumented `None` behaviour.** `None` or empty defaults are acceptable for optional features, but any resulting change to algorithmic behaviour must be documented in the fallback.
 
 ### Evaluation workflow per parameter
 
@@ -83,14 +47,12 @@ The following criteria apply in rough priority order:
 | Study | Covers |
 |---|---|
 | [ftINIT parameter calibration](studies/init-param-calibration.md) | HCT116 on Human-GEM: `big_m`, `force_on`, stoichiometric scaling, and `mip_gap` in a single step (a named series ignores it) |
-| [ftINIT reproducibility](studies/ftinit-determinism.md) | What `resolve_ties`/`prove_abs_gap` buy and what they cost in run time on genome-scale Human-GEM |
+| [ftINIT reproducibility](studies/ftinit-determinism.md) | Reproducibility gained with `resolve_ties` and `prove_abs_gap` and the run time they cost on genome-scale Human-GEM |
 | [Human-GEM validation vs MATLAB RAVEN](studies/humangem-validation.md) | raven-toolbox's ftINIT output validated against MATLAB RAVEN on Human-GEM across 5 cell lines (Jaccard 0.964–0.988) |
 
 ## Benchmarks
 
-Per-function working notes: quicker parameter-by-parameter records produced
-alongside (and sometimes instead of) a full study, plus the master
-cross-toolbox to-do list.
+Per-function working notes are quicker parameter-by-parameter records produced alongside (and sometimes instead of) a full study, together with the master cross-toolbox to-do list.
 
 | Benchmark | Function(s) |
 |---|---|
