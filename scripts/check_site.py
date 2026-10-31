@@ -327,7 +327,7 @@ def check_pages(site: Path, files: list[Path]) -> list[Finding]:
             out.append(Finding("P", "error", rel, f"heading level jumps from H{skip[1]} to H{skip[2]} (strict build warns)", skip[0]))
         if rel.startswith("docs/guide/") and p.name != "index.md" and CONCEPT_MARKER not in text:
             for h in GUIDE_EXPECTED:
-                if not re.search(rf"^#+ {re.escape(h)}", text, re.M):
+                if not re.search(rf"^(?:#+ |:{{3,}}\{{\w+\}} ){re.escape(h)}", text, re.M):
                     out.append(Finding("P", "warning", rel, f"no '{h}' section"))
     return out
 

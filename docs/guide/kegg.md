@@ -76,7 +76,7 @@ from raven_toolbox.reconstruction.kegg import (
     get_kegg_model_from_sequences_with_artefacts,
 )
 
-model = get_kegg_model_from_sequences_with_artefacts("hanpo.faa", domain="eukaryotes")
+hanpo_model = get_kegg_model_from_sequences_with_artefacts("hanpo.faa", domain="eukaryotes")
 ```
 :::
 ::::
