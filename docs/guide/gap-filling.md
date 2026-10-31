@@ -16,6 +16,8 @@ holes close, and the judgement is in deciding which holes are worth closing.
 | `gapFillTopological` | `analyse_topology` | connectivity, without solving an LP |
 | `fitTasks` | `fill_tasks` | fill until a task passes; see [15. Metabolic tasks](tasks.md) |
 
+`gapFillTopological` and `analyse_topology` take their defaults from the model. The seeds are the metabolites of every reaction that has only substrates and a negative lower bound, or only products and a positive upper bound, whatever the number of metabolites; when the model has no such reaction, RAVEN and the toolbox warn that there is no seed. Reactions without substrates fire in the scope computation whatever their bounds, so closing an uptake reaction does not remove its metabolite from the scope. The targets are the metabolites of the first objective reaction, substrates and products. Without targets, a model with no objective reaction raises `RAVEN:badInput` in MATLAB and `ValueError` in Python.
+
 ## Setup
 
 A gap-filling example needs a draft with holes and a template to fill them from.
@@ -256,21 +258,16 @@ print(f"{len(result.added_reactions)} reactions added")
 ```
 
 ```text
-fill_gaps_milp: merged model has 53 reactions (52 draft, 1 template).
-fill_gaps_milp: setting min_growth = 0.01222 (10% of FBA max 0.1222).
-fill_gaps_milp: solving MILP (1 database candidates)...
+fill_gaps_milp: merged model has 105 reactions (52 draft, 53 template).
+fill_gaps_milp: setting min_growth = 0.02443 (10% of FBA max 0.2443).
+fill_gaps_milp: solving MILP (53 database candidates)...
 fill_gaps_milp: added 0 template reaction(s).
 0 reactions added
 ```
 :::
 ::::
 
-Zero is the right answer here: without `ADH1` the draft still grows at the
-full 0.1222 /h, so it already meets the default floor (10 % of the merged
-model's maximum) and the MILP has nothing to buy. In MATLAB that floor is twice
-as high, 0.02443 against 0.01222, because `gapFillMILP` merges the template's
-duplicates of the draft's reactions, its uptake reactions included, so the
-merged model can take up twice the glucose. To see a repair, remove a reaction
+Zero is the right answer here: without `ADH1` the draft still grows at 0.1222 /h, so it already meets the default floor (10 % of the merged model's maximum, 0.02443 /h in both tools). The template repeats the draft's reactions, its uptake reactions included, so the merged model can take up twice the glucose and its maximum is 0.2443 /h. The MILP has nothing to buy. To see a repair, remove a reaction
 growth needs, such as hexokinase:
 
 ::::{tab-set}

@@ -272,6 +272,8 @@ Seven metabolites in this model exist in both compartments, so 52 collapse to
 45; the three reactions that merely moved something across the mitochondrial
 membrane become `A -> A`, carry no information, and are dropped.
 
+The merged metabolite is one of its copies, with every field of that copy (id, name, formula, charge, annotation); raven-toolbox also adds `notes["merged_base_id"]`. The copy is the one already in the merged compartment if there is one, otherwise the copy whose id sorts first (`ACCOA_c` before `ACCOA_m`). The id can therefore name a compartment that is not in the merged model.
+
 :::{note} The two count the removals differently
 Both toolboxes end at 50 reactions, but the second line disagrees: RAVEN
 reports **0** dropped where raven-toolbox reports **3** (`CAT2`, `CO2TRANS`,
@@ -280,14 +282,7 @@ when it removes reactions the merge left empty, and its `deletedRxns` counts
 only what the `deleteRxnsWithOneMet` path deleted, which is nothing, since
 that flag is `false` by default.
 
-A reaction left holding a single metabolite after merging carries no
-information and should go; an **exchange** had a single metabolite all along
-(`=> glucose`) and must be kept. raven-toolbox used to delete those too,
-along with the objective, taking this model from growth `0.1222` to `0.0000`
-with no error and no warning. Fixed in
-[raven-toolbox#96](https://github.com/CompMetEng/raven-toolbox/pull/96);
-if a flattened model comes back with no boundary reactions, update
-raven-toolbox.
+A reaction that holds a single metabolite after merging is kept or removed by the `deleteRxnsWithOneMet` flag in MATLAB and by `drop_single_metabolite_reactions` in Python, which is `false` or `False` by default in both. An **exchange** has one metabolite by design (`=> glucose`) and is kept whatever the flag is, so the boundary reactions and the objective survive.
 :::
 
 That is a real loss. A model that distinguishes mitochondrial from cytosolic

@@ -15,6 +15,8 @@ knockout have right after the gene is lost".
 | `deleteUnusedGenes` | `remove_genes` | remove genes, rather than knock them out |
 | no equivalent | `moma` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | a knockout's fluxes, staying near the wild type |
 
+`removeGenes` and `remove_genes` rewrite each affected GPR without the removed gene. A reaction that loses its last catalyst stays with its rule dropped and its bounds set to `(0, 0)` (the default of `remove_genes`, and of `removeGenes` with `removeBlockedRxns` false), which is the bound state `knock_out_model_genes` leaves a blocked reaction in, so the flux consequence of the default equals that of a knockout. What differs is that the gene and its occurrences in the reaction rules are removed from the model; with `blocked_reactions="keep"` the blocked reactions stay at their bounds, and `removeBlockedRxns` true and `blocked_reactions="remove"` delete them. When at least one requested gene is in the model, genes that no remaining reaction used are removed as well, also when they were not requested; when none is in the model, no gene is removed (RAVEN still standardizes the rules when `standardizeRules` is true).
+
 ## Setup
 
 `smallYeast.yml`, with glucose and oxygen open so the model grows. Uptake in

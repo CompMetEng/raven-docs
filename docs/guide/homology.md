@@ -140,6 +140,8 @@ platform on first use and cache them, so the first reconstruction on a new
 machine needs network access. raven-toolbox will use the copies on your `PATH`
 instead if `RAVEN_PYTHON_BLASTP` points at them.
 
+Without `threads`, `run_blast`, `run_diamond` and `run_supporth` use every CPU the process may run on. In MATLAB, `getBlast`, `getDiamond` and `runSuppOrth` use the cores assigned to MATLAB (`feature('numcores')`); `runSuppOrth` is the one of the three with a `threads` option.
+
 `getDiamond` and `run_diamond` are drop-in alternatives that search with DIAMOND
 instead. DIAMOND indexes the database and searches in reduced amino-acid
 alphabets, which makes it one to two orders of magnitude faster on a full

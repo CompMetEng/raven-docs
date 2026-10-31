@@ -121,11 +121,7 @@ essentially all of them. The setting decides the size of the intermediate hit
 table and nothing downstream of it, so there is no correctness argument for
 either value.
 
-`threads` defaults to one fewer than the machine has cores. Both aligners score
-each query sequence independently, so the result does not depend on it: a
-500-query subset returned an identical 2,469 hits at one thread and at four,
-in 45.2 s and 23.7 s. On a full proteome pair, single-threaded BLASTP takes
-about 20 minutes per direction.
+`threads` defaults to every CPU the process may run on. Both aligners score each query sequence independently, so the result does not depend on it: a 500-query subset returned an identical 2,469 hits at one thread and at four, in 45.2 s and 23.7 s. On a full proteome pair, single-threaded BLASTP takes about 20 minutes per direction.
 
 ## What the numbers do not cover
 

@@ -289,19 +289,7 @@ closed model: optimal
 one leak: ['F6P_c', 'GP_c', 'PYR_c']
 ```
 
-`gap_report` closes every boundary reaction itself, adds an output for every
-metabolite, and lists in `can_produce_without_input` the ones whose output can
-carry flux, as `canExchange` does. If the model is infeasible under its own
-bounds, or once its boundary is closed, it stops with an error that names the
-reactions with a forced flux; set ATP maintenance to zero first. `gapReport`
-does the same. `find_leak_metabolite` is the port of
-`findLeakMetabolite` and does not close anything, so give it the closed copy.
-It returns a list: more than one id means those metabolites could only be
-exchanged together.
-Close `model.boundary` rather than `model.exchanges` when you do it by hand:
-cobrapy does not count sinks and demands as exchanges, and an open sink is
-an input. `analyse_topology` answers the connectivity half of the same question
-without solving an LP.
+`gap_report` closes every boundary reaction itself, adds an output for every metabolite, and lists in `can_produce_without_input` the ones whose output can carry flux, as `canExchange` does. If the model is infeasible under its own bounds, or once its boundary is closed, it stops with an error that names the reactions with a forced flux; set ATP maintenance to zero first. `gapReport` does the same. `find_leak_metabolite` is the port of `findLeakMetabolite` and does not close anything, so give it the closed copy. It returns a list: more than one id means those metabolites could only be exchanged together. Close `model.boundary` rather than `model.exchanges` when you do it by hand: cobrapy does not count sinks and demands as exchanges, and an open sink is an input. `analyse_topology` answers the connectivity half of the same question without solving an LP. Without `seeds` it takes as seeds the metabolites of every reaction with only substrates and a negative lower bound or only products and a positive upper bound, and without `targets` the metabolites of the first objective reaction; a model with no objective reaction and no `targets` raises `ValueError`.
 :::
 ::::
 

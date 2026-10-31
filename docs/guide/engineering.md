@@ -99,8 +99,8 @@ print(f"enforced flux from {result.enforced[0]:.3f} to {result.enforced[-1]:.3f}
 ```
 
 ```text
-12 amplification target(s) of 53 reactions
-38 rows in total, both directions
+14 amplification target(s) of 53 reactions
+40 rows in total, both directions
 enforced flux from 0.180 to 1.800
 ```
 
@@ -108,14 +108,9 @@ The two tabs count different things unless asked not to. `targets.logical`
 in MATLAB flags **amplification** targets alone, while `result.targets`
 holds every classified reaction, amplification and knockdown, with a
 `target_type` column separating them. Both scans use the same defaults:
-ten steps, up to 0.9 of the theoretical maximum, correlation at least 0.9.
+ten steps, the top of the scan at 0.9 (`coefficient` in MATLAB, `max_fraction` in Python) of the target flux in the pFBA solution that maximises the target, correlation at least 0.9. Both impose the enforced flux as a lower bound on the target reaction by default; `equality=True` in Python fixes the flux at each level instead, as the GECKO function `ecFSEOF` does. In Python, targets of equal score are listed in model order.
 
-That leaves 14 against 12, and the remaining two come from the noise
-floor. `fseof` discards a flux or a slope below `flux_eps`, `1e-6` by
-default; `FSEOF` compares against zero with no tolerance at all, so two
-reactions carrying solver noise survive its filter. The
-[parameter benchmarks](../parameter-tuning/benchmarks.md) measure that
-difference on a genome-scale model, where it admits 21 spurious targets.
+Both tabs find 14 amplification targets here. `fseof` classifies the fluxes of a reaction by the same fixed thresholds as `FSEOF` (`1e-10` for a track above zero, `1e-8` for a final flux of zero).
 
 `fseof` returns the whole scan rather than only its conclusion. `scan` is the
 reactions by enforced-flux-level matrix of fluxes, `enforced` the levels
@@ -123,11 +118,7 @@ themselves, and `targets` the classified per-reaction table sorted by score.
 `gene_targets` aggregates the same result to genes, which is the form a
 strain-design list usually takes.
 
-`correlation_threshold` matches MATLAB's `corrThreshold`, and `flux_eps` is
-the tolerance below which a flux or a slope counts as zero. `min_target` sets
-the floor of the enforced range; passing the target reaction's flux at the
-growth optimum scans from where the cell already is rather than from near
-zero.
+`correlation_threshold` matches MATLAB's `corrThreshold`, and `flux_eps` is the tolerance of the check against the theoretical maximum flux (on iJO1366 with target `EX_succ_e` the counts are the same at `1e-8`, `1e-7` and `1e-6`, see [Parameter benchmarks](../parameter-tuning/benchmarks.md)). `min_target` sets the floor of the enforced range; passing the target reaction's flux at the growth optimum scans from where the cell already is rather than from near zero.
 :::
 ::::
 
@@ -166,11 +157,11 @@ print(result.targets.head(5).to_string())
 
 ```text
    reaction                    name subsystem             gene_reaction_rule                        genes target_type     slope  correlation  initial_flux  final_flux     score
-0    ethOUT   Production of ethanol    [None]                                                          []     amplify  1.000000     1.000000      0.180000    1.800000  1.000000
-1      ADH1   Alcohol dehydrogenase    [None]  YGL256W or YMR303C or YOL086C  [YGL256W, YMR303C, YOL086C]     amplify  1.000000     1.000000      0.180000    1.800000  1.000000
-2       PDC  Pyruvate decarboxylase    [None]  YGR087C or YLR134W or YLR044C  [YGR087C, YLR044C, YLR134W]     amplify  0.864031     0.999817      0.452739    1.840191  0.863873
-3      o2IN            Uptake of O2    [None]                                                          []   knockdown -0.680911    -0.980680      1.101855    0.049522  0.667756
-4  ShuttleX          NAD(H) shuttle    [None]                                                          []   knockdown -0.659831    -0.999577      1.183609    0.120574  0.659552
+0    ethOUT   Production of ethanol    [None]                                                          []     amplify  1.000000     1.000000      0.180000    1.799998  1.000000
+1      ADH1   Alcohol dehydrogenase    [None]  YGL256W or YMR303C or YOL086C  [YGL256W, YMR303C, YOL086C]     amplify  1.000000     1.000000      0.180000    1.799998  1.000000
+2       PDC  Pyruvate decarboxylase    [None]  YGR087C or YLR134W or YLR044C  [YGR087C, YLR044C, YLR134W]     amplify  0.864032     0.999817      0.452739    1.840190  0.863873
+3      o2IN            Uptake of O2    [None]                                                          []   knockdown -0.680911    -0.980680      1.101854    0.049522  0.667756
+4  ShuttleX          NAD(H) shuttle    [None]                                                          []   knockdown -0.659831    -0.999577      1.183608    0.120575  0.659551
 ```
 :::
 ::::
