@@ -1,12 +1,10 @@
-# 8. Editing an existing model
+# Editing an existing model
 
-Curation is mostly editing: a stoichiometry that was wrong, a gene association
-that has been superseded, a reaction that should never have been there. This
-page is the safe way to do each of those.
+Curation is mostly editing: a stoichiometry that was wrong, a gene association that has been superseded, a reaction that should never have been there. Each of those edits has a safe procedure in both toolboxes.
 
-## Functions on this page
+## Functions
 
-| MATLAB | Python | |
+| MATLAB | Python | Purpose |
 |---|---|---|
 | `changeRxns` | `change_reaction_equations` | replace a reaction's stoichiometry |
 | `changeGrRules` | `change_gene_reaction_rules` | set or extend gene associations |
@@ -39,10 +37,9 @@ model = read_yaml_model("smallYeast.yml")
 :::
 ::::
 
-## 8.1 Fix a stoichiometry
+## Fixing a stoichiometry
 
-Give the whole equation, not a coefficient: the toolbox rewrites the reaction's
-column in the stoichiometric matrix, which is what keeps everything consistent.
+Give the whole equation, not a coefficient: the toolbox rewrites the reaction's column in the stoichiometric matrix, which keeps everything consistent.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -73,20 +70,13 @@ print(model.reactions.get_by_id("PGI").reaction)
 G6P_c <=> F6P_c
 ```
 
-Both take a **mapping of reaction to equation** so a batch of curated
-reactions can be applied in one call, which is what a curation spreadsheet
-turns into. Every id must already exist; these functions change reactions
-rather than add them.
+`changeRxns` takes two matching lists, reactions and equations, and `change_reaction_equations` a mapping of reaction to equation, so a batch of curated reactions can be applied in one call, which is what a curation spreadsheet turns into. Every id must exist in the model; these functions change reactions and do not add them.
 
-Bounds are left alone. Rewriting an equation from `=>` to `<=>` does not
-make the reaction reversible, because the direction is set by `lb` and `ub`
-rather than by the arrow; 8.4 sets those separately. Both functions also
-take the `eqnType` and `allowNewMets` options of `addRxns`, and default to
-matching metabolites by id.
+Bounds are left unchanged. Rewriting an equation from `=>` to `<=>` does not make the reaction reversible, because `lb` and `ub` set the direction and the arrow does not; [Changing bounds and the objective](#changing-bounds-and-the-objective) sets those separately. `changeRxns` takes the `eqnType`, `compartment` and `allowNewMets` options of `addRxns`, and `change_reaction_equations` the `mets_by`, `compartment`, `allow_new_mets` and `new_met_prefix` options of `add_reactions_from_equations`; both match metabolites by id by default. `allowNewMets` defaults to `false` and `allow_new_mets` to `True`.
 :::
 ::::
 
-## 8.2 Change a gene association
+## Changing a gene association
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -118,19 +108,13 @@ YBR196C or YLR354C
 genes now: ['YBR196C', 'YLR354C']
 ```
 
-A gene that the model did not have is created for you. Pass `replace=False`
-to **append** an isozyme instead of overwriting, giving `(old) or (new)`,
-which records an additional catalyst rather than a correction. A reaction
-with no rule yet gets the new rule alone, without empty brackets.
+A gene that is not in the model is created. Pass `replace=False` to append an isozyme to the rule, giving `(old) or (new)`, which records an additional catalyst and not a correction; the default overwrites the rule. A reaction with no rule gets the new rule alone, without empty brackets.
 :::
 ::::
 
-## 8.3 Normalise a GPR
+## Normalising a GPR
 
-Rules that mix `and` and `or` in nested brackets are hard to compare and hard to
-score. Both toolboxes rewrite them into disjunctive normal form, a list of
-alternative complexes. `is_dnf` takes a rule string; `gpr_to_dnf` takes cobrapy's
-parsed `GPR` object and returns the complexes as lists.
+Rules that mix `and` and `or` in nested brackets are hard to compare and hard to score. Both toolboxes rewrite them into disjunctive normal form, a list of alternative complexes. `is_dnf` takes a rule string; `gpr_to_dnf` takes cobrapy's parsed `GPR` object and returns the complexes as lists.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -145,11 +129,7 @@ fprintf('%s\n', grRules{idx});
 YBR196C or YLR354C
 ```
 
-`standardizeGrRules` returns the rules and a matching `rxnGeneMat`, not a
-model, so the results have to be assigned back into the struct to persist.
-Disjunctive normal form is a flat `or` of `and` groups, one group per
-alternative complex, which is the form the scoring in
-[14. Context-specific models](init.md) expects.
+`standardizeGrRules` returns the rules and a matching `rxnGeneMat`, not a model, so the results have to be assigned back into the struct to persist. Disjunctive normal form is a flat `or` of `and` groups, one group per alternative complex, which is the form the scoring in [Context-specific models](init.md) expects.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -172,7 +152,7 @@ already DNF: False
 :::
 ::::
 
-## 8.4 Change bounds and the objective
+## Changing bounds and the objective
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -201,16 +181,13 @@ print("bounds:", model.reactions.get_by_id("PGI").bounds)
 bounds: (0, 1000)
 ```
 
-`setParam` takes `'lb'`, `'ub'`, `'eq'`, `'obj'` and `'rev'`, and accepts a
-list of reactions with a list of values, applying them in one call.
+`setParam` takes `'lb'`, `'ub'`, `'eq'`, `'obj'`, `'rev'`, `'var'` and `'unc'`, and accepts a list of reactions with a list of values, or one value for all, applying them in one call.
 :::
 ::::
 
-## 8.5 Delete things
+## Deleting metabolites, reactions and genes
 
-Deleting is where the two designs differ most. RAVEN has to remove the matching
-row or column from **every** field, which is why deletion has its own functions;
-cobrapy's objects know what they are attached to.
+Deletion is where the two designs differ most. RAVEN must remove the matching row or column from every field, so deletion has its own functions; cobrapy's objects record what they are attached to.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -228,10 +205,7 @@ fprintf('%d -> %d reactions, %d -> %d genes\n', before, numel(reduced.rxns), ...
 53 -> 52 reactions, 61 -> 60 genes
 ```
 
-Both flags default to `false`, so a plain `removeReactions` leaves behind
-metabolites and genes that nothing refers to any more, which later read as
-gaps. `removeUnusedComps` does the same for compartments.
-`deleteUnusedGenes` performs the gene half on its own.
+Both flags default to `false`, so a plain `removeReactions` leaves metabolites and genes that nothing refers to, which later appear as gaps. `removeUnusedComps` does the same for compartments. `deleteUnusedGenes` performs the gene half on its own.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -249,15 +223,13 @@ with model:
 53 -> 52 reactions, 61 -> 60 genes
 ```
 
-`remove_orphans=True` is cobrapy's equivalent of those two flags. Note the
-`with model:`, deletions inside it are rolled back on exit, so the effect of
-a deletion can be measured without keeping it.
+`remove_orphans=True` is cobrapy's equivalent of those two flags. Deletions inside `with model:` are rolled back on exit, so the effect of a deletion can be measured without keeping it.
 :::
 ::::
 
-## 8.6 Delete a gene, not a reaction
+## Deleting a gene
 
-Removing a gene takes the gene and its occurrences in the reaction rules out of the model, and the reactions stay with rewritten GPRs. With the default policy for reactions that lose their last catalyst, the flux state equals that of a knockout (bounds `(0, 0)`); the model differs in that the gene is gone.
+Deleting a gene differs from deleting its reactions. Removing a gene takes the gene and its occurrences in the reaction rules out of the model, and the reactions stay with rewritten GPRs. With the default policy for reactions whose last catalyst is removed, the flux state equals that of a knockout (bounds `(0, 0)`); the model differs in that the gene is removed.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -293,26 +265,17 @@ PGI rule: 'YLR354C'
 :::
 ::::
 
-`removeGenes` and `remove_genes` rewrite each affected GPR without the removed gene. A reaction that loses its last catalyst stays in the model with its rule dropped and its bounds set to `(0, 0)`: this is the default of `remove_genes` (`blocked_reactions="constrain"`), while `removeGenes` does it when `removeBlockedRxns` is false, its default, and it is the bound state that `knock_out_model_genes` leaves. With `blocked_reactions="keep"` the blocked reactions keep their bounds; setting `removeBlockedRxns` to true, or `blocked_reactions="remove"`, deletes them instead, which turns a gene deletion into a reaction deletion; [16. Deletions and essentiality](deletions.md) covers when that is the question being asked. When at least one requested gene is in the model, genes that no remaining reaction used are removed as well, also when they were not requested; when none is in the model, no gene is removed. In `removeGenes`, `standardizeRules`, on by default, normalises the rewritten rules.
+`removeGenes` and `remove_genes` rewrite each affected GPR without the removed gene. A reaction whose last catalyst is removed stays in the model with its rule dropped and its bounds set to `(0, 0)`: this is the default of `remove_genes` (`blocked_reactions="constrain"`), while `removeGenes` does it when `removeBlockedRxns` is false, its default, and it is the bound state that `knock_out_model_genes` leaves. With `blocked_reactions="keep"` the blocked reactions keep their bounds; setting `removeBlockedRxns` to true, or `blocked_reactions="remove"`, deletes them instead, which turns a gene deletion into a reaction deletion; [Deletions and essentiality](deletions.md) covers when that is the question being asked. When at least one requested gene is in the model, genes that no remaining reaction used are removed as well, also when they were not requested; when none is in the model, no gene is removed. In `removeGenes`, `standardizeRules`, on by default, normalises the rewritten rules.
 
-:::{warning} What can go wrong
-- **Editing `model.S` by hand.** It leaves `model.rev`, the bounds and the
-  gene matrix describing a different model than the matrix does. Use
-  `changeRxns`.
-- **Deleting a reaction and stranding its metabolites.** Without the orphan
-  flags you keep metabolites nothing produces or consumes, which then show up
-  as gaps. See [9. Quality control](quality-control.md).
-- **Overwriting a GPR you meant to extend.** `changeGrRules` and
-  `change_gene_reaction_rules` replace by default.
-- **Forgetting that Python edits in place.** MATLAB copies the struct on
-  assignment, so `modelB = removeReactions(modelA, ...)` leaves `modelA`
-  alone. In Python, use `model.copy()` or `with model:`.
+:::{warning} Troubleshooting
+- Editing `model.S` by hand. It leaves `model.rev`, the bounds and the gene matrix describing a different model than the matrix does. Use `changeRxns`.
+- Deleting a reaction and leaving its metabolites without a reaction. Without the orphan flags, metabolites that nothing produces or consumes remain in the model and appear as gaps. See [Quality control](quality-control.md).
+- Overwriting a GPR that was meant to be extended. `changeGrRules` and `change_gene_reaction_rules` replace by default.
+- Python edits in place. MATLAB copies the struct on assignment, so `modelB = removeReactions(modelA, ...)` leaves `modelA` unchanged. In Python, use `model.copy()` or `with model:`.
 :::
 
 ## See also
 
-- [7. Building a model from scratch](building.md), the same operations, in the
-  other direction.
-- [2. Model structure and identifiers](model-structure.md), why RAVEN needs
-  dedicated deletion functions.
-- [9. Quality control](quality-control.md), checking what an edit did.
+- [Building a model from scratch](building.md), the same operations, in the other direction.
+- [Model structure and identifiers](model-structure.md), why RAVEN needs dedicated deletion functions.
+- [Quality control](quality-control.md), checking what an edit did.

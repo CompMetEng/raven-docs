@@ -5,14 +5,14 @@ The models that the pages of the [user guide](../guide/index.md) load are copied
 | File | Size | Source | Used by |
 |---|---|---|---|
 | [`smallYeast.yml`](smallYeast.yml) | 45 kB | `RAVEN/tutorials/data/models/smallYeast.yml` | the default example model for most guide pages |
-| [`empty.xml`](empty.xml) | 4 kB | `RAVEN/tutorials/data/empty.xml` | [7. Building](../guide/building.md): an empty SBML model with compartments defined, to build a model from scratch |
-| [`smallYeastBad.yml`](smallYeastBad.yml) | 45 kB | `RAVEN/tutorials/data/models/smallYeastBad.yml` | [9. Quality control](../guide/quality-control.md) and [21. Comparing](../guide/comparing.md), which need a model with known errors |
-| [`yeast-GEM.yml`](yeast-GEM.yml) | 3.6 MB | yeast-GEM v9.1.0, `model/yeast-GEM.yml` | pages that need a genome-scale model: [3. I/O](../guide/io.md), [4. FBA](../guide/fba.md), [5. Media](../guide/media.md), [11. Biomass](../guide/biomass.md) |
-| [`yeast-GEM.xml`](yeast-GEM.xml) | 11.6 MB | yeast-GEM v9.1.0, `model/yeast-GEM.xml` | the same model as SBML, for [3. I/O](../guide/io.md) |
-| [`anaerobic.yml`](anaerobic.yml) | 2 kB | transcribed from yeast-GEM's `anaerobicModel.m` | [5. Media](../guide/media.md): a condition file, yeast-GEM under anaerobic conditions |
-| [`tasks.txt`](tasks.txt) | 0.5 kB | written for this guide | [15. Metabolic tasks](../guide/tasks.md) and [17. Gap-filling](../guide/gap-filling.md): a task list for `smallYeast.yml` |
-| [`curation-mets.tsv`](curation-mets.tsv) | 0.3 kB | written for this guide | [10. Table-driven curation](../guide/curation.md): a metabolite curation table |
-| [`hpa-sample.tsv`](hpa-sample.tsv) | 1 kB | a ten-row excerpt in Human Protein Atlas format | [14. Context-specific models](../guide/init.md) |
+| [`empty.xml`](empty.xml) | 4 kB | `RAVEN/tutorials/data/empty.xml` | [Building a model from scratch](../guide/building.md): an empty SBML model with compartments defined, to build a model from scratch |
+| [`smallYeastBad.yml`](smallYeastBad.yml) | 45 kB | `RAVEN/tutorials/data/models/smallYeastBad.yml` | [Quality control](../guide/quality-control.md) and [Comparing models](../guide/comparing.md), which need a model with known errors |
+| [`yeast-GEM.yml`](yeast-GEM.yml) | 3.6 MB | yeast-GEM v9.1.0, `model/yeast-GEM.yml` | pages that need a genome-scale model: [Reading and writing models](../guide/io.md), [Simulating growth with FBA](../guide/fba.md), [Growth media and conditions](../guide/media.md), [Biomass composition and annotation](../guide/biomass.md) |
+| [`yeast-GEM.xml`](yeast-GEM.xml) | 11.6 MB | yeast-GEM v9.1.0, `model/yeast-GEM.xml` | the same model as SBML, for [Reading and writing models](../guide/io.md) |
+| [`anaerobic.yml`](anaerobic.yml) | 2 kB | transcribed from yeast-GEM's `anaerobicModel.m` | [Growth media and conditions](../guide/media.md): a condition file, yeast-GEM under anaerobic conditions |
+| [`tasks.txt`](tasks.txt) | 0.5 kB | written for this guide | [Metabolic tasks](../guide/tasks.md) and [Gap-filling](../guide/gap-filling.md): a task list for `smallYeast.yml` |
+| [`curation-mets.tsv`](curation-mets.tsv) | 0.3 kB | written for this guide | [Table-driven curation](../guide/curation.md): a metabolite curation table |
+| [`hpa-sample.tsv`](hpa-sample.tsv) | 1 kB | a ten-row excerpt in Human Protein Atlas format | [Context-specific models with ftINIT](../guide/init.md) |
 
 The two small yeast models are part of the RAVEN Toolbox (MIT licence). yeast-GEM is the consensus genome-scale model of *Saccharomyces cerevisiae* ([SysBioChalmers/yeast-GEM](https://github.com/SysBioChalmers/yeast-GEM), CC-BY-4.0). It is pinned here at release v9.1.0, so the numbers printed in the guide stay reproducible while the model keeps developing.
 
@@ -42,7 +42,7 @@ Do not edit the files in place. Any change here makes the guide's numbers unrepr
 
 ## Proteomes for homology reconstruction
 
-`hanpo.faa` and `sce-template.faa` back [12. Reconstruction from homology](../guide/homology.md).
+`hanpo.faa` and `sce-template.faa` back [Reconstruction from homology](../guide/homology.md).
 
 | file | what it is |
 |---|---|

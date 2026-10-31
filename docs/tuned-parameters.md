@@ -42,7 +42,7 @@ Full detail: [Parameter benchmarks](parameter-tuning/benchmarks.md)
 
 RAVEN MATLAB: `runINIT`, `scoreModel`, `getINITModel`, `ftINIT`, `prepINITModel`, `ftINITInternalAlg`, `getINITSteps`. raven-toolbox: `score_reactions_from_genes`, `gene_scores_from_expression`, `ftinit`, `prep_init_model`, `run_ftinit`, `get_init_steps`, `classify_reactions`.
 
-Only MATLAB has tINIT (`runINIT`, `getINITModel`); raven-toolbox implements ftINIT alone (see [14. Context-specific models](guide/init.md)). Rows measured across both algorithms say so.
+Only MATLAB has tINIT (`runINIT`, `getINITModel`); raven-toolbox implements ftINIT alone (see [Context-specific models with ftINIT](guide/init.md)). Rows measured across both algorithms say so.
 
 | Parameter | Default | How determined |
 |---|---|---|

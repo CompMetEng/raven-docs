@@ -1,19 +1,17 @@
-# 2. Model structure and identifiers
+# Model structure and identifiers
 
-The same model is a **struct of parallel arrays** in MATLAB and a **graph of
-objects** in Python. Knowing which field corresponds to which attribute is most
-of what you need to translate a script between the two.
+The same model is a struct of parallel arrays in MATLAB and a graph of objects in Python. Knowing which field corresponds to which attribute is most of what translating a script between the two requires.
 
-## Functions on this page
+## Functions
 
-| MATLAB | Python | |
+| MATLAB | Python | Purpose |
 |---|---|---|
 | `checkModelStruct` | `check_model` | report problems in a model |
 | `sortIdentifiers` | `sort_identifiers` | sort reactions, metabolites and genes by id |
 | `getIndexes` | `DictList.get_by_id` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | look up a reaction, metabolite or gene by id |
 | `getIndexes` (`'metcomps'`) | `parse_name_comp`, then a name and compartment filter | resolve a `name[comp]` token |
 | no equivalent | `subsystem_to_str` | one subsystem string, whatever the source stored |
-| `addIdentifierPrefix`, `removeIdentifierPrefix` | handled on read/write {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | SBML identifier prefixes |
+| `addIdentifierPrefix`, `removeIdentifierPrefix` | handled on read and write {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | SBML identifier prefixes |
 | `ravenCobraWrapper` | not needed | convert between RAVEN and COBRA structs |
 
 ## The correspondence
@@ -34,17 +32,9 @@ of what you need to translate a script between the two.
 | `model.subSystems` | `reaction.subsystem` | RAVEN allows several per reaction |
 | `model.c` | `model.objective` | an expression, not a coefficient vector |
 
-The consequence: in MATLAB the caller keeps **parallel arrays aligned**, and in
-Python the **objects hold their own references**. Deleting a reaction in RAVEN means removing the same row from every
-reaction-length field, and the matching column of `model.S`, which is why
-`removeReactions` exists rather than a one-line deletion. In cobrapy the object
-holds its own links, so `model.remove_reactions([...])` is enough and there is no
-state left behind to go stale.
+In MATLAB the caller keeps parallel arrays aligned, and in Python the objects hold their own references. Deleting a reaction in RAVEN means removing the same row from every reaction-length field, and the matching column of `model.S`; `removeReactions` exists for this, so a deletion is not a one-line edit. In cobrapy the object holds its own links, so `model.remove_reactions([...])` is enough and there is no state left behind to go stale.
 
-That difference also decides where mistakes become visible. A RAVEN model can be left in
-a state no function rejects but later functions misread, which is why RAVEN ships
-a validator (2.4). A `cobra.Model` cannot reach most of those states at all,
-because the structure is maintained by the class rather than by the caller.
+That difference also decides where mistakes become visible. A RAVEN model can be left in a state no function rejects but later functions misread, and RAVEN ships a validator for this ([Checking a model](#checking-a-model)). A `cobra.Model` cannot reach most of those states, because the class maintains the structure.
 
 ## Setup
 
@@ -69,7 +59,7 @@ model = read_yaml_model("smallYeast.yml")
 :::
 ::::
 
-## 2.1 The same lookup, two ways
+## Lookup by identifier
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -86,22 +76,9 @@ PGI: Glucose-6-phosphate isomerase
 genes: YBR196C
 ```
 
-Most RAVEN functions take or return indices rather than identifiers, and
-`getIndexes` converts between the two. The third argument
-names the field to search, because the same string can be a reaction id in
-one field and nothing at all in another. It takes `'rxns'`, `'mets'`,
-`'genes'`, `'metnames'` or `'metcomps'`, plus `'ecrxns'`, `'ecenzymes'` and
-`'ecgenes'` on a GECKO model that carries a `model.ec` structure.
+Most RAVEN functions take or return indices, and `getIndexes` converts between identifiers and indices. The third argument names the field to search, because the same string can be a reaction id in one field and nothing in another. It takes `'rxns'`, `'mets'`, `'genes'`, `'metnames'` or `'metcomps'`, plus `'ecrxns'`, `'ecenzymes'` and `'ecgenes'` on a GECKO model that carries a `model.ec` structure.
 
-A miss is an error rather than a zero: `getIndexes` raises
-`Could not find object 'X' in the model` in every mode except `'metnames'`,
-which returns an empty vector instead. That exception exists because a
-metabolite *name* can occur in several compartments, so `'metnames'` returns
-every matching index rather than one. In `'metcomps'` mode a token that
-matches more than one metabolite (the same name twice in one compartment) is
-an error as well, naming how many it matched. Asking for several names at once gives
-back a cell array with one index vector per name; asking for exactly one name
-unwraps that to a plain vector.
+A miss is an error, not a zero: `getIndexes` raises `Could not find object 'X' in the model` in every mode except `'metnames'`, which returns an empty vector. That exception exists because a metabolite name can occur in several compartments, so `'metnames'` returns every matching index. In `'metcomps'` mode a token that matches more than one metabolite (the same name twice in one compartment) is an error as well, naming the ids of the metabolites it matched. Asking for several names at once gives back a cell array with one index vector per name; asking for exactly one name unwraps that to a plain vector.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -119,17 +96,11 @@ genes: YBR196C
 also reachable as: PGI
 ```
 
-There is no index to carry around: `DictList` looks up by id, and the object
-is the handle. `get_by_id` raises `KeyError` on a miss. The attribute form
-`model.reactions.PGI` is the same lookup, and works only for ids that happen
-to be valid Python names, so `model.reactions.r_0001` resolves but an id
-containing a dot or a hyphen has to go through `get_by_id`. Both forms return
-the same object, and keeping a reference to it stays valid across edits
-elsewhere in the model.
+There is no index to carry around: `DictList` looks up by id, and the object is the handle. `get_by_id` raises `KeyError` on a miss. The attribute form `model.reactions.PGI` is the same lookup, and works only for ids that are valid Python names, so `model.reactions.r_0001` resolves but an id containing a dot or a hyphen has to go through `get_by_id`. Both forms return the same object, and keeping a reference to it stays valid across edits elsewhere in the model.
 :::
 ::::
 
-## 2.2 Compartments
+## Compartments
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -148,11 +119,7 @@ disp(model.comps{model.metComps(i)});    % the compartment of one metabolite
 c
 ```
 
-`model.metComps` holds an index into `model.comps` rather than the
-compartment letter, so reading a metabolite's compartment always takes the
-two steps above. The indirection keeps compartment names editable in one
-place: renaming a compartment is a single edit to `model.compNames`, with
-nothing to update per metabolite.
+`model.metComps` holds an index into `model.comps`, not the compartment letter, so reading a metabolite's compartment always takes the two steps above. The indirection keeps compartment names editable in one place: renaming a compartment is a single edit to `model.compNames`, with nothing to update per metabolite.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -167,14 +134,11 @@ print(model.metabolites.get_by_id("G6P_c").compartment)
 c
 ```
 
-`model.compartments` maps id to name and is derived from the metabolites, so
-a compartment exists exactly as long as something is in it.
+`model.compartments` maps id to name and is derived from the metabolites, so a compartment exists exactly as long as something is in it.
 :::
 ::::
 
-RAVEN also writes metabolite names as `name[comp]` in Excel and text exports, and
-accepts that form on input. Both toolboxes split the token on the **last**
-bracketed group, so a name that itself contains brackets still resolves.
+RAVEN also writes metabolite names as `name[comp]` in Excel and text exports, and accepts that form on input. Both toolboxes split the token on the last bracketed group, so a name that itself contains brackets resolves.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -210,24 +174,13 @@ print([m.id for m in matches])
 ['G6P_c']
 ```
 
-`parse_name_comp` returns the compartment as `None` when there is no trailing
-bracket, so one call handles both forms and the caller decides what a missing
-compartment means. It only splits the string and never sees a model; the
-`query` after it is the lookup that `getIndexes` performs. An empty list is a
-miss, and more than one entry means the name is duplicated in that
-compartment. Note the import path: it is in
-`raven_toolbox.utils.parse`, not in the `raven_toolbox.utils` package
-namespace, which re-exports only the curation helpers.
+`parse_name_comp` returns the compartment as `None` when there is no trailing bracket, so one call handles both forms and the caller decides what a missing compartment means. It splits the string and never sees a model; the `query` after it is the lookup that `getIndexes` performs. An empty list is a miss, and more than one entry means the name is duplicated in that compartment. The function is imported from `raven_toolbox.utils.parse`; the `raven_toolbox.utils` package namespace does not re-export it.
 :::
 ::::
 
-## 2.3 Subsystems
+## Subsystems
 
-RAVEN lets a reaction belong to several subsystems, so an entry of
-`model.subSystems` is either a single string or a cell array of them. The field
-as a whole has to pick one of the two shapes; mixing them is what 2.4 catches.
-cobrapy stores one string per reaction, and `subsystem_to_str` normalises
-whichever form a model arrived with.
+RAVEN lets a reaction belong to several subsystems, so an entry of `model.subSystems` is either a single string or a cell array of them. The field as a whole must have one of the two shapes; `checkModelStruct` reports mixing them ([Checking a model](#checking-a-model)). cobrapy stores one string per reaction, and `subsystem_to_str` normalises whichever form a model arrived with.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -262,19 +215,13 @@ Glycolysis;Pentose phosphate pathway
 Glycolysis
 ```
 
-cobrapy declares `Reaction.subsystem` a plain string but does not enforce it,
-so a model that came through RAVEN, or through hand-written YAML, can hold a
-list there and nothing complains until something tries to concatenate it.
-`subsystem_to_str` joins the parts with `;` instead of taking the first, so no
-name is silently dropped, and returns `""` for an empty or absent subsystem.
-Use it wherever a subsystem is printed, compared or written out.
+cobrapy declares `Reaction.subsystem` a plain string but does not enforce it, so a model that came through RAVEN, or through hand-written YAML, can hold a list there, and no error is raised until something tries to concatenate it. `subsystem_to_str` joins the parts with `;` and does not take only the first, so no name is dropped, and returns `""` for an empty or absent subsystem. Use it wherever a subsystem is printed, compared or written out.
 :::
 ::::
 
-## 2.4 Check the model
+## Checking a model
 
-Both toolboxes provide a validator, and they check different things, because the
-two representations fail in different ways.
+Both toolboxes provide a validator, and they check different things, because the two representations fail in different ways.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -297,21 +244,9 @@ fprintf('%s\n', issues(1).message);
 The "subSystems" field must be a cell array of chars, *or* a cell array of cell arrays of chars
 ```
 
-`checkModelStruct` validates the struct itself: that required fields are
-present, that each holds the type and length it should, and that identifiers
-are non-empty, unique and legal. On top of that it reports advisory findings:
-metabolites and genes nothing uses, bounds that contradict each other, a
-missing or ambiguous objective, malformed gene rules and formulas, and
-cross-references that point nowhere. Every finding carries a `category`
-(`missing_field`, `wrong_type`, `empty_id`, `duplicate`, `invalid_id`,
-`invalid_bounds`, `unused`, `objective`, `gpr`, `invalid_formula`,
-`cross_reference` or `other`), a `target` naming the field or identifier
-involved, and the full `message`.
+`checkModelStruct` validates the struct itself: that required fields are present, that each holds the type and length it should, and that identifiers are non-empty, unique and legal. On top of that it reports advisory findings: metabolites and genes nothing uses, bounds that contradict each other, a missing or ambiguous objective, malformed gene rules and formulas, and cross-references that point nowhere. Every finding carries a `category` (`missing_field`, `wrong_type`, `empty_id`, `duplicate`, `invalid_id`, `invalid_bounds`, `unused`, `objective`, `gpr`, `invalid_formula`, `cross_reference` or `other`), a `target` naming the field or identifier involved, and the full `message`.
 
-Asking for an output argument, as above, returns the findings and neither
-prints nor throws. Called without one it reports as it goes, and
-`throwErrors` decides whether a structural problem stops the script; advisory
-findings are warnings either way.
+Asking for an output argument returns the findings and neither prints nor throws. Called without one it reports as it goes, and `throwErrors` decides whether a structural problem stops the script; advisory findings are warnings either way.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -329,27 +264,15 @@ for issue in issues[:5]:
 0 issue(s)
 ```
 
-`check_model` has no field types to police, because a `cobra.Model` cannot
-hold a misshapen field in the first place. What it checks instead is the
-curation layer cobrapy leaves to the caller: metabolites and genes no
-reaction uses, reactions with no metabolites, metabolites without a name, two
-metabolites sharing a name inside one compartment, and an objective that is
-missing or spread over several reactions. Each `ModelIssue` carries
-`category`, `object_id` and `message`, and the function returns a list rather
-than raising, so a script can filter by category and decide for itself what is
-fatal.
+`check_model` has no field types to check, because a `cobra.Model` cannot hold a misshapen field. It checks the curation layer that cobrapy leaves to the caller: metabolites and genes no reaction uses, reactions with no metabolites, metabolites without a name, two metabolites sharing a name inside one compartment, and an objective that is missing or spread over several reactions. Each `ModelIssue` carries `category`, `object_id` and `message`, and the function returns a list and does not raise, so a script can filter by category and decide for itself what is fatal.
 
-A `0` here means no curation problem was found, not that the model would also
-satisfy `checkModelStruct`. The two lists overlap only on the unused-element
-and objective checks.
+A `0` here means no curation problem was found; it does not imply that the model satisfies `checkModelStruct`. The two lists overlap only on the unused-element and objective checks.
 :::
 ::::
 
-## 2.5 Sort the identifiers before you commit
+## Sorting identifiers before a commit
 
-Sorting makes the diff between two versions of a model readable, which is why
-`exportForGit` and `export_for_git` offer it too. Without it, adding one reaction
-can shift everything after it and turn a one-line change into a whole-file diff.
+Sorting makes the diff between two versions of a model readable, and `exportForGit` and `export_for_git` offer it too. Without it, adding one reaction can shift everything after it and turn a one-line change into a whole-file diff.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -364,10 +287,7 @@ fprintf('%s\n', strjoin(sortedModel.rxns(1:5)', ', '));
 ACO, ACS, ADH1, ALD6, ATPX
 ```
 
-`sortIdentifiers` returns a new struct and leaves the original alone. It
-permutes reactions, metabolites, genes and compartments together with every
-field indexed by them, `model.S` and `model.rxnGeneMat` included, so the model
-stays internally consistent.
+`sortIdentifiers` returns a new struct and leaves the original alone. It permutes reactions, metabolites, genes and compartments together with every field indexed by them, `model.S` and `model.rxnGeneMat` included, so the model stays internally consistent.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -385,43 +305,24 @@ print("same object:", sorted_model is model)
 same object: True
 ```
 
-`sort_identifiers` sorts in place and returns the model it was given, so the
-name on the left is not a second copy. Pass `model.copy()` when the original
-order still matters. Compartments are a plain dict and are left alone here;
-the writers emit them in order where it counts.
+`sort_identifiers` sorts in place and returns the model it was given, so the name on the left is not a second copy. Pass `model.copy()` when the original order matters. Compartments are a plain dict and are left alone here; the writers emit them in order where it is relevant.
 :::
 ::::
 
-:::{warning} MATLAB only: converting to and from the COBRA Toolbox
-RAVEN and the COBRA Toolbox use different field names for the same model.
-`ravenCobraWrapper` converts a struct in either direction, inferring which
-direction from the fields it finds. There is no Python equivalent because
-there is nothing to convert: a raven-toolbox model **is** a `cobra.Model`,
-which is what every Python COBRA tool already takes.
-:::
+## Converting to and from the COBRA Toolbox
 
-:::{warning} What can go wrong
-- **Fields drift out of alignment.** In MATLAB, editing one reaction-length
-  field by hand without editing the others leaves a model that looks fine and
-  fails later, often far from the edit. `checkModelStruct` is how you catch
-  it.
-- **A field ends up with mixed contents.** `model.subSystems` takes strings
-  or cell arrays of strings, but not both in the same model. Convert the whole
-  field, not one entry.
-- **`model.rev` disagrees with the bounds.** RAVEN stores reversibility
-  explicitly, so it can contradict `lb` and `ub` after a manual edit, and
-  different functions consult different ones. Python cannot get into that
-  state, because `reaction.reversibility` is computed from the bounds on every
-  read.
-- **Subsystems come back as a list.** Code that assumes `reaction.subsystem`
-  is a string breaks on a model imported from RAVEN. Use `subsystem_to_str`.
-- **A name lookup returns several indices.** `getIndexes` with `'metnames'`
-  matches a name in every compartment it occurs in. Use `'metcomps'` and the
-  `name[comp]` form when you mean one specific metabolite.
+RAVEN and the COBRA Toolbox use different field names for the same model. In MATLAB, `ravenCobraWrapper` converts a struct in either direction, inferring which direction from the fields it finds. There is no Python equivalent because there is nothing to convert: a raven-toolbox model is a `cobra.Model`, which every Python COBRA tool takes.
+
+:::{warning} Troubleshooting
+- Fields drift out of alignment. In MATLAB, editing one reaction-length field by hand without editing the others leaves a model that looks fine and fails later, often far from the edit. `checkModelStruct` detects it.
+- A field ends up with mixed contents. `model.subSystems` takes strings or cell arrays of strings, but not both in the same model. Convert the whole field, not one entry.
+- `model.rev` disagrees with the bounds. RAVEN stores reversibility explicitly, so it can contradict `lb` and `ub` after a manual edit, and different functions consult different ones. Python cannot get into that state, because `reaction.reversibility` is computed from the bounds on every read.
+- Subsystems come back as a list. Code that assumes `reaction.subsystem` is a string breaks on a model imported from RAVEN. Use `subsystem_to_str`.
+- A name lookup returns several indices. `getIndexes` with `'metnames'` matches a name in every compartment it occurs in. Use `'metcomps'` and the `name[comp]` form when one specific metabolite is meant.
 :::
 
 ## See also
 
-- [Getting started](getting-started.md), loading a model and looking around it.
+- [Getting started](getting-started.md), loading a model and inspecting it.
 - [Reading and writing models](io.md), where identifier prefixes come from.
 - [MATLAB vs Python](../raven3-vs-raven-toolbox.md), the full function mapping.

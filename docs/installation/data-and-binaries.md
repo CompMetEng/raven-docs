@@ -8,10 +8,10 @@ Both toolboxes read from the same [`toolbox-assets`](https://github.com/CompMetE
 
 | Artefact | Size | Needed for |
 |---|---|---|
-| KEGG core bundle (reference model plus the KO, reaction and organism-gene tables) | about 47 MB | [13. Reconstruction from KEGG](../guide/kegg.md), either method |
+| KEGG core bundle (reference model plus the KO, reaction and organism-gene tables) | about 47 MB | [Reconstruction from KEGG](../guide/kegg.md), either method |
 | KEGG HMM library, one per domain | 129 MB compressed, eukaryotes | a KEGG draft for an organism KEGG has never seen |
 | KEGG taxonomy | small | phylogenetic weighting of KO assignments |
-| BLAST+ (`blastp`, `makeblastdb`) | small | [12. Reconstruction from homology](../guide/homology.md) |
+| BLAST+ (`blastp`, `makeblastdb`) | small | [Reconstruction from homology](../guide/homology.md) |
 | DIAMOND | small | the faster homology method |
 | HMMER (`hmmsearch`) | small | searching the KEGG HMM library |
 
@@ -127,6 +127,6 @@ On Windows, homology reconstruction and the KEGG query path run natively, since 
 
 ## See also
 
-- [13. Reconstruction from KEGG](../guide/kegg.md), the workflow that fetches the KEGG artefacts.
-- [12. Reconstruction from homology](../guide/homology.md), the workflow that needs BLAST+ or DIAMOND.
+- [Reconstruction from KEGG](../guide/kegg.md), the workflow that fetches the KEGG artefacts.
+- [Reconstruction from homology](../guide/homology.md), the workflow that needs BLAST+ or DIAMOND.
 - [RAVEN (MATLAB)](raven.md) and [raven-toolbox (Python)](python.md).

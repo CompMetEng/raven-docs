@@ -13,17 +13,17 @@ The protocol predates the dual-language guide and its steps are MATLAB. The docu
 | [Introduction](reconstruction.md) | what is being built, and from what |
 | [Materials and installation](materials.md) | software, databases and input files |
 | [Importing template models](template-models.md) | the *S. cerevisiae* and *R. toruloides* models the draft is built from |
-| [Draft from homology](homology.md) | BLAST and `getModelFromHomology`; see also [12. Reconstruction from homology](../guide/homology.md) |
+| [Draft from homology](homology.md) | BLAST and `getModelFromHomology`; see also [Reconstruction from homology](../guide/homology.md) |
 | [Biomass composition](biomass.md) | measuring and assembling the biomass equation |
 | [Curation of lipid reactions](lipid-curation.md) | SLIME formalism for the lipid reactions |
-| [Gap-filling](gap-filling.md) | making the draft able to produce biomass; see also [17. Gap-filling](../guide/gap-filling.md) |
+| [Gap-filling](gap-filling.md) | making the draft able to produce biomass; see also [Gap-filling](../guide/gap-filling.md) |
 | [Saving to GitHub and simulating](simulation.md) | writing the model out and checking it grows |
 | [Manual curation](manual-curation.md) | fixing gene associations and adding methanol metabolism |
 
 ## Related
 
 - [Legacy tutorials](../tutorials/index.md), five shorter exercises from the original RAVEN paper.
-- [12. Reconstruction from homology](../guide/homology.md), the same technique at small scale, in both languages, with every example executed.
+- [Reconstruction from homology](../guide/homology.md), the same technique at small scale, in both languages, with every example executed.
 
 ```{toctree}
 :hidden:

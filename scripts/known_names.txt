@@ -418,3 +418,9 @@ complexScoring                # scoreModel argument
 noGeneScore                   # scoreModel argument
 multipleCellScoring           # scoreModel argument
 hpaLevelScores                # scoreModel argument
+
+# -- argument names mentioned in prose --------------------------------------
+targetTotal                   # scaleBiomassPseudoreaction argument
+target_total                  # scale_biomass argument
+overwriteWithEmpty            # curateModelFromTables argument
+new_met_prefix                # change_reaction_equations argument

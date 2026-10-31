@@ -26,7 +26,7 @@ raven-toolbox has the checksums and the release of each dataset in a registry in
 
 ### tINIT
 
-`getINITModel` and `runINIT` are the original tINIT implementation. RAVEN keeps them for models built with them. raven-toolbox has no earlier tINIT models to reproduce, so it implements ftINIT only. A tINIT model has to be reproduced in MATLAB; see [14. Context-specific models with ftINIT](../guide/init.md).
+`getINITModel` and `runINIT` are the original tINIT implementation. RAVEN keeps them for models built with them. raven-toolbox has no earlier tINIT models to reproduce, so it implements ftINIT only. A tINIT model has to be reproduced in MATLAB; see [Context-specific models with ftINIT](../guide/init.md).
 
 ### COBRA Toolbox conversion
 

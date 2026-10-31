@@ -1,25 +1,21 @@
-# 18. Flux variability and alternative optima
+# Flux variability and alternative optima
 
-An FBA solution is one point in a space of equally optimal answers. Flux
-variability asks the more accurate question: **given the objective, how much can
-each reaction's flux still vary?** It is how you distinguish a flux the model
-requires from one it merely happened to report.
+A flux balance analysis (FBA) solution is one point in a space of equally optimal answers. Flux variability analysis (FVA) asks how much each reaction's flux can vary, given the objective. It distinguishes a flux the model requires from one it happened to report.
 
-## Functions on this page
+## Functions
 
-| MATLAB | Python | |
+| MATLAB | Python | Purpose |
 |---|---|---|
 | `getAllowedBounds` | `flux_variability_analysis` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | the range each reaction can take |
 | `haveFlux` | `find_blocked_reactions` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | reactions that can carry no flux at all |
 | `solveLP` (`minFlux`) | `pfba` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | one representative optimum |
 | no equivalent | `loopless_solution` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | an optimum without thermodynamically infeasible loops |
 | no equivalent | `add_loopless` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | the constraints behind `loopless="fastSNP"` |
-| no equivalent | `find_good_reactions` | reactions whose range is real rather than a loop |
+| no equivalent | `find_good_reactions` | reactions whose range does not come from a loop |
 
 ## Setup
 
-`smallYeast.yml`, growing on glucose and oxygen. Uptake here is a **positive**
-flux through a `=> metabolite` reaction, so it is the upper bound that opens it.
+The model is `smallYeast.yml`, growing on glucose and oxygen. Uptake in this model is a positive flux through a `=> metabolite` reaction, so the upper bound opens it.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -56,10 +52,9 @@ growth: 0.1222 /h
 :::
 ::::
 
-## 18.1 The range of every reaction
+## Range of every reaction
 
-With no further constraint, this asks how far each flux can move anywhere in the
-feasible space; the objective is free.
+With no further constraint, this asks how far each flux can move anywhere in the feasible space; the objective is free.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -76,11 +71,7 @@ fprintf('%d reactions, %d fixed, widest span %.1f\n', ...
 53 reactions, 1 fixed, widest span 1000.0
 ```
 
-`getAllowedBounds` solves two LPs per reaction, one minimising and one
-maximising, and runs them in parallel, so the first call in a session opens
-a parallel pool and reports how many workers it got. Pass
-`'runParallel', false` to keep it in the one process, which is quicker on a
-model this size and the only option without the Parallel Computing Toolbox.
+`getAllowedBounds` solves two linear programmes (LPs) per reaction, one minimising and one maximising, and runs them in parallel, so the first call in a session opens a parallel pool and reports how many workers it got. Pass `'runParallel', false` to keep it in the one process, which is quicker on a model this size and the only option without the Parallel Computing Toolbox.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -98,17 +89,13 @@ print(f"{len(span)} reactions, {(span < 1e-9).sum()} fixed, "
 53 reactions, 1 fixed, widest span 1000.0
 ```
 
-`fraction_of_optimum=0.0` is what makes this the same question
-`getAllowedBounds` asks. Leave it out and cobrapy defaults to **1.0**, which
-asks a different question; see the next section.
+`fraction_of_optimum=0.0` makes this the same question that `getAllowedBounds` asks. Without it, cobrapy defaults to 1.0, which asks a different question (see [Range at the optimum](#range-at-the-optimum)).
 :::
 ::::
 
-## 18.2 The range *at* the optimum
+## Range at the optimum
 
-The useful question for interpreting a result: holding growth at its maximum,
-which fluxes are still free to move, and how many come free again if growth only
-has to reach 90 % of it?
+With growth held at its maximum, the analysis determines which fluxes are free to move, and how many become free again if growth only has to reach 90 % of it.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -128,10 +115,7 @@ growth >= 100% of optimum: 51 reactions fixed
 growth >= 90% of optimum: 1 reactions fixed
 ```
 
-RAVEN has no `fraction_of_optimum` argument: constrain the objective
-reaction yourself, then ask for the bounds. A lower bound is a floor, not a
-fixed value, so `0.9 * sol.f` lets growth sit anywhere from 90 % of the optimum
-up to the optimum itself.
+RAVEN has no `fraction_of_optimum` argument: constrain the objective reaction, then ask for the bounds. A lower bound is a floor, so `0.9 * sol.f` allows growth to take any value from 90 % of the optimum up to the optimum.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -150,20 +134,13 @@ growth >= 90% of optimum: 1 reactions fixed
 :::
 ::::
 
-At the optimum only `FRDS2` and `SDH` can still move (18.3 shows why); everything
-else is determined. Let growth drop to 90 % and only `ethIN`, which is closed,
-stays fixed: a 10 % margin frees nearly every flux.
+At the optimum only `FRDS2` and `SDH` can move (see [Loops in flux ranges](#loops-in-flux-ranges)); everything else is determined. With growth allowed to drop to 90 %, only `ethIN`, which is closed, stays fixed: a 10 % margin frees nearly every flux.
 
-Reactions whose span collapses to zero at the optimum are the ones the model has
-no choice about. Those are the predictions the model determines; a flux with a
-wide range at the optimum is an artefact of which vertex the solver happened to
-land on.
+Reactions whose span is zero at the optimum are the ones for which the model has no choice. Those are the predictions the model determines; a flux with a wide range at the optimum is an artefact of which vertex the solver returned.
 
-## 18.3 A wide range is not always a real one
+## Loops in flux ranges
 
-A reaction can show a wide range purely because it is part of a thermodynamically
-infeasible cycle, flux going round a loop with no net driving force. The widest
-span in 18.1 was 1000, the model's default bound. That span is such a cycle.
+A reaction can show a wide range purely because it is part of a thermodynamically infeasible cycle, flux going round a loop with no net driving force. The widest span in [Range of every reaction](#range-of-every-reaction) was 1000, the model's default bound. That span is such a cycle.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -189,9 +166,7 @@ widest: FRDS2 (1000.0) and SDH (1000.0)
 with FRDS2 shut: growth 0.1222 /h, widest span 4.0
 ```
 
-**RAVEN has no loopless FVA.** The practical check is the one above: shut one
-reaction of a suspected cycle and see whether anything downstream moves.
-Growth is untouched, so those 1000 units of flux were never doing any work.
+RAVEN has no loopless FVA. The practical check is to shut one reaction of a suspected cycle and see whether anything downstream moves. Growth is unchanged, so those 1000 units of flux do no work.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -215,30 +190,13 @@ inflated by loops: ['FRDS2', 'SDH']
 :::
 ::::
 
-Both tabs reach the same number by different routes: shutting one arm of the
-cycle, and adding loopless constraints, each cut the widest range in the model
-from 1000 to **4**. `FRDS2` and `SDH` catalyse the same interconversion in
-opposite directions.
-Together they form a cycle that can carry arbitrary flux while consuming and
-producing nothing, which is why the pair reaches the default bound of 1000 and
-why the model's largest reported range is an artefact of stoichiometry rather
-than a statement about the organism.
+Both tabs reach the same number by different methods: shutting one arm of the cycle and adding loopless constraints each cut the widest range in the model from 1000 to 4. `FRDS2` and `SDH` catalyse the same interconversion in opposite directions. Together they form a cycle that can carry arbitrary flux while consuming and producing nothing. The pair therefore reaches the default bound of 1000, and the model's largest reported range is an artefact of stoichiometry and does not describe the organism.
 
-The `loopless` argument names the algorithm that forbids the cycle. `"fastSNP"`
-adds loopless constraints to the model and gives optimal bounds;
-`"cycleFreeFlux"` removes loops from each solution instead, which is quicker but
-is not guaranteed to find the tightest bounds. `loopless=True` still works and
-means `"cycleFreeFlux"`, but it is deprecated; name the algorithm.
-`find_good_reactions` uses the same idea to decide which reactions are worth
-sampling over, keeping a reaction only if its **loopless** range is non-trivial.
+The `loopless` argument names the algorithm that forbids the cycle. `"fastSNP"` adds loopless constraints to the model and gives optimal bounds; `"cycleFreeFlux"` removes loops from each solution, which is quicker but is not guaranteed to find the tightest bounds. `loopless=True` works and means `"cycleFreeFlux"`, but it is deprecated; name the algorithm. `find_good_reactions` uses the same idea to decide which reactions to sample over, keeping a reaction only if its loopless range is non-trivial.
 
-## 18.4 One representative solution
+## Representative solution
 
-When a single flux distribution is needed (for a figure, or to compare two
-conditions), take a parsimonious one rather than whatever the solver returns
-first. It carries no loop flux and is less arbitrary than the first vertex
-found, but it need not be unique either: where two routes cost the same total
-flux, pFBA can return either. Report any single flux together with its range.
+When a single flux distribution is needed (for a figure, or to compare two conditions), take one from parsimonious FBA (pFBA), not whatever the solver returns first. It carries no loop flux and is less arbitrary than the first vertex found, but it need not be unique either: where two pathways cost the same total flux, pFBA can return either. Report any single flux together with its range.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -254,9 +212,7 @@ fprintf('growth: %.4f /h, total flux: %.1f\n', solPars.x(idx), sum(abs(solPars.x
 growth: 0.1222 /h, total flux: 20.9
 ```
 
-`minFlux` minimises total absolute flux subject to the objective, which is
-parsimonious FBA. It is also the closest RAVEN gets to excluding loops: a
-cycle adds flux, so a parsimonious solution has no reason to carry one.
+`minFlux` minimises total absolute flux subject to the objective, which is parsimonious FBA. It is also the closest option in RAVEN to excluding loops: a cycle adds flux, so a parsimonious solution has no reason to carry one.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -275,35 +231,20 @@ loopless  20.9
 pFBA      20.9
 ```
 
-All three agree here: this particular optimum happens to carry no loop flux,
-even though 18.3 showed the cycle is there. Nothing guaranteed that: the
-solver could as easily have returned a vertex with 1000 units going round
-`FRDS2` and `SDH`, which is exactly the failure `loopless_solution` exists to
-prevent.
+All three agree here: this particular optimum happens to carry no loop flux, even though [Loops in flux ranges](#loops-in-flux-ranges) showed that the cycle exists. Nothing guaranteed that: the solver could equally have returned a vertex with 1000 units going round `FRDS2` and `SDH`, the failure that `loopless_solution` exists to prevent.
 :::
 ::::
 
-:::{warning} What can go wrong
-- **Forgetting `fraction_of_optimum`.** cobrapy defaults to `1.0`, ranges at
-  the optimum. `getAllowedBounds` has no such notion and answers for the whole
-  feasible space. The same call in the two toolboxes therefore asks different
-  questions unless you say which one you mean.
-- **Reporting a flux with a wide range.** If the range at the optimum is wide,
-  the number in your table is one of many equally good answers.
-- **Mistaking a loop for capacity.** Wide ranges on internal cycles are a
-  property of the stoichiometry, not of the organism; see 18.3.
-- **Loopless FVA is a MILP.** `loopless="fastSNP"` adds binary variables, so it is
-  far slower than plain FVA and wants a good solver on anything larger than
-  a toy model.
-- **FVA on a genome-scale model.** Two LPs per reaction. cobrapy parallelises
-  it, which is why `processes` matters; where spawning is blocked, set
-  `Configuration().processes = 1` and expect it to take longer.
+:::{warning} Troubleshooting
+- `fraction_of_optimum` is not set: cobrapy defaults to `1.0`, ranges at the optimum. `getAllowedBounds` has no such notion and answers for the whole feasible space. The same call in the two toolboxes therefore asks different questions unless the call states which one is meant.
+- A flux with a wide range is reported: if the range at the optimum is wide, the number in a results table is one of many equally good answers.
+- A loop is mistaken for capacity: wide ranges on internal cycles are a property of the stoichiometry and not of the organism; see [Loops in flux ranges](#loops-in-flux-ranges).
+- Loopless FVA is a mixed-integer linear programme (MILP): `loopless="fastSNP"` adds binary variables, so it is far slower than plain FVA and wants a good solver on anything larger than a toy model.
+- FVA on a genome-scale model needs two LPs per reaction. cobrapy parallelises it, so `processes` matters; where spawning is blocked, set `Configuration().processes = 1` and expect it to take longer.
 :::
 
 ## See also
 
-- [4. Simulating growth with FBA](fba.md), the single solve this qualifies.
-- [16. Deletions and essentiality](deletions.md), the other way to ask what the
-  model depends on.
-- [9. Quality control](quality-control.md), blocked reactions, the degenerate
-  case of a zero range.
+- [Simulating growth with FBA](fba.md), the single solve this qualifies.
+- [Deletions and essentiality](deletions.md), the other way to ask what the model depends on.
+- [Quality control](quality-control.md), blocked reactions, the degenerate case of a zero range.
