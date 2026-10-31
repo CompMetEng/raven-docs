@@ -7,7 +7,7 @@ are working on.
 
 Two older sets of material appear at the end of this section: a complete
 [reconstruction protocol](../protocol/index.md) for *H. polymorpha*, followed
-start to finish, and the [hands-on tutorials](../tutorials/index.md) from the
+start to finish, and the [legacy tutorials](../tutorials/index.md) from the
 original RAVEN paper. Both are MATLAB only.
 
 :::{admonition} cobrapy
@@ -33,7 +33,7 @@ Not executed: [13. Reconstruction from KEGG](kegg.md), which downloads tens of
 megabytes and takes minutes, and the Human-GEM steps of
 [14. Context-specific models](init.md), which take hours. A few other blocks are
 marked on their page as not run, with the reason. Both pages quote the run their
-numbers came from. The protocol and the hands-on tutorials at the end of this
+numbers came from. The protocol and the legacy tutorials at the end of this
 section are MATLAB-only and are not executed.
 :::
 
@@ -117,7 +117,7 @@ section are MATLAB-only and are not executed.
 | | |
 |---|---|
 | [GEM reconstruction protocol, *H. polymorpha*](../protocol/index.md) | homology-based reconstruction of `hanpo-GEM`, end to end, from template models to a growing methylotrophic draft. A published pipeline followed from start to finish. MATLAB only, not executed here. |
-| [Hands-on tutorials](../tutorials/index.md) | five exercises from the original RAVEN paper (Agren et al., 2013), updated to run with current RAVEN but otherwise unchanged. MATLAB only. |
+| [Legacy tutorials](../tutorials/index.md) | five exercises from the original RAVEN paper (Agren et al., 2013), updated to run with current RAVEN but otherwise unchanged. MATLAB only. |
 
 Use the numbered pages to look something up; use the protocol to see a whole
 reconstruction in order.

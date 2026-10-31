@@ -183,5 +183,5 @@ it can.
   model instead of an orthology database.
 - [17. Gap-filling](gap-filling.md), what to do with 1357 reactions that cannot
   yet carry flux.
-- [Hands-on tutorial 5](../tutorials/tutorial5.md), the original KEGG
+- [Legacy tutorial 5](../tutorials/tutorial5.md), the original KEGG
   reconstruction exercise from the RAVEN paper.

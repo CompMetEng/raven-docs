@@ -22,7 +22,7 @@ The protocol predates the dual-language guide and its steps are MATLAB. The docu
 
 ## Related
 
-- [Hands-on tutorials](../tutorials/index.md), five shorter exercises from the original RAVEN paper.
+- [Legacy tutorials](../tutorials/index.md), five shorter exercises from the original RAVEN paper.
 - [12. Reconstruction from homology](../guide/homology.md), the same technique at small scale, in both languages, with every example executed.
 
 ```{toctree}

@@ -1,4 +1,4 @@
-# Hands-on tutorials
+# Legacy tutorials
 
 Five hands-on tutorials were part of the original RAVEN 1 paper (Agren et al., 2013). The scripts run with the current RAVEN version. The exercises are otherwise unchanged from the original. They use the MATLAB toolbox and build up from running a simulation on an existing model to reconstructing a genome-scale model from sequence data. The scripts and all the data files they use are in the [`tutorials/`](https://github.com/CompMetEng/RAVEN/tree/develop/tutorials) folder of the RAVEN repository.
 
