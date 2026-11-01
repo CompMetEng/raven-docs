@@ -223,7 +223,7 @@ Expression values become gene scores through
 score = clip(factor × ln(level / reference), min_score, max_score)
 ```
 
-with `factor=5.0`, `max_score=10.0` and `min_score=-5.0`, the same in both implementations. The logarithm is natural (base e) in `init/score.py` and in `scoreModel` of RAVEN. The source of each implementation cites no paper for the three constants. A 2012 paper (Wang et al. 2012, [mCADRE](https://doi.org/10.1186/1752-0509-6-153)) uses categorical scoring and is not the origin. The constants are values of RAVEN itself without a literature source.
+with `factor=5.0`, `max_score=10.0` and `min_score=-5.0`, the same in both implementations. The logarithm is natural (base e) in `init/score.py` and in `scoreModel` of RAVEN. The source of each implementation cites no paper for the three constants. A 2012 paper (Wang et al. 2012, [mCADRE](https://doi.org/10.1186/1752-0509-6-153)) uses categorical scoring and does not give these constants. The constants are values of RAVEN itself without a literature source.
 
 ## Comparison with the solver benchmark
 

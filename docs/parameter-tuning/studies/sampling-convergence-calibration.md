@@ -152,7 +152,7 @@ Twenty samples per chain are too few for R-hat on yeast-GEM, and whether CHRR co
 
 ## Choice of `thinning` and `n_samples`
 
-The defaults are `method='achr'`, `thinning=100` and `n_samples=1000` ([Tuned parameter defaults](../../tuned-parameters.md)). CHRR is not the default. On e_coli_core, CHRR differed from ACHR by +0.0012 in median R-hat (1.0027 and 1.0039), by −0.0034 in p90 (1.0171 and 1.0137) and by +0.0101 in maximum (1.0276 and 1.0377), with one run each and no measured spread between sets of seeds, and CHRR took 66 to 133 times as long.
+The defaults are `method='achr'`, `thinning=100` and `n_samples=1000` ([Tuned parameter defaults](../../tuned-parameters.md)). The default is ACHR. On e_coli_core, CHRR differed from ACHR by +0.0012 in median R-hat (1.0027 and 1.0039), by −0.0034 in p90 (1.0171 and 1.0137) and by +0.0101 in maximum (1.0276 and 1.0377), with one run each and no measured spread between sets of seeds, and CHRR took 66 to 133 times as long.
 
 On a model the size of e_coli_core, the default `thinning` with 300 samples per chain gave chains that agree at R-hat 1.1 for every reaction. On yeast-GEM, no setting tested gave converged samples. A `thinning` up to 500 left `ρ` at 0.825 for seed 0 (0.644 to 0.825 over four seeds), and moving the same 30,000 steps from `n_samples` to `thinning` moved the median R-hat from 1.1020 to 1.1010 and the shares above 1.01 and 1.1 by at most 1.7 percentage points. With `n_samples=300` and `thinning=100`, 50.7 % of the 3325 scored reactions had R-hat above 1.1.
 

@@ -108,7 +108,7 @@ Both implementations have the same value or behaviour for each of these paramete
 | `connect_blocked_reactions.allow_net_production` | `False` | Keeps the steady-state balance `S @ v == 0`, the stricter test. `True` relaxes it to `S @ v >= 0` |
 | `fill_gaps_fast_lp.epsilon` | `1e-4` | Value of the fastGapFill paper, [Thiele et al. 2014](https://doi.org/10.1093/bioinformatics/btu321) |
 | `fill_gaps_milp.big_m` | `1000.0` | Matches the ±1000 bounds of the RAVEN convention |
-| `check_tasks.close_boundaries` | `False` | Matches `checkTasks` of RAVEN, against which published task lists were curated. `True` closes the exchange reactions of the model, so that the task defines the whole boundary |
+| `check_tasks.close_boundaries` | `False` | Matches `checkTasks` of RAVEN, against which published task lists were curated. `True` closes the exchange reactions of the model, which makes the task define the whole boundary |
 
 ## Choice of defaults
 
