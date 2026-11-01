@@ -35,7 +35,7 @@ Add the folder to the MATLAB path and run `checkRaven`, which reports whether th
 :::
 :::{tab-item} MATLAB (Add-Ons)
 
-The Add-Ons manager installs the latest stable release, RAVEN 2.x. RAVEN 3.0.0b1, which this site documents, is installed from git or from a source archive; see [RAVEN (MATLAB)](installation/raven.md).
+The Add-Ons manager installs the latest stable release, RAVEN 2.x. RAVEN 3.0.0b2, which this site documents, is installed from git or from a source archive; see [RAVEN (MATLAB)](installation/raven.md).
 :::
 ::::
 

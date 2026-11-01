@@ -21,7 +21,7 @@ raven-toolbox fetches KEGG data and the reconstruction binaries (BLAST+, DIAMOND
 
 ## Installation
 
-The release documented on this site, 3.0.0b1, is a pre-release. PyPI also holds the stable release 0.4.0, and `pip` selects that release unless `--pre` is given.
+The release documented on this site, 3.0.0b2, is a pre-release. PyPI also holds the stable release 0.4.0, and `pip` selects that release unless `--pre` is given.
 
 ::::{tab-set}
 :::{tab-item} {octicon}`package;1em` From PyPI

@@ -51,16 +51,16 @@ setRavenSolver('cobra');
 
 ## Installation
 
-:::{admonition} Installing 3.0.0b1
+:::{admonition} Installing 3.0.0b2
 :class: warning
 
-This site documents RAVEN 3.0.0b1, a pre-release. The Add-Ons manager and the normal releases page of the release download offer the latest stable release (RAVEN 2.x), so neither installs 3.0.0b1. The Clone with git tab or the archive link of the Release download tab installs it.
+This site documents RAVEN 3.0.0b2, a pre-release. The Add-Ons manager and the normal releases page of the release download offer the latest stable release (RAVEN 2.x), so neither installs 3.0.0b2. The Clone with git tab or the archive link of the Release download tab installs it.
 :::
 
 ::::{tab-set}
 :::{tab-item} {octicon}`plug;1em` Add-Ons manager
 
-The installation runs from within MATLAB and needs no separate download. The installed version is the latest stable release (RAVEN 2.x), which is older than 3.0.0b1, as the warning at the start of the [Installation](#installation) section states.
+The installation runs from within MATLAB and needs no separate download. The installed version is the latest stable release (RAVEN 2.x), which is older than 3.0.0b2, as the warning at the start of the [Installation](#installation) section states.
 
 1. Open the Home tab and select Add-Ons, then Get Add-Ons.
 2. Search for RAVEN Toolbox and select Add, then Add to MATLAB.
@@ -70,21 +70,21 @@ When MATLAB does not pick up the toolbox after step 2, `matlab.addons.enableAddo
 :::
 :::{tab-item} {octicon}`download;1em` Release download
 
-This method suits offline and managed environments. The [RAVEN releases page](https://github.com/CompMetEng/RAVEN/releases) lists stable releases, and 3.0.0b1 is a git tag without a packaged release, so the archive is downloaded directly:
+This method suits offline and managed environments. The [RAVEN releases page](https://github.com/CompMetEng/RAVEN/releases) lists stable releases, and 3.0.0b2 is a git tag without a packaged release, so the archive is downloaded directly:
 
-1. Download [the 3.0.0b1 archive](https://github.com/CompMetEng/RAVEN/archive/refs/tags/3.0.0b1.zip), which works without git.
+1. Download [the 3.0.0b2 archive](https://github.com/CompMetEng/RAVEN/archive/refs/tags/3.0.0b2.zip), which works without git.
 2. Extract it to any location.
 3. In MATLAB, add the RAVEN folder to the path (`pathtool`) and [verify](#verification).
 :::
 :::{tab-item} {octicon}`git-branch;1em` Clone with git
 
-The commands clone the repository and check out the `3.0.0b1` tag. A plain `git clone` follows the `develop` branch, which can contain changes made after the pre-release documented on this site.
+The commands clone the repository and check out the `3.0.0b2` tag. A plain `git clone` follows the `develop` branch, which can contain changes made after the pre-release documented on this site.
 
 ```bash
 git clone --depth=1 https://github.com/CompMetEng/RAVEN.git
 cd RAVEN
-git fetch --depth=1 origin tag 3.0.0b1
-git checkout 3.0.0b1
+git fetch --depth=1 origin tag 3.0.0b2
+git checkout 3.0.0b2
 ```
 
 Afterwards, add the RAVEN folder to the MATLAB path and [verify](#verification).
@@ -156,7 +156,7 @@ MATLAB should be closed, the old RAVEN folder deleted, the new release downloade
 :::
 :::{tab-item} {octicon}`git-branch;1em` Clone with git
 
-The `3.0.0b1` tag does not move, so a checkout of it has nothing to pull. The development branch is followed with:
+The `3.0.0b2` tag does not move, so a checkout of it has nothing to pull. The development branch is followed with:
 
 ```bash
 git checkout develop
