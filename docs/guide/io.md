@@ -266,4 +266,4 @@ print(sorted(p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_fil
 
 - [Getting started](getting-started.md), what to do with the model once it is loaded.
 - [Guide overview](index.md), the other pages and the planned pages.
-- [MATLAB vs Python](../raven3-vs-raven-toolbox.md), the full function mapping, including everything that resolves to cobrapy.
+- [MATLAB vs Python](../matlab-vs-python.md), the full function mapping, including everything that resolves to cobrapy.

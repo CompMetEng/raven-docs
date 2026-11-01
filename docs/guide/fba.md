@@ -317,4 +317,4 @@ The growth rate is unchanged and the total flux is the smallest that achieves it
 - [Getting started](getting-started.md), loading and inspecting a model.
 - [Growth media and conditions](media.md), what the exchange bounds mean and how
   to define a medium.
-- [MATLAB vs Python](../raven3-vs-raven-toolbox.md), the full function mapping.
+- [MATLAB vs Python](../matlab-vs-python.md), the full function mapping.

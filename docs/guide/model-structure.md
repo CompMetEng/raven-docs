@@ -327,4 +327,4 @@ RAVEN and the COBRA Toolbox use different field names for the same model. In MAT
 
 - [Getting started](getting-started.md), loading a model and inspecting it.
 - [Reading and writing models](io.md), where identifier prefixes come from.
-- [MATLAB vs Python](../raven3-vs-raven-toolbox.md), the full function mapping.
+- [MATLAB vs Python](../matlab-vs-python.md), the full function mapping.

@@ -437,3 +437,45 @@ run_hmmscan                   # imported by analyze_hmm_cutoffs.py; not in query
 parse_hmmscan_tblout          # imported by analyze_hmm_cutoffs.py; not in query.py
 cannot_connect                # output of connect_blocked_reactions
 ml_prep                       # MATLAB script of the validation study
+fastLP                        # value of the algorithm option of fillGaps
+swiftLP                       # value of the algorithm option of fillGaps
+gapfillMILP                   # value of the algorithm option of fillGaps
+cannotConnect                 # output of fillGaps
+newModel                      # output of fillGaps
+exitFlag                      # output of fillGaps
+chargeStatus                  # field of the getElementalBalance output
+chargeResidual                # field of the getElementalBalance output
+# parameter and output names in the RAVEN 2 to RAVEN 3 migration pages
+goodRxns
+rxnToCheck
+nObjectives
+checkBinaries
+failedTasks
+getWoLFScores
+
+# RAVEN 2 identifiers, options and fields named in the migration pages (functions removed in RAVEN 3, options of RAVEN 2 or 3 functions, model fields)
+complexPolicy
+geneScores
+getToolboxVersion
+grRule
+importExportTests
+keepGeneFree
+parallelPoolRAVEN
+preserveNotes
+preserveQuotes
+rxnFrom
+solverTests
+trimWarnings
+xml_format
+xml_formatany
+xml_help
+xml_load
+xml_parse
+xml_parseany
+xml_save
+xml_strsplit
+xml_unblank
+# Test classes of RAVEN (tests/function_tests) and a MATLAB built-in
+tBinaries
+tParseRAVENargs
+regexpPattern

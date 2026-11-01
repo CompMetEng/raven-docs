@@ -358,4 +358,4 @@ The values are uptake rates and not bounds, and the zeros are components that th
 - [Simulating growth with FBA](fba.md), the solve that uses the medium.
 - [Reading and writing models](io.md), keeping a model and its conditions in a
   repository.
-- [MATLAB vs Python](../raven3-vs-raven-toolbox.md), the full function mapping.
+- [MATLAB vs Python](../matlab-vs-python.md), the full function mapping.

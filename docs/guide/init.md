@@ -1,16 +1,16 @@
 # Context-specific models with ftINIT
 
-A genome-scale model describes what an organism can do. tINIT and ftINIT reduce it to what a particular sample (a tissue, a cell line, a condition) appears to be doing, from expression data plus a list of metabolic tasks that the result must be able to perform.
+A genome-scale model describes what an organism can do. ftINIT reduces it to what a particular sample (a tissue, a cell line, a condition) appears to be doing, from expression data plus a list of metabolic tasks that the result must be able to perform. The legacy method tINIT, which ftINIT replaces, does the same for models that were built with it.
 
 The workflow uses Human-GEM and the RNA-seq data that Human-GEM provides, in both toolboxes.
 
 ## Choice of method
 
-ftINIT is the recommended method, and the workflow here uses it.
+ftINIT is the recommended method and replaces the legacy method tINIT. The workflow uses ftINIT.
 
-Use tINIT (`getINITModel`) only to reproduce a model that was built with it. tINIT is supported and is not scheduled for removal. It issues a `RAVEN:legacyMethod` notice, which states that it is not intended for new work. Silence the notice with `warning('off','RAVEN:legacyMethod')`.
+Use tINIT (`getINITModel`) to reproduce a model that was built with it. tINIT is supported and is not scheduled for removal. It issues a `RAVEN:legacyMethod` notice, which states that it is not intended for new work. Silence the notice with `warning('off','RAVEN:legacyMethod')`.
 
-tINIT is MATLAB-only. RAVEN includes it for the models already built with it; raven-toolbox, an implementation without such an installed base, includes ftINIT only. A tINIT model has to be reproduced in MATLAB.
+The legacy method tINIT is MATLAB-only. RAVEN includes it for the models already built with it; raven-toolbox, an implementation without such an installed base, includes ftINIT only. A tINIT model has to be reproduced in MATLAB.
 
 ## Relation between tINIT and ftINIT
 
@@ -44,7 +44,7 @@ The same MATLAB workflow, as the model's own documentation presents it and inclu
 | `ftINIT` | `ftinit` | the staged extraction |
 | `scoreModel` | `score_reactions_from_genes` | gene scores → reaction scores |
 | no equivalent | `gene_scores_from_expression` | expression → gene scores |
-| `runINIT`, `getINITModel` | no equivalent | tINIT, for reproducing models built with it |
+| `runINIT`, `getINITModel` | no equivalent | the legacy tINIT method, for reproducing models built with it |
 | `removeLowScoreGenes` | `remove_low_score_genes` | prune negative-scoring genes from gene-protein-reaction rules (GPRs) |
 | `parseHPA`, `parseHPArna` | `parse_hpa`, `parse_hpa_rna` | read Human Protein Atlas (HPA) dumps |
 | no equivalent | `hpa_gene_scores`, `rna_gene_scores` | HPA levels or transcripts per million (TPM) to gene scores |
