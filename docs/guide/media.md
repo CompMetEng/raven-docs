@@ -347,7 +347,7 @@ The values are uptake rates. A zero is a component that the solution needs at a 
 :::{admonition} Troubleshooting
 :class: warning
 
-- The model is infeasible after setting a medium. An essential nutrient is closed. The components should be reopened one at a time, or `minimal_medium` run on the working model and compared.
+- The model is infeasible after setting a medium. An essential nutrient is closed. Reopen the components one at a time, or run `minimal_medium` on the working model and compare.
 - The signs of two conventions are mixed. For an exchange written `metabolite <=>`, as in yeast-GEM, uptake is a negative flux, and `model.medium` takes positive numbers. Both are correct, and mixing them gives wrong bounds.
 - The model grows without a carbon source. A reaction usually produces carbon from nothing. [Quality control](quality-control.md) describes the diagnosis with `canExchange` and `gap_report`.
 - A result cannot be reproduced. A medium defined inside a script differs between users who edit the script. A condition file is data, and a text difference shows its changes.

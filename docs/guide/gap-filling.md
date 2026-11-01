@@ -316,7 +316,7 @@ from raven_toolbox.init import fill_tasks
 - The identifiers do not line up. Gap-filling adds what it can match. Two models built from different databases share almost no metabolite identifiers, and gap-filling then adds nothing or adds duplicates.
 - Every gap is filled. Some reactions are blocked because the organism cannot perform them. Each addition is a claim about biology, and `fillGaps` makes hundreds of them in one call.
 - Net production hides the problem. `allowNetProduction` makes more reactions look connectable because it ignores where the products go. It helps in early stages and misleads in later stages.
-- A MILP runs on a genome-scale model. It is slow, most of all on GLPK, and a time limit should be set ([Solvers and configuration](solvers.md)).
+- A MILP runs on a genome-scale model. It is slow, most of all on GLPK, so set a time limit ([Solvers and configuration](solvers.md)).
 - A draft reaction runs in the wrong direction. `gapFillMILP` and `fill_gaps_milp` do not change the reactions of the draft, so the wrong direction appears as a failed fill or as a detour around the reaction.
 - The numbers of added reactions of the two toolboxes are compared. The toolboxes treat different reactions as candidates, so the counts are comparable when the template holds reactions that the draft lacks.
 :::

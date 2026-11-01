@@ -123,7 +123,7 @@ This removes nine reactions from this organism, and the effect differs between o
 - The draft is expected to be a model. It has no biomass reaction, no exchange reactions, no compartments and no medium. It is an inventory of reactions with gene associations.
 - The KO assignment is trusted. A KO is an orthology group, which does not demonstrate an activity in the organism, and a partial HMM hit is weaker.
 - The stoichiometry is undefined. Reactions with `n` or `x` coefficients cannot be mass-balanced. They are kept by default because removing them removes real chemistry, and they affect [Quality control](quality-control.md).
-- The KEGG release changes. The artefacts are built from one KEGG release, `kegg118` here. A rebuild with another release gives a different model, so the release should be recorded.
+- The KEGG release changes. The artefacts are built from one KEGG release, `kegg118` here. A rebuild with another release gives a different model, so record the release.
 :::
 
 ## See also

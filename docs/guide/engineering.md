@@ -216,8 +216,8 @@ Both toolboxes compute the background correction in closed form and report the s
 - FSEOF is read as a prediction. It reports what the stoichiometry allows when product formation is forced, which is a hypothesis to test.
 - The target list contains noise. With a lowered correlation threshold, alternative optima appear as targets. When the flux of a reaction is not close to linear in the enforced product, its slope has no meaning.
 - A product that the model cannot make is forced. When the target exchange cannot carry flux, every step of the scan is infeasible and there is nothing to correlate. A single solve checks this first.
-- Reporter metabolites are computed on an unfiltered gene list. The correction handles the size of the neighbourhood and does not handle a uniform p-value distribution that arises because nothing is differentially expressed. The distribution of the input should be inspected before the ranking is trusted.
-- Currency metabolites rank at the top. ATP, NADH and water take part in many reactions and therefore tend to rank at the top. They should be excluded, or the ranking read beyond them.
+- Reporter metabolites are computed on an unfiltered gene list. The correction handles the size of the neighbourhood and does not handle a uniform p-value distribution that arises because nothing is differentially expressed. Inspect the distribution of the input before trusting the ranking.
+- Currency metabolites rank at the top. ATP, NADH and water take part in many reactions and therefore tend to rank at the top. Exclude them, or read the ranking beyond them.
 :::
 
 ## See also

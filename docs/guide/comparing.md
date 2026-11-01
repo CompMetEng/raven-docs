@@ -196,8 +196,8 @@ The two examples also show what `compareMultipleModels` and `compare_models` cou
 
 - Models are compared by identifier alone. Both functions match by identifier. Two models from different databases share few identifiers and look unrelated although they describe the same metabolism. [Combining and simplifying models](combining.md) merges by name instead.
 - Similarity is read as quality. It measures overlap.
-- One flux vector per model is compared. An FBA solution is one of many optima, so two models, or two solvers on one model, can return different vectors with the same growth. Both solves should be checked for success, and growth is compared first, then ranges or tasks. `compareFluxes` and `compare_fluxes` compare two solutions of one model, so every reaction must be in both.
-- The medium is forgotten. A flux comparison compares conditions as much as models. The same bounds should be set explicitly on both models before a conclusion is drawn.
+- One flux vector per model is compared. An FBA solution is one of many optima, so two models, or two solvers on one model, can return different vectors with the same growth. Check that both solves succeeded, and compare growth first, then ranges or tasks. `compareFluxes` and `compare_fluxes` compare two solutions of one model, so every reaction must be in both.
+- The medium is forgotten. A flux comparison compares conditions as much as models. Set the same bounds explicitly on both models before drawing a conclusion.
 - A model is compared with a reloaded copy of itself. Writing and reading a model can change formatting, order and rounding, and differences after a round trip can come from the file format ([Reading and writing models](io.md)).
 :::
 

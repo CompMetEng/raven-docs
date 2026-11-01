@@ -253,10 +253,10 @@ The list passed back as `good_reactions=` on a later call skips the FVA, which i
 :::{admonition} Troubleshooting
 :class: warning
 
-- No seed is set. The numbers change in every run. A seed should be set and reported together with the solver, because the warmup points come from LPs and another solver gives another chain, as does a solve of the same model before the sampling with GLPK ([First sample](#first-sample)). The distribution is reported.
+- No seed is set. The numbers change in every run. Set a seed and report it together with the solver, because the warmup points come from LPs and another solver gives another chain, as does a solve of the same model before the sampling with GLPK ([First sample](#first-sample)). The distribution is reported.
 - Thinning is too small. Consecutive MCMC steps are correlated, so every 100th step is recorded. This suffices for this model and falls short for a genome-scale model. On yeast-GEM, samples 100 steps apart have a correlation of 0.93, and independent chains disagree on most reactions ([Flux sampling convergence and settings](../parameter-tuning/studies/sampling-convergence-calibration.md)). Reported results need chains with different seeds that agree.
 - A mean is read as a prediction. The mean of a sample describes the feasible space and the sampler. It is a feasible state located where most of the volume is, which puts the mean growth below half of the optimum in [Distribution and range](#distribution-and-range). With `randomObjective` the samples are vertices, and a reaction can average 5 while every sample has it at 0 or 10.
-- A model with a wide-open medium is sampled. With an unconstrained medium the space is enormous and the distribution says nothing, so the model should be constrained first.
+- A model with a wide-open medium is sampled. With an unconstrained medium the space is enormous and the distribution says nothing, so constrain the model first.
 - Loops are present. They inflate the sampled space, and every sample drawn inside a cycle is wasted ([Flux variability](fva.md)).
 - The runtime on a genome-scale model is long. `achr` starts with two LPs per reaction for its warmup points, and `chrr` starts with an FVA and a rounding step. The sampling steps after that solve no LP. `randomObjective` solves one LP per sample. A few hundred samples show the shape, and tens of thousands are not needed for that.
 :::

@@ -246,7 +246,7 @@ Collapsing compartments discards information. A model that distinguishes mitocho
 :class: warning
 
 - The names are inconsistent. The match uses name and compartment. Different naming conventions give two disconnected networks in one model without an error, and MATLAB warns about the metabolite identifiers that it renames.
-- Duplicates are expected to disappear. Merging keeps every reaction of every source. The model should be contracted afterwards, and the collapsed reactions checked.
+- Duplicates are expected to disappear. Merging keeps every reaction of every source. Contract the model afterwards and check the collapsed reactions.
 - The model is simplified against the wrong condition. Reactions are removed because they cannot carry flux under the current bounds, so the medium is changed first.
 - The function works in place or returns a copy. The Python functions mutate, and the MATLAB functions return a new struct. Mixing the conventions discards either the original or the result.
 - `deleteUnconstrained` has no Python counterpart. RAVEN models mark boundary metabolites with an `unconstrained` field, and cobra models use explicit boundary reactions, so the flag has nothing to act on.

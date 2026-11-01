@@ -118,7 +118,7 @@ The table includes the columns that are curated, and every value that must survi
 - The names do not match. A trailing space, a different capitalisation or `name[comp]` with the wrong compartment makes the row add a duplicate entity and leaves the intended entity uncurated.
 - Reactions are matched by stoichiometry. Two reactions with the same reactants and products that differ in direction or bounds alone are one reaction to the matcher.
 - The identifier prefix is wrong. The default is `M_` and `R_`. On a model with `s_` and `r_`, the additions are correct and their identifiers differ from all others in the model.
-- Changes are not recorded. The tables are the record. They should be committed together with the model, as the curation is otherwise as difficult to review as the function calls it replaced.
+- Changes are not recorded. The tables are the record. Commit them together with the model, as the curation is otherwise as difficult to review as the function calls it replaced.
 :::
 
 ## See also

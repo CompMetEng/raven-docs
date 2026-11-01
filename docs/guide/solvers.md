@@ -206,7 +206,7 @@ An infeasible model is over-constrained, and no solution satisfies the constrain
 - A solver is set and missing. `setRavenSolver('gurobi')` stores the preference whether or not Gurobi is present, and the failure appears at the next solve. `checkRaven` tests the solver directly.
 - A large MILP runs on GLPK. Both toolboxes send MILPs to GLPK, and RAVEN warns when it does. Gap-filling and ftINIT on a genome-scale model run for hours on GLPK where Gurobi takes minutes.
 - Fluxes are read after a solve that is not optimal. `sol.stat` of `0` means that a feasible point was found without a proof of optimality, and `-2` means that the parsimonious step failed after an optimal first solve. Both return numbers.
-- Solvers give slightly different results. Alternative optima allow two solvers to return different flux distributions with the same objective value. One solver should be fixed for any comparison.
+- Solvers give slightly different results. Alternative optima allow two solvers to return different flux distributions with the same objective value. Fix one solver for any comparison.
 :::
 
 ## See also

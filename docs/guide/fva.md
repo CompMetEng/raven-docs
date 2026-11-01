@@ -242,7 +242,7 @@ All three methods agree here, because this optimum carries no loop flux, althoug
 - A flux with a wide range is reported. When the range at the optimum is wide, the number in a results table is one of many equally good solutions.
 - A loop is mistaken for capacity. Wide ranges on internal cycles follow from the stoichiometry and do not describe the organism ([Loops in flux ranges](#loops-in-flux-ranges)).
 - Loopless FVA is a mixed-integer linear programme (MILP). `loopless="fastSNP"` adds binary variables, so it is much slower than plain FVA and needs a good solver for anything larger than a small model.
-- FVA on a genome-scale model needs two LPs per reaction. cobrapy parallelises it, so `processes` matters. Where spawning processes is blocked, `Configuration().processes = 1` should be set, and the run takes longer.
+- FVA on a genome-scale model needs two LPs per reaction. cobrapy parallelises it, so `processes` matters. Where spawning processes is blocked, set `Configuration().processes = 1`, and the run takes longer.
 :::
 
 ## See also

@@ -274,7 +274,7 @@ The reference is computed before the knockout. Without `solution=`, cobrapy take
 - The essentiality numbers of the two toolboxes are compared. `getEssentialRxns` measures feasibility and `single_reaction_deletion` measures growth, which are different questions.
 - A knockout looks lethal because the medium is wrong. Essentiality is relative to the medium and the objective, and both are stated with the result ([Growth media and conditions](media.md)).
 - Essentiality is read from a threshold. `growth < 1e-6` is a numerical limit. A mutant at 1 % of the wild-type growth is not dead.
-- A double deletion runs on a genome-scale model. The run time grows with the square of the number of genes, so the lists should be restricted or the wait accepted.
+- A double deletion runs on a genome-scale model. The run time grows with the square of the number of genes, so restrict the lists or accept the wait.
 :::
 
 ## See also

@@ -317,9 +317,9 @@ Models differ (11 differences):
 :::{admonition} Troubleshooting
 :class: warning
 
-- A model is judged by whether it solves. An unbalanced reaction can improve the solve. The balance should be checked first, and the growth rate trusted afterwards.
+- A model is judged by whether it solves. An unbalanced reaction can improve the solve. Check the balance first, and trust the growth rate afterwards.
 - Every unbalanced reaction is treated as an error. Exchange, demand, sink and biomass pseudoreactions are unbalanced by design.
-- The result is `unknown`. A metabolite without a formula, or a polymer formula that cobrapy cannot parse, makes the balance undecidable. The formula should be added and the check repeated.
+- The result is `unknown`. A metabolite without a formula, or a polymer formula that cobrapy cannot parse, makes the balance undecidable. Add the formula and repeat the check.
 :::
 
 ## See also
