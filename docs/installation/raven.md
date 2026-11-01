@@ -4,7 +4,7 @@ The RAVEN Toolbox runs in MATLAB and works independently. It does not require th
 
 ## Requirements
 
-- MATLAB R2016b or later. R2016b is the oldest release that the code guards for. Continuous integration tests R2024b only. No additional MathWorks toolboxes are required.
+- MATLAB, with no minimum release stated. The code has no check that rejects an older release. `readYAMLmodel` has a fallback for releases before R2020b, `parseTaskList` calls `readcell` (R2019a) for Excel task lists and `addIdentifierPrefix` calls `regexpPattern` (R2020b). Continuous integration tests R2024b only; older releases were not tested. No additional MathWorks toolboxes are required.
 - A linear-programming solver: [Gurobi](https://www.gurobi.com/) (free academic licence, recommended) or GLPK, bundled with RAVEN itself and needing no separate install. See [Choosing and configuring a solver](#choosing-a-solver-matlab).
 - RAVEN bundles `libSBML` and the GLPK mex files for Windows, macOS and Linux. `BLAST+`, `DIAMOND` and `HMMER` are not bundled: RAVEN fetches the build for the platform on first use, so the reconstruction functions need internet access the first time they run. `downloadRavenBinaries` fetches them ahead of time. [Download data and binaries](data-and-binaries.md) lists the full set, where it is cached and how to prepare an offline machine.
 
@@ -16,7 +16,7 @@ The RAVEN Toolbox runs in MATLAB and works independently. It does not require th
 | Solver | LP | MILP | Relative speed | Licence |
 |---|---|---|---|---|
 | GLPK | yes | yes (RAVEN warns; slow on large problems) | 1x (baseline) | open source, bundled with RAVEN |
-| SCIP | yes | yes | 0.33x | open source; bundled on Windows, a separate install on macOS or Linux |
+| SCIP | yes | yes | 0.33x | open source; `setRavenSolver('scip')` downloads the MEX file on Windows (from the RAVEN v2.8.6 GitHub release), a separate install on macOS or Linux |
 | Gurobi | yes | yes | 4.2x | free academic licence |
 | COBRA Toolbox | yes | depends on the COBRA solver configured | depends on the COBRA solver configured | depends on the COBRA solver configured |
 

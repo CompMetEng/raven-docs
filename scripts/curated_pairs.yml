@@ -27,6 +27,7 @@ aliases:
   convertToIrrev: convert_to_irreversible
   copyToComps: copy_to_compartment
   findDuplicateRxns: find_duplicate_reactions
+  removeBadRxns: remove_bad_reactions
   removeMets: remove_metabolites
   simplifyModel: remove_dead_end_reactions
   sortModel: sort_identifiers
@@ -251,11 +252,6 @@ not_ported:
   getTransportRxns: >-
     Classifies which reactions move a metabolite between compartments.
     raven-toolbox has no equivalent classifier yet.
-  removeBadRxns: >-
-    Iteratively removes reactions that let the model make or consume
-    something from nothing. raven-toolbox has no equivalent yet; see
-    find_leak_metabolite (mapped from makeSomething/consumeSomething) for
-    finding the same kind of issue.
   reverseRxns: >-
     Negates a reaction's stoichiometry and bounds to reverse its direction.
     Simple enough to do directly against a cobra.Reaction's own API; no

@@ -272,5 +272,5 @@ An empty dictionary means the reaction balances. Anything listed is an element, 
 ## See also
 
 - [Guide overview](index.md), the other pages, and the planned pages.
-- [MATLAB vs Python](../raven3-vs-raven-toolbox.md), what each toolbox has, and where cobrapy takes over.
+- [Comparison of RAVEN and raven-toolbox](../raven3-vs-raven-toolbox.md), what each toolbox has, and where cobrapy takes over.
 - [API reference](../api/index.md), every function in both toolboxes.

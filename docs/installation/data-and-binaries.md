@@ -49,7 +49,7 @@ The path `~/.cache` is used literally on every platform, and the platform conven
 
 The version is part of the path, so two KEGG releases coexist and a pinned run fetches the release it was pinned to when that release is missing from the cache.
 
-In MATLAB the KEGG artefacts go to the directory `dataDir`, which `getKEGGModelForOrganism` requires as an argument. The executables are stored in `software/` inside the RAVEN installation directory on every platform.
+In MATLAB the KEGG artefacts go to the directory `dataDir`, which `getKEGGModelForOrganism` requires as an argument. The executables are stored in `src/external/<tool>` (`blast+`, `diamond`, `hmmer`) inside the RAVEN installation directory on every platform.
 
 ## Tool resolution
 
@@ -77,7 +77,7 @@ Downloading on first use puts the download inside the first run, which is not al
 downloadRavenBinaries
 ```
 
-`downloadRavenBinaries` fetches the executables that RAVEN needs into its `software/` directory. The KEGG artefacts are fetched separately, on the first `getKEGGModelForOrganism` call, into the `dataDir` given there.
+`downloadRavenBinaries` fetches the executables that RAVEN needs into the `src/external/` directory of the RAVEN installation. The KEGG artefacts are fetched separately, on the first `getKEGGModelForOrganism` call, into the `dataDir` given there.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
