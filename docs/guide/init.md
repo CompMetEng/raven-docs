@@ -30,7 +30,7 @@ What they share is general RAVEN machinery, nothing specific to the method: `che
 
 ## Reference run
 
-The outputs in this workflow come from one run made by hand. Other guide pages are re-executed by the [Executed examples](index.md#executed-examples) workflow whenever a guide page, the example data, the runner, the workflow or a submodule changes, and once a week; the outputs here are not, because preparing Human-GEM took 47 minutes in MATLAB and 37 minutes in Python, and the MATLAB run produced a 174 MB artefact, which no documentation build should attempt. The numbers come from one real run (Human-GEM `main` at commit `6812be2a`, RAVEN commit `2d0630e3`, raven-toolbox commit `94f39407`, Gurobi 13.0.1, four cores, 2026-10-30) and are quoted with their wall-clock times for planning.
+The outputs in this workflow come from one run made by hand. Other guide pages are re-executed by the [Executed examples](index.md#executed-examples) workflow whenever a guide page, the example data, the runner, the workflow or a submodule changes, and once a week; the outputs here are not, because preparing Human-GEM took 47 minutes in MATLAB and 37 minutes in Python, and the MATLAB run produced a 174 MB artefact, which no documentation build should attempt. The numbers come from one real run (Human-GEM `main` at commit `6812be2a`, RAVEN commit `2d0630e3`, raven-toolbox commit `94f39407`, Gurobi (MATLAB links the 13.0.1 module library; Python most likely loads the library of gurobipy 13.0.3), four cores, 2026-10-30) and are quoted with their wall-clock times for planning.
 
 The same MATLAB workflow, as the model's own documentation presents it and including the comparison of the extracted models, is in the [Human-GEM guide](https://sysbiochalmers.github.io/Human-GEM-guide/gem_extraction/), which is maintained alongside the model.
 
@@ -67,11 +67,11 @@ git clone --depth=1 https://github.com/SysBioChalmers/Human-GEM.git
 | `data/metabolicTasks/metabolicTasks_Essential.txt` | 57 tasks the extracted model must pass |
 | `data/datasets/Hart2015_RNAseq.txt` | TPM for five cell lines: DLD1, GBM, HCT116, HELA, RPE1 |
 
-Both extractions are mixed-integer problems. On Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi), so set Gurobi up first ([Solvers and configuration](solvers.md)). That benchmark used Human-GEM `38567ab8` (cleaned), the no-task scaled prep, series `1+1` and `time_limit=900`, a different input from the `6812be2a` template with task preparation used here. In raven-toolbox, without `time_limit`, the scheduled runs of a series keep their own limits (120 s and 5000 s, plus a 5 s first run in the last step of `1+1` and `2+1`; 10000 s for `full`, which runs once), for GLPK as for Gurobi. With `setRavenSolver('glpk')`, RAVEN does not pass the `TimeLimit` of the schedule to GLPK: `optimizeProb` sets a 1000 s limit on every GLPK MILP.
+Both extractions are mixed-integer problems. On Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi), so set Gurobi up first ([Solvers and configuration](solvers.md)). That benchmark ([ftINIT on different solvers](../parameter-tuning/studies/init-solver-benchmark.md)) used Human-GEM `38567ab8` (cleaned), prepared without a task list and with scaled stoichiometry, series `1+1` and `time_limit=900`, a different input from the `6812be2a` template with task preparation used here. In raven-toolbox, without `time_limit`, the scheduled runs of a series keep their own limits (120 s and 5000 s, plus a 5 s first run in the last step of `1+1` and `2+1`; 10000 s for `full`, which runs once), for GLPK as for Gurobi. With `setRavenSolver('glpk')`, RAVEN does not pass the `TimeLimit` of the schedule to GLPK: `optimizeProb` sets a 1000 s limit on every GLPK MILP.
 
 ## Template preparation
 
-The preparation finds the task-essential reactions, classifies every reaction into omics-independent categories, merges linear stretches, and rescales the stoichiometry to a narrower coefficient range, which is not needed for feasibility at the default `big_m` and shortens the run (83 s against 157 s in the [calibration](../parameter-tuning/studies/init-param-calibration.md)). It depends only on the template and the task list, and not on the expression data, so it is done once and reused for every sample.
+The preparation finds the task-essential reactions, classifies every reaction into omics-independent categories, merges linear stretches, and rescales the stoichiometry to a narrower coefficient range, which is not needed for feasibility at the default `big_m`. In the single runs of [ftINIT parameter calibration and input robustness](../parameter-tuning/studies/init-param-calibration.md), the rescaling shortened the run (83 s against 157 s). It depends only on the template and the task list, and not on the expression data, so it is done once and reused for every sample.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -135,7 +135,9 @@ Reading Human-GEM from the Systems Biology Markup Language (SBML) file alone tak
 :::
 ::::
 
-:::{note} Spontaneous reactions
+:::{admonition} Spontaneous reactions
+:class: note
+
 Pass the list of spontaneous reactions. ftINIT keeps every reaction passed as spontaneous in every extracted model, whatever the data say. Other reactions without a gene rule are kept only where the optimisation needs them, so they can differ from sample to sample. In Human-GEM, `spontaneous` marks reactions that need no enzyme. That includes diffusion: transport between cytosol and nucleus through the nuclear pores, and gases and water (O2, CO2, H2O, NH3, H2O2, NO, H2S) crossing membranes. Leaving out the list lets ftINIT drop such transports in some samples. The model then uses other routes. For example, without the dCTP transport into the nucleus, deoxycytidine kinase (DCK) becomes essential for DNA synthesis, which is an artefact of the extraction and not biology.
 :::
 
@@ -381,10 +383,12 @@ print(sum(1 for result in report if result.passed), "of", len(report), "tasks pa
 
 Compare the result against the template and against the other samples: [Quality control](quality-control.md) covers the structural checks, and the Human-GEM guide's [GEM comparison](https://sysbiochalmers.github.io/Human-GEM-guide/gem_comparison/) covers comparing many extracted models at once.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Identifiers that do not match. Human-GEM uses ENSEMBL identifiers, and so does `Hart2015_RNAseq.txt`, so no mapping step appears in the workflow. Expression data with symbols or systematic names needs a mapping; score a few genes and check that they are not all at the floor before spending 37 to 47 minutes on the preparation.
 - Re-preparing per sample. The preparation depends only on the template and the tasks. Do it once, save it, and reuse it; preparation and extraction are separate, which makes that possible.
-- No Gurobi. Both extractions are mixed-integer problems; on Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi; Human-GEM `38567ab8`, no-task scaled prep, series `1+1`, `time_limit=900`, a different input from the one in this workflow).
+- No Gurobi. Both extractions are mixed-integer problems; on Human-GEM, GLPK completed a benchmark extraction in 2182 s with a time-limited result (Jaccard 0.892 against Gurobi; Human-GEM `38567ab8` prepared without a task list and with scaled stoichiometry, series `1+1`, `time_limit=900`, a different input from the one in this workflow).
 - A model without capabilities assumed of it. Without a task list there is nothing to repair against, and the extraction is free to remove capabilities that were never checked.
 :::
 

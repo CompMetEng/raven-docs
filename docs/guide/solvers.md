@@ -200,7 +200,9 @@ Check the status before using a number. `slim_optimize` skips building a full so
 
 An infeasible model is over-constrained: the constraints as written have no solution. That is different from a feasible model whose optimum is zero, which is a statement about biology, not about the constraints.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - A solver that is set but not installed. `setRavenSolver('gurobi')` stores the preference whether or not Gurobi is there; the failure appears at the next solve. `checkRaven` tests it directly.
 - A large MILP on GLPK. Both toolboxes send MILPs to GLPK, and RAVEN warns when it does. On a genome-scale model, gap-filling and ftINIT can run for hours on GLPK where Gurobi takes minutes; use Gurobi for those.
 - Reading fluxes after a non-optimal solve. `sol.stat` of `0` means a feasible point was found but not proven optimal, and `-2` means the parsimonious step failed after an optimal first solve. Both return numbers.

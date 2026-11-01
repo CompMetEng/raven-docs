@@ -258,7 +258,9 @@ The reference has to be computed before the knockout. Without `solution=`, cobra
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Confusing gene and reaction knockouts. Deleting a gene silences a reaction only when the GPR says so. Isozymes mask single knockouts, which is what the double deletions test.
 - Comparing essentiality numbers from the two toolboxes. `getEssentialRxns` measures feasibility and `single_reaction_deletion` measures growth; they are different questions.
 - A knockout that looks lethal because the medium is wrong. Essentiality is relative to the medium and the objective. State both when reporting it; see [Growth media and conditions](media.md).

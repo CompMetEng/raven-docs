@@ -424,3 +424,16 @@ targetTotal                   # scaleBiomassPseudoreaction argument
 target_total                  # scale_biomass argument
 overwriteWithEmpty            # curateModelFromTables argument
 new_met_prefix                # change_reaction_equations argument
+
+# -- names of runs, options and arguments in the parameter-tuning studies --------
+ftinit_milp                   # run type of analyze_init_params.py
+ftinit_full                   # run type of analyze_init_params.py
+prep_scale                    # run type of analyze_init_params.py
+fixed_width_tol               # option of analyze_sampling_convergence.py
+replaceBoundsWithInf          # randomSampling argument
+nBurnin                       # sampleCHRR and randomSampling argument
+allow_met_secr                # argument of the ftinit step schedule
+run_hmmscan                   # imported by analyze_hmm_cutoffs.py; not in query.py
+parse_hmmscan_tblout          # imported by analyze_hmm_cutoffs.py; not in query.py
+cannot_connect                # output of connect_blocked_reactions
+ml_prep                       # MATLAB script of the validation study

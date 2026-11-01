@@ -235,7 +235,9 @@ All three agree here: this particular optimum happens to carry no loop flux, eve
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - `fraction_of_optimum` is not set: cobrapy defaults to `1.0`, ranges at the optimum. `getAllowedBounds` has no such notion and answers for the whole feasible space. The same call in the two toolboxes therefore asks different questions unless the call states which one is meant.
 - A flux with a wide range is reported: if the range at the optimum is wide, the number in a results table is one of many equally good answers.
 - A loop is mistaken for capacity: wide ranges on internal cycles are a property of the stoichiometry and not of the organism; see [Loops in flux ranges](#loops-in-flux-ranges).

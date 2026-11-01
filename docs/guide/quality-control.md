@@ -254,7 +254,9 @@ one leak: ['F6P_c', 'GP_c', 'PYR_c']
 :::
 ::::
 
-:::{note} Outlets for by-products in leak tests
+:::{admonition} Outlets for by-products in leak tests
+:class: note
+
 The leak-test functions assume every metabolite can be excreted while the test runs: `canExchange` and `gap_report` add an output reaction for each metabolite they check, and `findLeakMetabolite` and `find_leak_metabolite` take `allowExcretion` (`allow_excretion` in Python) as true by default. A hand-written loop has to add the outlets explicitly. Testing one demand reaction at a time, with no outlet for the by-products, reports zero leaks in this model instead of 33, because a leaking reaction is then blocked by its own stoichiometry.
 :::
 
@@ -308,7 +310,9 @@ Models differ (11 differences):
 
 `diffModels` compares two models entry by entry: which reactions are unique to each, and where a shared reaction differs in stoichiometry, bounds, objective coefficient, gene rule or metabolite properties. [Comparing models](comparing.md) uses the same function, here applied to a model and its last good version.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Judging a model by whether it solves. An unbalanced reaction makes it solve better. Balance first, then believe the growth rate.
 - Treating every unbalanced reaction as a bug. Exchange, demand, sink and biomass pseudo-reactions are unbalanced on purpose.
 - `unknown` instead of `unbalanced`. A metabolite with no formula, or a polymer formula cobrapy cannot parse, makes the balance undecidable, not wrong. Fill in the formula and check again.

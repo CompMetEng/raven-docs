@@ -95,7 +95,7 @@ Both tabs find 14 amplification targets here. `fseof` classifies the fluxes of a
 
 `fseof` returns the whole scan rather than only its conclusion. `scan` is the reactions by enforced-flux-level matrix of fluxes, `enforced` the levels themselves, and `targets` the classified per-reaction table sorted by score. `gene_targets` aggregates the same result to genes, which is the form a strain-design list usually takes.
 
-`correlation_threshold` matches MATLAB's `corrThreshold`, and `flux_eps` is the tolerance of the check against the theoretical maximum flux (on iJO1366 with target `EX_succ_e` the counts are the same at `1e-8`, `1e-7` and `1e-6`, see [Parameter benchmarks](../parameter-tuning/benchmarks.md)). `min_target` sets the floor of the enforced range, by default one step (the top of the scan divided by `n_steps`); passing the target reaction's flux at the growth optimum starts the scan at the level the cell already has.
+`correlation_threshold` matches MATLAB's `corrThreshold`, and `flux_eps` is the tolerance of the check against the theoretical maximum flux (on iJO1366 with target `EX_succ_e` the counts are the same at `1e-8`, `1e-7` and `1e-6`, see [Benchmarks of `fseof`, `remove_genes` and other defaults](../parameter-tuning/benchmarks.md)). `min_target` sets the floor of the enforced range, by default one step (the top of the scan divided by `n_steps`); passing the target reaction's flux at the growth optimum starts the scan at the level the cell already has.
 :::
 ::::
 
@@ -210,7 +210,9 @@ Genes the model does not have and missing (NaN) p-values are dropped; a p-value 
 
 Both toolboxes compute the background correction in closed form and report the same z-scores and one-sided p-values, sorted by z-score. RAVEN returns them as parallel arrays in a struct, raven-toolbox as one table per gene set.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Reading FSEOF as a prediction. It reports what the stoichiometry allows when product formation is forced, which is a hypothesis to test, not an expected yield.
 - A target list full of noise. With a lowered correlation threshold, alternative optima appear as targets. If a reaction's flux is not close to linear in the enforced product, its slope is not meaningful.
 - Forcing a product the model cannot make. If the target exchange cannot carry flux, every step of the scan is infeasible and there is nothing to correlate. Check it with a single solve first.

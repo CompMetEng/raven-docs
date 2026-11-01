@@ -310,7 +310,9 @@ See [Metabolic tasks](tasks.md) for the task list itself, and [Context-specific 
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Identifiers that do not line up. Gap-filling can only add what it can match. Two models built from different databases share almost no metabolite ids, and the result is a gap-filler that adds nothing, or adds duplicates.
 - Filling every gap. Some blocked reactions are blocked because the organism cannot perform them. Each addition is a claim about biology, and `fillGaps` makes hundreds of them in one call.
 - Net production hiding the problem. `allowNetProduction` makes more reactions look connectable by ignoring where the products go. It helps in early stages and misleads in later ones.

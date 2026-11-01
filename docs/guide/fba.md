@@ -302,7 +302,9 @@ The growth rate is unchanged and the total flux is the smallest that achieves it
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - The status is `infeasible`: something is over-constrained, most often an uptake that is closed, or a bound set to the wrong sign. See [Growth media and conditions](media.md).
 - Growth is zero but the solve succeeded: the model is feasible and the optimum is zero, because a nutrient is missing or a gap blocks the biomass pseudoreaction.
 - The same model gives different flux distributions: this is expected, as alternative optima exist. Use pFBA, or compare ranges with flux variability analysis (FVA), not one solution.

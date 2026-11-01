@@ -140,7 +140,9 @@ similarity: 0.945
 :::
 ::::
 
-:::{warning} A high similarity does not mean the models agree
+:::{admonition} A high similarity does not mean the models agree
+:class: warning
+
 These two models are 0.945 alike on the reaction set, and one of them is broken. The differences listed in [Entry-by-entry differences](#entry-by-entry-differences) are a doubled stoichiometric coefficient and a reaction made irreversible, changes that alter what the model predicts while barely moving a set-overlap score. Similarity is for grouping models, not for validating one.
 :::
 
@@ -189,7 +191,9 @@ RAVEN can also run this comparison. `compareMultipleModels` takes `funcCompare` 
 
 The two tabs also show what `compareMultipleModels` and `compare_models` count differently. RAVEN's matrix has one row per combination of models, in-first-only, in-second-only, in-both, with `nElements` counting each; raven-toolbox's has one row per identifier with a column per model. Both answer the same question, but they are indexed in opposite directions.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Comparing on identifiers alone. Both functions match by id. Two models from different databases share few ids and look unrelated even when they describe the same metabolism; see [Combining and simplifying models](combining.md), where merging matches on names instead.
 - Reading similarity as quality. It measures overlap, not correctness.
 - Comparing one flux vector per model. An FBA solution is one of many optima, so two models, or two solvers on one model, can return different vectors with the same growth. Check that both solves succeeded and compare growth first, then ranges or tasks. `compareFluxes` and `compare_fluxes` compare two solutions of one model, so they need every reaction in both.

@@ -106,7 +106,7 @@ Both call the same BLAST+ executables with the same parameters, so the hit count
 
 Without `threads`, `run_blast`, `run_diamond` and `run_supporth` use every CPU the process may run on. In MATLAB, `getBlast`, `getDiamond` and `runSuppOrth` use the cores assigned to MATLAB (`feature('numcores')`); `runSuppOrth` is the one of the three with a `threads` option.
 
-`getDiamond` and `run_diamond` are drop-in alternatives that search with DIAMOND instead. DIAMOND indexes the database and searches in reduced amino-acid alphabets, which makes it one to two orders of magnitude faster on a full proteome pair (minutes against hours), and less sensitive for distant homologs, where the seeds it uses are less likely to match. For a template within the same genus the difference is small; for a template several hundred million years away, BLASTP finds pairs DIAMOND misses.
+`getDiamond` and `run_diamond` are drop-in alternatives that search with DIAMOND instead. DIAMOND ran with `--more-sensitive` (the `run_diamond` default) and was 11.7 and 14.3 times faster than BLASTP on two full proteome pairs (12 s against 140 s and 14 s against 200 s in [Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)). It returned fewer hits, 32,192 against 54,513 for *K. lactis* against *S. cerevisiae*. After the default filters (identity 40, length 200, E-value 1e-30) the two aligners kept 87.9 to 92.3 % of the same pairs on four targets (Jaccard index).
 
 `makeFakeBlastStructure` and `make_ortholog_hits` wrap orthology assignments from another source (OrthoFinder, OMA, a published table) in the structure the transfer step expects, so no search is run.
 
@@ -157,9 +157,9 @@ The draft is smaller than the template because reactions whose genes have no acc
 
 Three cut-offs control which hits are accepted, and tightening any of them shrinks the draft.
 
-`maxE` / `max_evalue` (`1e-30`) is the maximum BLAST E-value, the number of hits of at least this quality expected by chance in a database this size. The default is strict by BLAST standards, where `1e-5` is a common threshold, because transferring a reaction on a marginal hit adds a claim about metabolism that nothing downstream questions.
+`maxE` / `max_evalue` (`1e-30`) is the maximum BLAST E-value, the number of hits of at least this quality expected by chance in a database this size. The default is strict by BLAST standards, where `1e-5` is a common threshold, because transferring a reaction on a marginal hit adds a claim about metabolism that nothing downstream questions. In four organisms the F0.5 score against KEGG was identical from `1e-4` to `1e-30`, was lower by up to 0.006 at `1e-50` and by 0.020 to 0.063 at `1e-100` ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)).
 
-`minLen` / `min_align_len` (`100`) is the minimum aligned length in residues. It rejects hits that align well over a short conserved domain while the rest of the protein is unrelated. The value was measured against KEGG and OMA orthology assignments across four organisms: anything at or below 150 gave the same result, and higher values discarded genuine orthologs whose alignment was interrupted.
+`minLen` / `min_align_len` (`100`) is the minimum aligned length in residues. It rejects hits that align well over a short conserved domain while the rest of the protein is unrelated. The value was measured against KEGG orthology assignments across four organisms ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)): 50 and 100 gave the same score, 150 a score at most 0.003 lower, and 200 and 300 lower scores. At 200 the loss came mainly from recall; precision and recall were not reported for 300.
 
 `minIde` / `min_identity` (`40`) is the minimum percentage identity across the alignment.
 
@@ -197,7 +197,9 @@ strict draft: 32 rxns, 46 genes
 
 Raising the two thresholds removes five reactions and eight genes. Whether that is an improvement depends on what the draft is for: a model that is curated by hand benefits from the extra candidates, since a wrong reaction is easier to spot than a missing one, while a model used directly for prediction is better with fewer and better-supported reactions.
 
-:::{note} Reproducing a RAVEN 2 reconstruction
+:::{admonition} Reproducing a RAVEN 2 reconstruction
+:class: note
+
 Some of these defaults differ from the values RAVEN 2 used, so the same script can produce a different draft under RAVEN 3. Set them explicitly, or see [Migrating from RAVEN 2](../raven3-migration.md).
 :::
 
@@ -248,7 +250,9 @@ None of the 37 reactions can carry flux. This is not a defect in the draft: with
 
 A homology draft is a set of claims about which reactions the organism has. Turning it into a model means giving it a medium ([Growth media and conditions](media.md)), closing the gaps that stop it producing biomass ([Gap-filling](gap-filling.md)), and checking it against what the organism is known to do ([Metabolic tasks](tasks.md)). The [GEM reconstruction protocol](../protocol/index.md) follows that path for *H. polymorpha* at full scale.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Identifiers that do not match. The FASTA headers must carry the same gene ids as the template model's `genes`. A mismatch produces a draft with no reactions and no error.
 - One template, one organism's biases. Every reaction in the draft comes from the template, so anything the template lacks the draft cannot have. Several templates, with `preferredOrder`, spread that risk.
 - Reading absence as evidence. A reaction left out means no acceptable hit was found, which does not show that the organism lacks the capability. Sequencing gaps, divergent sequences and short proteins all look the same here.

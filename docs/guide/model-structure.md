@@ -313,7 +313,9 @@ same object: True
 
 RAVEN and the COBRA Toolbox use different field names for the same model. In MATLAB, `ravenCobraWrapper` converts a struct in either direction, inferring which direction from the fields it finds. There is no Python equivalent because there is nothing to convert: a raven-toolbox model is a `cobra.Model`, which every Python COBRA tool takes.
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - Fields drift out of alignment. In MATLAB, editing one reaction-length field by hand without editing the others leaves a model that looks fine and fails later, often far from the edit. `checkModelStruct` detects it.
 - A field ends up with mixed contents. `model.subSystems` takes strings or cell arrays of strings, but not both in the same model. Convert the whole field, not one entry.
 - `model.rev` disagrees with the bounds. RAVEN stores reversibility explicitly, so it can contradict `lb` and `ub` after a manual edit, and different functions consult different ones. Python cannot get into that state, because `reaction.reversibility` is computed from the bounds on every read.

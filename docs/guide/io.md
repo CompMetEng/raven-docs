@@ -252,7 +252,9 @@ print(sorted(p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_fil
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - The SBML writer refuses an identifier. SBML ids must start with a letter or underscore. Both toolboxes add a prefix to a whole field when any id in it does not, so `importModel` and `read_sbml_model` strip prefixes on the way back.
 - The model id differs between two copies of the same release. cobrapy decodes `__46__`-style escapes in reaction, metabolite and gene ids, but not in the model id, so yeast-GEM read from SBML reports `yeastGEM_v9__46__1__46__0`. Decode it with `re.sub(r"__(\d+)__", lambda m: chr(int(m.group(1))), model.id)`, or compare `model.name`. Do not match entities on annotations: some database ids are shared by differently named metabolites.
 - Excel export fails with a missing module. The Python side needs `openpyxl`; install `raven-toolbox[excel]`.

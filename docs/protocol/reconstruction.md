@@ -25,7 +25,9 @@ In this protocol a draft model is reconstructed for the industrially relevant me
 | [yeast-GEM](https://github.com/SysBioChalmers/yeast-GEM) | *Saccharomyces cerevisiae* (ascomycete) | Primary template |
 | [rhto-GEM](https://github.com/SysBioChalmers/rhto-GEM) | *Rhodotorula toruloides* (basidiomycete) | Complementary template |
 
-:::{warning} Same identifier namespace
+:::{admonition} Same identifier namespace
+:class: warning
+
 Multiple template models must use the same identifiers for metabolites, reactions and compartments. The yeast-GEM and rhto-GEM models used here share the same identifier style.
 :::
 

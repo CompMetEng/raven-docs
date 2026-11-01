@@ -261,7 +261,9 @@ An empty dictionary means the reaction balances. Anything listed is an element, 
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - A lookup fails. Identifiers are case-sensitive and carry the compartment suffix (`G6P_c`, not `G6P`). Neither toolbox returns a sentinel for a name it cannot find: `getIndexes` errors with `Could not find object 'X' in the model` and `get_by_id` raises `KeyError`, so a typo stops the script; nothing else is indexed without warning.
 - The model loads but nothing grows. In `smallYeast.yml` every uptake reaction is closed (`glcIN` has bounds `[0 0]`). Opening a medium is covered in [Growth media and conditions](media.md).
 - Gene identifiers differ between model and FASTA. Systematic names (`YBR196C`) and standard names (`PGI1`) are not interchangeable; RAVEN stores the systematic name as the identifier and the standard name as the gene name.

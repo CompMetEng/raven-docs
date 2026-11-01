@@ -86,7 +86,9 @@ method: achr
 :::
 ::::
 
-:::{warning} Transposed layouts
+:::{admonition} Transposed layouts
+:class: warning
+
 RAVEN returns reactions × samples; raven-toolbox returns a DataFrame of samples × reactions, the `cobra.sampling` layout. Every mean, histogram and correlation has to use the right axis, and a wrong axis gives no error, only numbers other than the intended ones.
 :::
 
@@ -208,7 +210,7 @@ print(f"ethanol: free {result.samples['ethOUT'].mean():.2f}, "
 ```
 
 ```text
-ethanol: free 0.72, growth >= 90% 0.04
+ethanol: free 0.73, growth >= 90% 0.03
 ```
 :::
 ::::
@@ -248,9 +250,11 @@ Passing the list back as `good_reactions=` on a later call skips the FVA, the ex
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - No seed. The numbers change in every run. Set one, and report it with the solver: the warmup points come from LPs, so another solver (or, with GLPK, a solve of the same model before the sampling) gives another chain (see [First sample](#first-sample)). Report the distribution, not the draws.
-- Too little thinning. Consecutive MCMC steps are correlated, so only every 100th is recorded. That is enough for this model, not for a genome-scale one: on yeast-GEM, samples 100 steps apart are 0.93 correlated and independent chains disagree on most reactions (see the [sampling convergence study](../parameter-tuning/studies/sampling-convergence-calibration.md)). For results that are reported, run chains with different seeds and check that they agree.
+- Too little thinning. Consecutive MCMC steps are correlated, so only every 100th is recorded. That is enough for this model, not for a genome-scale one: on yeast-GEM, samples 100 steps apart are 0.93 correlated and independent chains disagree on most reactions (see [Flux sampling convergence and settings](../parameter-tuning/studies/sampling-convergence-calibration.md)). For results that are reported, run chains with different seeds and check that they agree.
 - Reading a mean as a prediction. The mean of a sample describes the feasible space and the sampler, not the cell. It is a feasible state, but it is located where most of the volume is: in [Distribution and range](#distribution-and-range) that puts mean growth below half the optimum. With `randomObjective` the samples are vertices, so a reaction can average 5 while every sample has it at 0 or 10.
 - Sampling a model that is wide open. With an unconstrained medium the space is enormous and the distribution says nothing. Constrain first.
 - Loops. They inflate the space being sampled, and every sample drawn inside a cycle is wasted. See [Flux variability](fva.md).

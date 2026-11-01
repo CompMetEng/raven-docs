@@ -1,19 +1,67 @@
 # ftINIT parameter calibration and input robustness
 
-The study covers the ftINIT parameters of raven-toolbox on a genome-scale model (Human-GEM, Hart2015, HCT116) in two parts:
+This study runs raven-toolbox's ftINIT on Human-GEM with the HCT116 expression data of the Hart2015 dataset and varies one or two settings per run series; the scaling runs and the full-pipeline runs vary scaling and `big_m` together. The calibration part varies the mixed-integer linear program (MILP) settings `mip_gap`, `big_m` and `force_on` and the stoichiometric scaling of the prepared model, and records the run time, the MILP objective and which reactions are kept. The robustness part degrades the expression input by dropout, noise and downsampling, extracts a model with the metabolic-task layer on, and records the model size, the essential tasks the model passes and its overlap with the model from clean data. Overlap is measured as the Jaccard index of two kept-reaction sets: the reactions in both divided by the reactions in either.
 
-1. Calibration: the parameter values with the best trade-off between speed and quality on clean data (`scripts/analyze_init_params.py`).
-2. Robustness: the effect of degrading the transcriptomics input on the model, with the task layer always on (it is part of the pipeline and is not varied), and the parameters that keep the model functional and stable (`scripts/analyze_init_robustness.py`).
+Steps are counted from 1 on the pages of this study; the run logs count from 0, so the logged `step 1` is the second step.
 
-Both scripts are resumable and reusable on any model and dataset; the numbers are for HCT116. The clean-data calibration uses the per-reaction big-M cap `big_m` (Human-GEM `38567ab8`). The robustness measurements used `big_m=100` and an earlier Human-GEM state whose commit is not recorded, so the two sets of numbers do not share a baseline. "Jaccard" is the reaction-set overlap with the reference (tightest setting or clean data). For a model-extraction tool the reaction set is the product, and a MIP gap bounds only the objective, so set stability is tracked separately.
+## Set-up
 
----
+### Software and inputs
 
-## Clean-data calibration
+The calibration runs used Human-GEM commit `38567ab8` (v2.1.1 plus 15 commits), the HCT116 column of the Hart2015 RNA sequencing file, raven-toolbox commit `94f3940` and Gurobi on 4 cores. Gurobi library 13.0.3 from the gurobipy wheel (most likely); the logs print no version. The template is the reference model of the [Human-GEM cell-type model validation against RAVEN](humangem-validation.md): Human-GEM without the drug reactions, the amino-acid triplet reactions and the duplicate complex I reaction, 11265 reactions. `prep_init_model` prepared it without a task list. Its scaled merged model, the model that the MILP receives, has 6657 reactions; the preparation took 26 min and is excluded from every time in the tables.
 
-The clean-data runs used Human-GEM commit `38567ab8` (v2.1.1 plus 15 commits), HCT116 column of Hart2015, raven-toolbox commit `94f3940`, Gurobi 13.0.1, 4 cores. The model after removing drug reactions, amino-acid triplet reactions and the duplicate complex I reaction has 11265 reactions; the scaled merged model that the MILP sees has 6657 reactions. `big_m` is the cap on the per-reaction big-M: each scored reaction gets `max(min(ub, big_m), min(-lb, big_m), force_on)`, an infinite bound counts as `big_m`, so `big_m` limits the flux that a reaction can carry while it counts as on. Each row is one run without seed repeats, so Jaccard differences of 1 to 2 % are not attributed to the parameter; this is the size of the spread between seeds in [ftinit-determinism.md](ftinit-determinism.md), which uses a different setup (Human-GEM v2.0.0-38, DLD1, `big_m=100`, escalation schedule). Times are the wall clock of the MILP call and of the whole `ftinit` call, without the model preparation (26 min for the scaled prep without tasks).
+The robustness runs used Human-GEM at a commit that is not recorded, the same HCT116 data, a template prepared with the essential metabolic tasks, and `big_m=100`. The two parts therefore have no common baseline, and their reaction counts and Jaccard indices cannot be compared with each other.
 
-### ftINIT MILP `mip_gap` (single step-0 solve, `big_m=1000`, `force_on=0.1`)
+Gene scores are `5·ln(level/1)` of each expression level, clipped to [−5, 10] (see [Gene-scoring constants](#gene-scoring-constants)), and reaction scores follow from the gene rules (`score_reactions_from_genes`, default `no_gene_score=-2`).
+
+### Run types
+
+| Run type | What runs | Script and sweep |
+|---|---|---|
+| First-step solve | One `run_ftinit` call (one MILP, no run schedule) for the first step of series `1+1` on the scaled merged model, with a 900 s limit | `bigm/bm.py step0` |
+| Scaling run | The same first-step solve on a model prepared without scaling, which `rescale_for_init` then rescales with the given `max_stoich_diff` (or leaves unscaled), with a 600 s limit and `mip_gap=0.001`. | `bigm/bm.py scale` |
+| Full pipeline | One call of `ftinit` with series `1+1` and `time_limit=600` on the prepared model without tasks: both MILP steps, each with its own schedule of runs. | `bigm/bm.py full` |
+| Robustness run | One call of `ftinit` with series `1+1` on the template prepared with tasks, including the gap-fill that adds reactions until every task is feasible, followed by `check_tasks` on the extracted model. | `scripts/analyze_init_robustness.py` (`MIP_GAP` 0.02, `TIME_LIMIT` 120), phases `gradient` and `levers` (not recoverable) |
+
+A named series such as `1+1` ignores `mip_gap` and `mip_gap_abs`: every step runs its own schedule of MILP runs, with limits of 120 s, 5000 s and 5 s. `time_limit` lowers the limit of each scheduled run, so at `time_limit=600` it shortens the 5000 s runs only. `mip_gap` therefore acts on the first-step solve and not on the full pipeline.
+
+`big_m` is the cap on the per-reaction big-M of the on and off constraints. Each scored reaction gets `max(min(ub, big_m), min(-lb, big_m), force_on)`, and an infinite bound counts as `big_m`, so `big_m` limits the flux that a reaction can carry while it counts as on. `force_on` is the smallest flux at which a reaction counts as on. `max_stoich_diff` is the largest ratio between the stoichiometric coefficients of one reaction after `rescale_for_init` (RAVEN's `rescaleModelForINIT`).
+
+The robustness runs degrade the expression vector of HCT116 in three ways, each with one random draw (seed 0):
+
+- **Dropout**: a fraction of the genes in the data gets the level 0, which scores −5.
+- **Noise**: every level is multiplied by `exp(N(0,σ))`, a log-normal factor with standard deviation σ on the natural-log scale.
+- **Downsampling**: a fraction of the genes is removed from the data. Within a gene rule a missing gene is skipped, and a reaction whose genes are all missing gets `no_gene_score`.
+
+The lever runs repeat the 70 % dropout input with `no_gene_score` or `force_on` changed.
+
+### Measurements
+
+| Column | Meaning |
+|---|---|
+| time (s) | Wall-clock time of the `run_ftinit` call (first-step and scaling runs) or the `ftinit` call (full pipeline), including the construction of the MILP and excluding the preparation |
+| objective | MILP objective of the first-step solve |
+| rel.obj.gap | (reference objective − objective) / reference objective; a positive value is a lower objective than the reference row |
+| `n_kept` | Reactions in the model that the full pipeline returns |
+| n_rxns | Reactions in the model that a robustness run returns, after the gap-fill |
+| Jaccard | Jaccard index of two kept-reaction sets: the reactions in both divided by the reactions in either. First-step sets are merged-model reaction identifiers; full-pipeline and robustness sets are Human-GEM reaction identifiers |
+| tasks pass, frac | Essential tasks that `check_tasks` reports as passed on the extracted model, as a count and as a fraction |
+
+A MIP gap bounds the objective only. Two solutions within the gap can keep different reactions, so the reaction set is compared separately from the objective.
+
+Each table row is one run unless the row states repeats; this set-up has no runs that differ only in the seed. The only available measure of the seed-to-seed spread comes from a different set-up, in [ftINIT reproducibility with `resolve_ties` and `prove_abs_gap`](ftinit-determinism.md): two baseline builds (Human-GEM v2.0.0-38, DLD1, `big_m=100`, escalation schedule, with tasks and gap-fill) that differed only in the seed differed by 110 reactions (symmetric difference of the kept-reaction sets). The two baseline builds kept 7779 and 7781 reactions, so the 110 reactions are 1.4 % of the model and correspond to a Jaccard index of 0.986. That pair compares two full pipelines with gap-fill; a first-step set is the result of one MILP step on merged-model identifiers without tasks, a different kind of object. Between the settings of the calibration the Jaccard index ranged from 0.9976 to 0.9649, a difference of 0.2 to 3.5 % from identical sets.
+
+### Source of the numbers
+
+The calibration tables come from `bigm/bm.py` with the subcommands `step0`, `scale` and `full`, summarised by `bigm/summ.py` and `bigm/compare.py` (prepared model `prep_notask.pkl`). The scripts are in the raven-docs repository under `scripts/parameter_tuning/init/`. `step0` runs a grid of 16 solves: `mip_gap` 0.0002 to 0.1, `big_m` 10 to 1000 and `force_on` 0.02 to 0.5, at `big_m=1000` for the `mip_gap` and `force_on` sweeps. `scale` runs the unscaled preparation rescaled with `max_stoich_diff` 10, 25, 50 and 100 or left unscaled, at `big_m` 1000 and 100. `full` runs one `ftinit` call per setting, with `--gap`, `--big-m`, `--scale` and `--noabs` (`mip_gap_abs=None`) options.
+
+The first-step, scaling and full-pipeline tables are computed from the outputs by `compare.py`. The robustness tables (degraded expression input, lever runs and the 90 % dropout run) come from `scripts/analyze_init_robustness.py`. The script exists at the pinned commit; the state of the script and the inputs that produced the tables are not recoverable.
+
+## Results
+
+### First-step solve with different `mip_gap` values
+
+`big_m=1000`, `force_on=0.1`. The reference is the tightest gap.
 
 | `mip_gap` | time (s) | objective | rel.obj.gap | Jaccard vs tightest |
 |--------:|---------:|----------:|------------:|--------------------:|
@@ -24,9 +72,9 @@ The clean-data runs used Human-GEM commit `38567ab8` (v2.1.1 plus 15 commits), H
 | 0.03 | 25 | 44705 | +0.0272 | 0.9649 |
 | 0.1 | 24 | 44647 | +0.0284 | 0.9663 |
 
-The solve time is flat across the gap at 24 to 25 s. `mip_gap=0.001` is within 0.0001 of the tightest objective, and the reaction set drops below Jaccard 0.97 from 0.03. A named series such as `1+1` ignores `mip_gap` and `mip_gap_abs`, because every step runs its own schedule of MILP runs; the setting acts on a step without a schedule, such as this step-0 solve.
+### First-step solve with different `big_m` values
 
-### ftINIT MILP `big_m` (`mip_gap=0.001`, `force_on=0.1`)
+`mip_gap=0.001`, `force_on=0.1`. The last two columns compare each set with the run at `big_m=1000` and with the run at `big_m=100`.
 
 | `big_m` | time (s) | rel.obj.gap | Jaccard vs `big_m=1000` | Jaccard vs `big_m=100` |
 |------:|---------:|------------:|----------------------:|---------------------:|
@@ -38,9 +86,9 @@ The solve time is flat across the gap at 24 to 25 s. `mip_gap=0.001` is within 0
 | 25 | 25 | −0.0003 | 0.987 | 0.991 |
 | 10 | 23 | −0.0002 | 0.988 | 0.990 |
 
-In the single step-0 solve every `big_m` from 10 to 1000 was feasible, took the same time and reached the same objective within 0.0003. The reaction sets differ by 1 to 2 % between any two values, which is the size of the difference between equivalent solutions. The caps that matter appear in the staged pipeline.
+### First-step solve with different `force_on` values
 
-### ftINIT MILP `force_on` (`mip_gap=0.001`, `big_m=1000`)
+`mip_gap=0.001`, `big_m=1000`. The reference is the default 0.1.
 
 | `force_on` | time (s) | rel.obj.gap | Jaccard vs 0.1 |
 |---------:|---------:|------------:|---------------:|
@@ -50,9 +98,9 @@ In the single step-0 solve every `big_m` from 10 to 1000 was feasible, took the 
 | 0.2 | 25 | −0.0002 | 0.992 |
 | 0.5 | 25 | −0.0000 | 0.987 |
 
-`force_on` (minimum flux for a reaction to count as "on") changes the model through the on/off constraint; the reaction set varied little (Jaccard ≥0.987) and the objective moved little. The default is `force_on=0.1`.
+### First-step solve with different stoichiometric scaling
 
-### Prep scaling by `rescaleModelForINIT` (`max_stoich_diff`, scaling on or off; `mip_gap=0.001`, step-0 solve)
+Scaling runs at `mip_gap=0.001` and two `big_m` values. Every rel.obj.gap and Jaccard index in the table, including the `big_m=100` columns, is against the first row at `big_m=1000` (scale on, `max_stoich_diff=25`, abbreviated `msd`).
 
 | config | time (s), `big_m=1000` | rel.obj.gap | Jaccard vs scaled `msd=25`, `big_m=1000` | time (s), `big_m=100` | rel.obj.gap | Jaccard vs scaled `msd=25`, `big_m=1000` |
 |--------|---------:|------------:|-------------------------:|---------:|------------:|-------------------------:|
@@ -62,9 +110,11 @@ In the single step-0 solve every `big_m` from 10 to 1000 was feasible, took the 
 | `msd=100` | 26 | +0.0048 | 0.980 | 25 | +0.0049 | 0.980 |
 | scale off | 30 | −0.0050 | 0.984 | 25 | −0.0044 | 0.983 |
 
-The reference row (scale on, msd=25, `big_m=1000`) comes from different runs than the same-named row of the `mip_gap` and `big_m` tables. The scale runs prepare the model unscaled and then call `rescale_for_init` with a 600 s limit; the step-0 runs use `prep(scale=True)` with a 900 s limit. The two runs reach objectives of 45539.6 and 45949.2 and share Jaccard 0.983. Within this table every Jaccard value is against the first row, including the `big_m=100` columns.
+The reference row of this table and the `mip_gap=0.001` row of the first-step `mip_gap` table have the same settings and come from different runs: the scaling run rescales an unscaled preparation with `rescale_for_init` and has a 600 s limit, the first-step run uses `prep(scale=True)` and a 900 s limit. Their objectives are 45539.6 and 45949.2, and their reaction sets share a Jaccard index of 0.983.
 
-The single step-0 solve was feasible with and without scaling at both `big_m` values, and `max_stoich_diff` 10 to 100 stayed within Jaccard 0.98 of `max_stoich_diff=25`. In the full staged pipeline, scaling and the cap interact:
+### Full pipeline with and without scaling
+
+`time_limit=600`.
 
 | config (full pipeline, `time_limit=600`) | result |
 |-----------------------------------|--------|
@@ -73,11 +123,11 @@ The single step-0 solve was feasible with and without scaling at both `big_m` va
 | scale off, `big_m=100` | infeasible (no usable solution after 30 s) |
 | scale on, `big_m=25` | infeasible (no usable solution after 30 s) |
 
-With the default `big_m=1000` the pipeline is feasible without scaling. With a cap of 100 and no scaling, or a cap of 25 with scaling, the run stops after 30 s with `ftINIT MILP produced no usable solution (status: infeasible)`. The recommended setting is scaling on (`max_stoich_diff=25`, RAVEN's setting): the pipeline took 83 s with scaling and 157 s without it in these single runs. It is not needed for feasibility at `big_m=1000`.
+An infeasible run stopped with `ftINIT MILP produced no usable solution (status: infeasible)`.
 
-The calibration gives `big_m=1000`, `force_on=0.1` and scaling on (`max_stoich_diff=25`); in a step-0 solve `mip_gap=0.001` is within 0.0001 of the tightest objective. A named series caps each scheduled run by its own limit (runs of 120 s, 5000 s and 5 s); `time_limit` lowers that cap, and the full-pipeline runs here used `time_limit=600`.
+### Full pipeline with different `big_m` values
 
-### ftINIT full pipeline (`ftinit`, series='1+1', no-task scaled prep, `time_limit=600s`)
+Scaled preparation without tasks, series `1+1`, `time_limit=600s`.
 
 | config | time (s) | `n_kept` | Jaccard vs `big_m=1000` |
 |--------|---------:|-------:|---------------------:|
@@ -88,17 +138,11 @@ The calibration gives `big_m=1000`, `force_on=0.1` and scaling on (`max_stoich_d
 | `big_m=50` | 82 | 7325 | 0.982 |
 | `big_m=25` | 30 | infeasible | none |
 
-The runs were started with different `mip_gap` values: 0.001, 0.003 and 0.01 at `big_m=1000`, 0.001 and 0.003 at `big_m=100`, and 0.003 at the other caps. Rows that differ in `mip_gap` or `mip_gap_abs` are repeats of one configuration, because a named series such as `1+1` ignores both: every step runs its own schedule of MILP runs. The three `big_m=1000` runs give the same 7312 reactions in 83, 83 and 84 s with the default `mip_gap_abs=10`, and in 85, 84 and 81 s with `mip_gap_abs=None`. The `mip_gap` conclusions of this study rest on the step-0 table.
+The runs were started with different `mip_gap` values, which the series ignores, so runs at one `big_m` are repeats of one configuration: 0.001, 0.003 and 0.01 at `big_m=1000`, 0.001 and 0.003 at `big_m=100`, and 0.003 at the other caps. Further repeats ran with `mip_gap_abs=None` in place of the default `mip_gap_abs=10`: at `big_m=1000` three runs of 85, 84 and 81 s, which kept the same 7312 reactions, and at `big_m=250` one run of 114 s. A third run at `big_m=100` took 119 s (`mip_gap=0.001`, `mip_gap_abs=None`) and a second run at `big_m=50` took 81 s (`mip_gap=0.003`, `mip_gap_abs=None`). In total `big_m=1000` has six runs (81 to 85 s), `big_m=250` two, `big_m=100` three (117, 118 and 119 s) and `big_m=50` two (82 and 81 s); `big_m=500` and `big_m=25` ran once.
 
-`big_m` from 50 to 1000 gave feasible runs of 81 to 119 s without a trend and reaction sets that differ by 2 % from the default. Several caps have repeats: `big_m=1000` has six runs (81 to 85 s), `big_m=250` two (117 s, and 114 s without `mip_gap_abs`), `big_m=100` three (117, 118 and 119 s) and `big_m=50` two (82 s and 81 s); `big_m=500` and `big_m=25` are single runs. Below 50 the staged pipeline can become infeasible; 25 was infeasible here. The default is `big_m=1000`, the cap that RAVEN's `ftINITInternalAlg` uses (`bigMCap`). Lower caps reduce the flux that a kept reaction can carry and showed no measured gain.
+### Degraded expression input
 
----
-
-## Robustness to degraded transcriptomics (task layer always on)
-
-Measured with `big_m=100` (scaled prep) on an earlier Human-GEM state than the clean-data runs, HCT116, with the task layer on, so its reaction counts and Jaccard values are not comparable with the no-task numbers of the clean-data calibration.
-
-The metabolic-task and gap-fill layer is held fixed; only the expression input is degraded. `frac` is the fraction of the essential tasks that the extracted model performs (`check_tasks`); `Jaccard` is the reaction-set overlap with the clean-data model.
+Robustness runs with the task layer on. The clean row is the reference of the Jaccard column.
 
 | input | n_rxns | tasks pass | frac | Jaccard vs clean |
 |-------|-------:|-----------:|-----:|-----------------:|
@@ -110,18 +154,11 @@ The metabolic-task and gap-fill layer is held fixed; only the expression input i
 | downsample 50 % | 6765 | 68/69 | 0.986 | 0.815 |
 | downsample 70 % | 6123 | 68/69 | 0.986 | 0.728 |
 
-Dropout sets genes to 0 (score −5), noise multiplies levels by `exp(N(0,σ))`, and downsampling drops genes (they receive `no_gene_score`).
+One model from 90 % dropout input, outside these tables, ran for more than 75 min in the gap-fill MILP.
 
-Findings:
+### Parameters at 70 % dropout
 
-* Multiplicative expression noise changed the model little (Jaccard 0.92–0.95, size stable, all tasks pass). Sparsity changed it far more: 50 % dropout reduced the reaction set to 0.71 Jaccard (7777→5968 reactions) and 70 % to 0.59.
-* Sparsity shrinks the model toward the task-essential core. Missing or zeroed genes remove the expression evidence for a reaction, and the task layer adds back only what tasks require, so sparse input yields smaller, more generic models. Dropout (−5) shrank the model more than downsampling (−2).
-* With the task layer, `frac` stayed ≥0.97 and dipped to 67–68/69 under heavy sparsity: the bounded gap-fill plus the post-hoc low-score-gene pruning occasionally leave 1–2 essential tasks unsatisfied. The lever sweep at 70 % dropout below tests whether `no_gene_score` or `force_on` recovers these tasks.
-* Run time tracks damage. Dropout runs are slowest (more broken tasks, more gap-fill); noise runs take little run time.
-
-The gap-fill MILP must be bounded (`mip_gap`/`time_limit`). Unbounded, severe degradation (which breaks many tasks at once) makes it solve a hard min-cost MILP per broken task to proven optimality, observed to run >75 min for one 90 %-dropout model. With the bound it returns a near-optimal fill quickly.
-
-### Levers at 70 % dropout
+Lever runs on the 70 % dropout input. The default row is the dropout 70 % row of the previous table.
 
 | config | n_rxns | frac | Jaccard vs clean |
 |--------|-------:|-----:|-----------------:|
@@ -130,14 +167,31 @@ The gap-fill MILP must be bounded (`mip_gap`/`time_limit`). Unbounded, severe de
 | `no_gene_score=−0.5` | 5128 | 0.986 | 0.593 |
 | `force_on=0.2` | 5159 | 0.986 | 0.600 |
 
-No lever recovered the drift: Jaccard stayed ~0.59 across all settings, for two reasons.
+## Effect of `mip_gap` on a single solve
 
-* The information that dropout destroys is gone. No scoring or connectivity setting reconstructs the missing expression evidence, and no parameter setting compensates for sparse input.
-* `no_gene_score` governs only reactions whose genes are absent from the data, which is the downsampling failure mode. Dropout leaves genes present with a zero level (scored −5), so `no_gene_score` has nothing to act on under dropout. For missing-data sparsity, `no_gene_score` is a lever: a less-negative value keeps more unmeasured reactions and grows the model back toward clean.
+In the first-step solve the time was 24 to 25 s at every gap from 0.0002 to 0.1. At `mip_gap=0.001` the objective was within 0.0001 of the tightest gap and the Jaccard index was 0.9976. The Jaccard index stayed at 0.99 or above up to `mip_gap=0.01` and fell to 0.9649 and 0.9663 at 0.03 and 0.1. In the full pipeline the gap has no effect: the three `big_m=1000` runs at 0.001, 0.003 and 0.01 kept the same 7312 reactions.
 
-The robustness levers that matter are structural and not numeric: the task and gap-fill layer (functional regardless of input quality) and a bounded gap-fill MILP (tractable). For missing-gene sparsity, `no_gene_score` trades model size against confidence. For noise, no parameter change is needed. No parameter restores fidelity lost to dropout; the loss is a property of the data and not of the pipeline.
+## Effect of `big_m` and scaling
 
----
+In the first-step solve every `big_m` from 10 to 1000 was feasible, took 23 to 26 s and reached the objective of `big_m=1000` within 0.0003. Against the run at `big_m=1000` and against the run at `big_m=100`, the reaction sets of the other caps had Jaccard indices of 0.983 to 0.991. The first-step solve has no seed repeats, and the seed pair in [Set-up](#set-up) compares full pipelines with gap-fill, so it is no reference for these sets. In the first-step scaling runs, every `max_stoich_diff` from 10 to 100 and the unscaled model were feasible at both caps, with Jaccard indices of 0.980 to 0.991 against the scaled reference.
+
+The full pipeline separates the settings that the first-step solve does not. At `big_m=1000` it was feasible with and without scaling: 83 s with scaling, 157 s without, and the two models shared a Jaccard index of 0.969 (7312 and 7264 reactions). At `big_m=100` it was feasible with scaling (117 to 119 s) and infeasible without, and at `big_m=25` it was infeasible with scaling. With scaling, the caps from 50 to 1000 gave runs of 81 to 119 s with no trend in `big_m` and reaction sets that shared a Jaccard index of 0.978 to 0.982 with the default. The fastest run at a cap below 1000 (80.8 s at `big_m=50`, with `mip_gap_abs=None`) was as fast as the fastest `big_m=1000` run (81.1 s). Counted from the reaction sets (the rounded Jaccard values in the table give 148 and 163 for the first two), the sets at caps 500, 250, 100 and 50 differed from the `big_m=1000` set by 150, 165, 140 and 133 reactions. The one seed pair available, from the different set-up in [Set-up](#set-up), differed by 110 reactions, so every cap difference is 21 to 50 % larger than that single value; the seed-to-seed spread of this set-up is unknown. The three `big_m=1000` runs kept identical sets (Jaccard 1.000) and only the cap changed between rows, so the differences follow the cap; whether they are systematic or a different choice among near-equal optima was not tested. A lower cap also reduces the flux that a kept reaction can carry.
+
+## Effect of `force_on`
+
+`force_on` changes the MILP itself, through the on and off constraints. From 0.02 to 0.5 the first-step solve took 24 to 25 s, the objective moved by at most 0.0002 and the reaction set shared a Jaccard index of 0.987 or more with the default 0.1. The full pipeline was not run with other `force_on` values.
+
+## Effect of degraded input
+
+Noise changed the model less than sparse input. At σ=1.0 and σ=2.0 the model kept 7812 and 7768 reactions against 7777 for clean data, passed all 69 tasks and shared a Jaccard index of 0.952 and 0.919 with the clean model. Dropout of 50 % and 70 % reduced the model to 5968 and 5113 reactions (Jaccard 0.713 and 0.594), and downsampling of 50 % and 70 % to 6765 and 6123 reactions (Jaccard 0.815 and 0.728). At equal fractions dropout removed more reactions than downsampling. The difference matches the scores involved, −5 for a zero level against −2 for a reaction without measured genes, but this explanation was not tested. Under dropout and downsampling the model passed 67 or 68 of 69 tasks; the failing tasks and the cause of the failures were not examined.
+
+At 70 % dropout no tested lever moved the model back towards the clean model: the Jaccard index stayed at 0.593 to 0.600, the size at 5110 to 5159 reactions and the task fraction at 0.986. Under dropout the dropped genes stay in the data with a zero level and score −5, so `no_gene_score` acts only on reactions without gene rules and on reactions whose genes are all absent from the data. The study concludes that no parameter recovers the expression evidence that dropout removes; this is an inference from the four lever settings, which do not include other parameters. The lever runs did not include downsampled input, so the effect of `no_gene_score` on missing genes was not measured.
+
+In raven-toolbox commit `94f3940`, `ftinit` calls `fill_tasks` without a time limit, so the gap-fill uses the default of `fill_tasks`, 300 s per task (`_FILL_TIME_LIMIT`), and not the `time_limit` of the extraction. The time limit that the 90 % dropout run of more than 75 min used is not recorded.
+
+## Choice of settings
+
+The defaults `big_m=1000`, `force_on=0.1` and scaling on with `max_stoich_diff=25` are RAVEN's values; every `big_m` from 50 to 1000 was feasible with scaling on, and `big_m=25` was infeasible. `big_m=1000` is the cap that RAVEN's `ftINITInternalAlg` uses (`bigMCap`). Scaling is not needed for feasibility at `big_m=1000`; in these single runs the pipeline took 83 s with scaling and 157 s without. In the first-step solve, `mip_gap=0.001` reached an objective within 0.0001 of the tightest gap; a named series ignores the setting. The full-pipeline runs used `time_limit=600` and the robustness script uses `time_limit=120`; no full-pipeline run took longer than 157 s in total. For noisy input the tested settings needed no change, and no tested setting compensated for dropout.
 
 ## Gene-scoring constants
 
@@ -147,21 +201,33 @@ Expression values become gene scores through
 score = clip(factor × ln(level / reference), min_score, max_score)
 ```
 
-with `factor=5.0`, `max_score=10.0`, `min_score=-5.0` on both sides. The logarithm is natural (base e) in `init/score.py` and in RAVEN's `scoreModel`.
+with `factor=5.0`, `max_score=10.0` and `min_score=-5.0`, the same in both implementations. The logarithm is natural (base e) in `init/score.py` and in RAVEN's `scoreModel`. The source of each implementation cites no paper for the three constants. A 2012 paper (Wang et al. 2012, [mCADRE](https://doi.org/10.1186/1752-0509-6-153)) uses categorical scoring and is not the origin. The constants are RAVEN's own values without a literature source.
 
-The constants are unattributed. The source of each implementation cites no paper for them, and the one candidate reference that has been suggested (a 2012 paper describing mCADRE) uses categorical scoring, which differs from this continuous log-ratio, so it is not the origin. They are RAVEN's own numbers with no literature source. Both implementations agree, so there is nothing to reconcile; the values rest on convention, with no evidence behind them.
+## Comparison with the solver benchmark
 
-## Cross-solver portability
+[ftINIT on different solvers](init-solver-benchmark.md) runs the same full pipeline with each solver interface. With Gurobi it took 92 s and kept 7312 reactions, against 83 s and 7312 reactions here. The benchmark time also includes loading the prepared model and scoring the reactions, and its limit is 900 s against 600 s here. A limit shortens only the 5000 s runs of the schedule, and no Gurobi run in either study ran for its overall limit. The warning `ftINIT step 1 hit the 600s time limit` appears 14 times in 13 full-pipeline and validation logs, and the Gurobi run of the solver benchmark has the same warning with 900 s. The logged `step 1` is the second step. The warning prints the `time_limit` argument, not the limit of the run that stopped; the stopped run is a shorter scheduled run, inferred from the total times of 83 s and 92 s, and the logs do not say which. One scheduled solve per run stopped at a limit. The Gurobi run of the solver benchmark at `big_m=100` kept 7324 reactions, the count of the two `big_m=100` runs here, whose reaction set shares a Jaccard index of 0.981 with the `big_m=1000` set. The solver comparison itself, with GLPK at 2182 s and a Jaccard index of 0.892 against Gurobi and the failure of HiGHS through the `scipy` interface, is on that page.
 
-The genome-scale solver comparison (Gurobi, HiGHS, GLPK) is in [init-solver-benchmark.md](init-solver-benchmark.md), and CI parameterised over installed MILP backends is in [tests/test_init_solvers.py](https://github.com/CompMetEng/raven-toolbox/blob/develop/tests/test_init_solvers.py). For Human-GEM HCT116 with one run per solver, Gurobi completes the pipeline in 92 s. The 83 s of the full-pipeline table times the `ftinit` call alone, while the solver timing also includes loading the prep pickle and scoring the reactions, and its cap is 900 s against 600 s, which affects the 5000 s runs of the schedule, while the 120 s and 5 s runs stay below both caps. Neither run reaches its limit and both keep 7312 reactions; GLPK completes in 2182 s with time-limited incumbents (Jaccard 0.892 against Gurobi); HiGHS through optlang's `scipy` interface fails because it handles continuous variables only. Toy-scale correctness is portable (Gurobi and GLPK give identical verdicts on the unit-test networks), so local development works without a Gurobi licence.
+## Limits
 
----
+- One model (Human-GEM), one cell line (HCT116) and one solver (Gurobi library 13.0.3 from the gurobipy wheel, most likely; the logs print no version).
+- Most settings ran once; the repeats are listed with the full-pipeline table. This set-up has no seed repeats. The full-pipeline differences between caps are larger than the one seed pair available, which comes from a different set-up, so the seed-to-seed spread of this set-up is unknown.
+- The robustness runs used a Human-GEM commit that is not recorded and `big_m=100`; the script at the pinned commit passes no `big_m`, so a run with it uses the default 1000. Each degradation is one random draw at one seed.
+- The first-step solve shows no difference between caps or scaling settings that the full pipeline shows, so first-step results alone do not predict feasibility of the pipeline.
+- The robustness tables have no run times, and the effect of `no_gene_score` on downsampled input was not measured.
 
-## Reproducing
+## Reproduction
+
+The commands run through the Slurm wrapper `job.sh` of `scripts/parameter_tuning/init/bigm/` as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and `PY` set. The prepared models come first:
 
 ```bash
-python scripts/analyze_init_params.py    --cell HCT116 --sweeps ftinit_milp,prep_scale,ftinit_full
-python scripts/analyze_init_robustness.py --cell HCT116 --algo ftinit
+job.sh prep
+job.sh step0 --cell HCT116
+job.sh scale --cell HCT116
+job.sh full --gap 0.003 --big-m 1000 --tag g003-bm1000
+job.sh full --gap 0.003 --big-m 100  --scale off --tag g003-bm100-scaleoff
+job.sh full --gap 0.001 --big-m 100  --noabs --tag noabs-g0.001-bm100
+python summ.py $WORK/out
+python compare.py --out $WORK/out --shared $WORK/shared --logs $WORK/logs
 ```
 
-Both reuse the cached Human-GEM preps from the validation run ([docs/humangem-validation.md](humangem-validation.md)) and are resumable.
+The tags of the other full-pipeline runs are listed in the README: `--big-m` 25, 50, 250 and 500 at `--gap 0.003`, the `mip_gap` runs 0.001, 0.003 and 0.01 at `big_m=1000`, and the `--noabs` repeats. The unscaled preparation of `scale` takes about 26 min. The robustness tables have no reproduction command: the state of `analyze_init_robustness.py` and the inputs that produced them are not recoverable.

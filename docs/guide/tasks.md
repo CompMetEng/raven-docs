@@ -223,7 +223,9 @@ from raven_toolbox.init import fill_tasks
 :::
 ::::
 
-:::{warning} Troubleshooting
+:::{admonition} Troubleshooting
+:class: warning
+
 - A metabolite given by its identifier: task files address metabolites by name, not by identifier, as `name[compartment]`. A task that matches nothing without an error is a task that passes for the wrong reason.
 - Missing `SHOULD FAIL` tasks: the tasks that matter most are often the ones the model must not satisfy; without them, a leaking model passes everything.
 - The boundary a task ran against is unknown: with the model closed, a task defines its own inputs and does not inherit the model's medium, so a task passing says nothing about whether the model grows on the medium it has. Left open (the default in both toolboxes), the model's own exchanges take part, and a task can pass because of an uptake or secretion it never lists.
