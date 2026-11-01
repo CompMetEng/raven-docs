@@ -1,6 +1,6 @@
 # Features specific to each implementation
 
-Some features exist in raven-toolbox only, and some exist in RAVEN only. The sections below describe both groups.
+Some features belong to raven-toolbox alone, and some belong to RAVEN alone. The sections below describe both groups.
 
 ## Features specific to raven-toolbox
 
@@ -22,7 +22,7 @@ Both implementations fetch BLAST+, DIAMOND, HMMER and the KEGG tables on demand 
 
 The checksum handling differs.
 
-- raven-toolbox keeps the checksum and the release of each dataset and binary in a registry in its source (a version-pinned registry). A fresh download is checked against its checksum. A cached data file is reused without a check, unless `ensure_data_file` is called with `verify=True`, which checks it again and downloads it again on a mismatch. A cached binary is reused without a check. A JSON manifest can be merged into the registries with `raven_toolbox.manifest.load_into_registries`, which reads the path or URL in the environment variable `RAVEN_PYTHON_MANIFEST` when no source is passed. The resolvers load that variable by themselves only while the registry is empty, so the call is needed with the filled default registries.
+- raven-toolbox keeps the checksum and the release of each dataset and binary in a registry in its source (a version-pinned registry). A fresh download is checked against its checksum. A cached data file is reused without a check, unless `ensure_data_file` is called with `verify=True`, which checks it and downloads it anew on a mismatch. A cached binary is reused without a check. A JSON manifest can be merged into the registries with `raven_toolbox.manifest.load_into_registries`, which reads the path or URL in the environment variable `RAVEN_PYTHON_MANIFEST` when no source is passed. The resolvers load that variable by themselves while the registry is empty, so the call is needed with the filled default registries.
 - RAVEN checks a download against the checksum in the published manifest. A mismatch deletes the file and raises an error. When the manifest cannot be read or has no entry for the asset, RAVEN issues a warning and keeps the file unchecked. A cached file is reused without a check.
 
 ### Further functions
@@ -33,7 +33,7 @@ Further features of raven-toolbox have no RAVEN counterpart in the generated map
 
 ### tINIT
 
-The functions `getINITModel` and `runINIT` are the original tINIT implementation, and RAVEN keeps them for models built with them. raven-toolbox implements ftINIT only, as a design decision. A tINIT model has to be reproduced in MATLAB (see [Context-specific models with ftINIT](../guide/init.md)).
+The functions `getINITModel` and `runINIT` are the original tINIT implementation, and RAVEN keeps them for models built with them. raven-toolbox implements ftINIT as its sole INIT variant, as a design decision. A tINIT model has to be reproduced in MATLAB (see [Context-specific models with ftINIT](../guide/init.md)).
 
 ### COBRA Toolbox conversion
 

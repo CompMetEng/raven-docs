@@ -25,9 +25,9 @@ The percentile, cut-off, score-ratio and defaults tables come from one run on 20
 
 ### Reference and scores
 
-The reference is the **KEGG annotation**, which is the gene→KO pairs of the organism in the `organism_gene_ko` table of the kegg118 artefacts. The table lists the KOs linked to at least one reaction in `ko_reaction`, and the HMM libraries are built from the same table. The **true reactions** of the organism are the reactions linked to its annotated KOs, limited to reactions that are in the kegg118 reference model (`--restrict-to-reference`). The limit is applied because the reaction recall is measured against reactions that the draft can contain.
+The reference is the KEGG annotation, which is the gene→KO pairs of the organism in the `organism_gene_ko` table of the kegg118 artefacts. The table lists the KOs linked to at least one reaction in `ko_reaction`, and the HMM libraries are built from the same table. The true reactions of the organism are the reactions linked to its annotated KOs, limited to reactions that are in the kegg118 reference model (`--restrict-to-reference`). The limit is applied because the reaction recall is measured against reactions that the draft can contain.
 
-A predicted pair is the output of `assign_kos`, with the `organism:` prefix stripped from the gene identifier so that it matches the reference. Each predicted pair is either **matched** (present in the annotation) or **novel** (absent from it).
+A predicted pair is the output of `assign_kos`, with the `organism:` prefix stripped from the gene identifier so that it matches the reference. Each predicted pair is either matched (present in the annotation) or novel (absent from it).
 
 | Score | Definition |
 |---|---|
@@ -237,4 +237,4 @@ The script `analyze_hmm_cutoffs.py` is called once per organism with `--artefact
 
 The proteomes (`kegg_rest/<org>.faa`, `uniprot/<org>.faa`, `counts.json`) are in the archived input bundle `kegg_proteomes_2026-11-01.tar.gz`, and the four `hmmsearch --tblout` tables are in `kegg_hmmsearch_tblout_2026-11-01.tar.gz`.
 
-The scores of the tables come from the run of 2026-11-01 with raven-toolbox commit `94f3940`, HMMER 3.4 and the published kegg118 tables and libraries, searched with 16 threads on an AMD EPYC 9354 node. Scoring each saved hit table again with `--tblout` reproduces the saved scores. Two points were not checked: whether the KEGG REST sequences of 2026-10-31 equal the sequences of KEGG release 118 (the sequence counts were compared, not the sequences), and whether `hmmsearch -Z` E-values equal `hmmscan` E-values on these inputs, because the binary bundle has no `hmmscan`. The UniProt proteomes in the bundle were downloaded and counted but not searched.
+The scores of the tables come from the run of 2026-11-01 with raven-toolbox commit `94f3940`, HMMER 3.4 and the published kegg118 tables and libraries, searched with 16 threads on an AMD EPYC 9354 node. Scoring each saved hit table with `--tblout` reproduces the saved scores. Two points were not checked: whether the KEGG REST sequences of 2026-10-31 equal the sequences of KEGG release 118 (the sequence counts were compared, not the sequences), and whether `hmmsearch -Z` E-values equal `hmmscan` E-values on these inputs, because the binary bundle has no `hmmscan`. The UniProt proteomes in the bundle were downloaded and counted but not searched.

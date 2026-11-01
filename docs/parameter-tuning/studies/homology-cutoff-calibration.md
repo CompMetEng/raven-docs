@@ -2,7 +2,7 @@
 
 Homology-based reconstruction transfers a template reaction to a new organism when a gene of the new organism matches a template gene in a BLAST or DIAMOND search and the match passes three filters: `min_identity`, `min_align_len` and `max_evalue` (`minIde`, `minLen` and `maxE` in `getModelFromHomology` of RAVEN). The study aligned the proteomes of four organisms against *S. cerevisiae* once, applied each filter setting to the saved hits, and scored the surviving matches against two references that state which genes are counterparts. It records one score per organism and setting, the agreement between BLAST and DIAMOND, and their run times.
 
-The defaults that follow from the scores are `min_identity` 40, `min_align_len` 100 and `max_evalue` 1e-30. The identity has the largest effect on the score, the alignment length changes it less, and the E-value changes it only below 1e-30.
+The scores show the largest effect for `min_identity`, a smaller effect for `min_align_len` and an effect of `max_evalue` from 1e-50 downward, with a flat score from 1e-4 to 1e-30. The value `max_evalue` 1e-30 is kept from RAVEN; the Chosen defaults table gives the basis of every default.
 
 ## Set-up
 
@@ -19,7 +19,7 @@ The defaults that follow from the scores are `min_identity` 40, `min_align_len` 
 
 The proteomes come from the UniProt reference proteomes. Each protein is relabelled with its KEGG gene name through the KEGG cross-reference of UniProt for the exact organism code, and proteins without one are dropped. Both references can then be applied to the same matches.
 
-Each target was aligned against the template in both directions, once with `run_blast` (aligner E-value `1e-4`) and once with `run_diamond` (aligner E-value `1e-3`). Every filter setting was applied to the same saved hit table, so each score comes from one deterministic calculation. A hit is kept when `evalue <= max_evalue`, `align_len >= min_align_len` and `identity >= min_identity`, whereas `get_model_from_homology` requires `evalue < max_evalue`. The kept hits are collected into a set of (template gene, target gene) pairs, so a pair found in both directions, or by more than one hit, counts as one match. A hit whose two genes are not both judged by the reference is counted as unjudgeable and left out of the score. The scoring does not reduce hits to best hits and builds no model.
+Each target was aligned against the template in both directions, once with `run_blast` (aligner E-value `1e-4`) and once with `run_diamond` (aligner E-value `1e-3`). Every filter setting was applied to the same saved hit table, so each score comes from one deterministic calculation. A hit is kept when `evalue <= max_evalue`, `align_len >= min_align_len` and `identity >= min_identity`. The function `get_model_from_homology` requires `evalue < max_evalue`. The kept hits are collected into a set of (template gene, target gene) pairs, so a pair found in both directions, or by more than one hit, counts as one match. A hit whose two genes are not both judged by the reference is counted as unjudgeable and left out of the score. The scoring does not reduce hits to best hits and builds no model.
 
 The sweeps vary one setting at a time from the RAVEN 2.11.3 values `max_evalue=1e-30`, `min_align_len=200` and `min_identity=40`. The identity sweep therefore ran at an alignment length of 200, the length sweep at 40 % identity, and the E-value sweep at 40 % identity and length 200.
 
@@ -94,14 +94,11 @@ BLAST took 140, 152, 200 and 44 s for `kla`, `yli`, `ani` and `eco`, and DIAMOND
 
 Two more settings control the search that produces the hits. Neither was part of the sweeps.
 
-The aligner setting `evalue` is the own cut-off of the aligner: `1e-4` for `run_blast` and `1e-3` for `run_diamond`. Each matches the MATLAB side, because `getBlast` passes `-evalue 10e-5`, which equals `1e-4`, and `getDiamond` passes none, so the own default of DIAMOND applies. On *H. polymorpha* against *S. cerevisiae*, loosening the BLAST cut-off from `1e-5` to `1e-4` added 5,200 raw hits (58,702 against 53,502), which is 8.9 % of the table. The tables differ row by row: 5,314 rows are only in the `1e-4` table and 114 only in the `1e-5` table.
+The aligner setting `evalue` is the cut-off of the aligner itself: `1e-4` for `run_blast` and `1e-3` for `run_diamond`. Each matches the MATLAB side, because `getBlast` passes `-evalue 10e-5`, which equals `1e-4`, and `getDiamond` passes none, so DIAMOND uses its built-in default. On *H. polymorpha* against *S. cerevisiae*, loosening the BLAST cut-off from `1e-5` to `1e-4` added 5,200 raw hits (58,702 against 53,502), which is 8.9 % of the table. The tables differ row by row: 5,314 rows are only in the `1e-4` table and 114 only in the `1e-5` table.
 
-- Of the 5,314 rows, 4,372 have an E-value above `1e-5` and fail `max_evalue=1e-30`.
-- The other 942 rows have an E-value at or below `1e-5`, the smallest being 3.1e-60, and 4 of them are below `1e-30`. In the five examples of these 942 rows that were inspected, the rows are other alignments (HSPs) of gene pairs that the cut-off change reports differently. The other rows were not inspected.
-- Whether the 4 rows below `1e-30` and the 114 rows found only at `1e-5` also pass the identity and length filters, and so could change a model, was not checked.
-- The remaining rows fail `max_evalue=1e-30`, so for them the aligner cut-off changes the size of the hit table and not the model.
+Of the 5,314 rows, 4,372 have an E-value above `1e-5` and fail `max_evalue=1e-30`. The other 942 rows have an E-value at or below `1e-5`, the smallest being 3.1e-60, and 4 of them are below `1e-30`. The remaining 938 of these rows fail `max_evalue=1e-30` as well, so for 5,310 rows the aligner cut-off changes the size of the hit table and leaves the model unchanged. In the five examples of the 942 rows that were inspected, the rows are other alignments (HSPs) of gene pairs that the two tables report differently. The other rows were not inspected. Whether the 4 rows below `1e-30` and the 114 rows found only at `1e-5` also pass the identity and length filters, and so could change a model, was not checked.
 
-The setting `threads` defaults to every CPU that the process may run on. The first 500 sequences of the *H. polymorpha* proteome returned the same 2,746 hits at one thread and at four, with identical hit tables, in 20.4 s and 5.9 s (3.5 times faster). On a full proteome pair, single-threaded BLASTP took 205 s (*H. polymorpha* against *S. cerevisiae*) and 218 s (the reverse direction). The aligner cut-offs `1e-4` and `1e-5` took 111 s and 108.5 s. The measurements used the translated ORFs of SGD (6,735 sequences) as template and Linux BLAST+ 2.17.0 on an AMD EPYC 9354 node.
+`threads` defaults to every CPU that the process may run on. The first 500 sequences of the *H. polymorpha* proteome returned the same 2,746 hits at one thread and at four, with identical hit tables, in 20.4 s and 5.9 s (3.5 times faster). On a full proteome pair, single-threaded BLASTP took 205 s (*H. polymorpha* against *S. cerevisiae*) and 218 s (the reverse direction). The aligner cut-offs `1e-4` and `1e-5` took 111 s and 108.5 s. The measurements used the translated ORFs of SGD (6,735 sequences) as template and Linux BLAST+ 2.17.0 on an AMD EPYC 9354 node.
 
 ## Chosen defaults
 
@@ -111,7 +108,7 @@ The setting `threads` defaults to every CPU that the process may run on. The fir
 | `min_align_len` (`minLen`) | 200 | 100 | The length 100 scored 0.010 to 0.020 higher than 200 against KEGG. The lengths 50 and 100 scored the same, and 100 is the stricter of the two |
 | `max_evalue` (`maxE`) | 1e-30 | 1e-30 | No change in score from 1e-4 to 1e-30 in any organism, and 1e-50 lowered it by up to 0.006. The RAVEN value is kept |
 
-The study supports one `min_identity` for BLAST and DIAMOND against the KEGG reference with F0.5, because both reached the same best identity for every organism. Against OMA the optimum for *E. coli* is 35 % with BLAST and 30 % with DIAMOND, and with F1 the optimum for `ani` is 25 % with BLAST and 30 % with DIAMOND. The DIAMOND scores for the alignment length and the E-value are not tabulated, and their base scores equal those of BLAST.
+The study supports one `min_identity` for BLAST and DIAMOND against the KEGG reference with F0.5, because both reached the same best identity for every organism. Against OMA the optimum for *E. coli* is 35 % with BLAST and 30 % with DIAMOND, and with F1 the optimum for `ani` is 25 % with BLAST and 30 % with DIAMOND. The base rows of the alignment-length and E-value sweeps are the base row of the identity sweep (BLAST), and DIAMOND scores for those two sweeps are not tabulated.
 
 ## Limits
 
@@ -120,12 +117,12 @@ The study supports one `min_identity` for BLAST and DIAMOND against the KEGG ref
 - The OMA reference for *Y. lipolytica* is incomplete, because 38 % of its OMA pairs could not be mapped to KEGG gene names.
 - One template: everything was measured outward from *S. cerevisiae*.
 - One setting was varied at a time from length 200 and identity 40 %. The identity optimum and the absence of an E-value effect up to 1e-30 were measured at length 200 and not at the default length of 100.
-- The scores count gene matches and not reactions in a finished model. A reaction transfers when any one of its genes matches, so the effect on a finished model is probably smaller (inference, not measured).
+- The scores count gene matches. A reaction transfers when any one of its genes matches, so the effect on a finished model is probably smaller (inference, not measured).
 - Each score comes from one alignment per organism. Scoring a saved hit table is deterministic, and DIAMOND returned 32,192 hits for `kla`. The alignment was run once, so the run-to-run spread of the hit table was not measured.
 
 ## Curated-GEM reference
 
-Scoring against curated genome-scale metabolic models (GEMs) of non-model fungi, such as [hanpo-GEM](https://github.com/SysBioChalmers/hanpo-GEM) and [rhto-GEM](https://github.com/SysBioChalmers/rhto-GEM), is not part of the measurement of 2026-11-01, and the study reports no numbers for it. Both models were built with the homology-based reconstruction of RAVEN, so a score against them would measure agreement with their own build settings and not correctness (inference).
+Scoring against curated genome-scale metabolic models (GEMs) of non-model fungi, such as [hanpo-GEM](https://github.com/SysBioChalmers/hanpo-GEM) and [rhto-GEM](https://github.com/SysBioChalmers/rhto-GEM), is not part of the measurement of 2026-11-01, and the study reports no numbers for it. Both models were built with the homology-based reconstruction of RAVEN, so a score against them would measure agreement with their own build settings, which is no test of correctness (inference).
 
 ## Reproducing
 
@@ -145,4 +142,4 @@ python agreement.py --work work --gene-ko work/refs/kegg118_organism_gene_ko_5or
 
 The UniProt downloads, the OMA pairs, the KEGG tables and the SGD ORFs are in the archived input bundle `homology-inputs.tar.zst` (18.9 MB), and the BLAST and DIAMOND hit tables are in `homology-hits.tar.zst` (4.0 MB).
 
-The scores come from the run of 2026-11-01 with raven-toolbox `94f3940`, BLAST+ 2.17.0, DIAMOND 2.1.17, the KEGG release-118 table and UniProt release 2026_03, with BLAST and DIAMOND at 4 threads on an AMD EPYC 9354 node. The *H. polymorpha* template is the SGD ORF file, and the thread test uses the first 500 sequences of `hanpo.faa`. The curated-GEM reference is not part of this run.
+The scores come from the run of 2026-11-01 with raven-toolbox `94f3940`, BLAST+ 2.17.0, DIAMOND 2.1.17, the KEGG release-118 table and UniProt release 2026_03, with BLAST and DIAMOND at 4 threads on an AMD EPYC 9354 node. The *H. polymorpha* template is the SGD ORF file, and the thread test uses the first 500 sequences of `hanpo.faa`.

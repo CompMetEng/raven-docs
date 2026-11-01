@@ -9,12 +9,12 @@ The changes below were found by comparing RAVEN 2.11.3 with RAVEN 3 in the code.
 |---|---|
 | `importExcelModel(...)` | Removed. Use `curation/curateModelFromTables.m` (input format `.tsv`). Alternatively convert the template to SBML and read it with `importModel`, or to YAML and read it with `readYAMLmodel` (see [Excel I/O](#excel-io)) |
 | `importModel(...)` on SBML Level < 3, on Level 3 without FBC version 2, or on any SBML without FBC | Raises an error. The accepted format is SBML Level 3 Version 1 with FBC package version 2 (see [SBML I/O](#sbml-io)) |
-| `exportToExcelFormat(model, fileName)` where `fileName` has no file name or no extension | RAVEN 2 exported tab-delimited text. RAVEN 3 raises the error "only export to xlsx format is supported" for every extension other than `.xlsx`, an empty one included. RAVEN 2 already raised this error for a file name with another extension |
+| `exportToExcelFormat(model, fileName)` where `fileName` has no file name or no extension | RAVEN 2 exported tab-delimited text. RAVEN 3 raises the error "only export to xlsx format is supported" for every extension other than `.xlsx`, an empty one included. RAVEN 2 already raised this error for a file name with a different extension |
 | `exportToTabDelimited(...)` | Removed |
 | `getWoLFScores(...)` | Removed, with all WoLF PSORT support |
 | `parseScores(..., 'wolf', ...)` | Raises an error whose message names `'deeploc'`, `'mulocdeep'`, `'compartments'` and `'uniprot'`. RAVEN 3 has no function that reads WoLF PSORT output files |
 | `qMOMA(...)`, `solveQP(...)` | Removed. RAVEN 3 has no code that depends on `quadprog` of the Optimization Toolbox |
-| `findGeneDeletions(...)` with `analysisType`, `refModel` or `oeFactor` | The arguments are removed together with `qMOMA` (MOMA-based over-expression analysis), and so are the test types `'sgo'` and `'dgo'`. Single and double gene deletion (`sgd`, `dgd`) by flux balance analysis (FBA) remain. Any argument besides `'testType'` raises `parseRAVENargs:tooManyArgs` |
+| `findGeneDeletions(...)` with `analysisType`, `refModel` or `oeFactor` | The arguments are removed together with `qMOMA` (MOMA-based over-expression analysis), and so are the test types `'sgo'` and `'dgo'`. Single and double gene deletion (`sgd`, `dgd`) by flux balance analysis (FBA) remain. More than the `'testType'` argument raises `parseRAVENargs:tooManyArgs` |
 | `checkRxn(...)` | Removed without a direct successor. To find why a reaction cannot carry flux, use `gapfilling/findLeakMetabolite.m`, `gapfilling/canExchange.m` or `gapfilling/checkProduction.m` |
 | `dispEM(...)`, `followFluxes(...)`, `followChanged(...)`, `printModel(...)`, `mapCompartments(...)`, `getExpressionStructure(...)`, `getMetsInComp(...)` | Removed. [Removed functionality](#removed-functionality) gives the replacements where one exists |
 | Any function in `external/metacyc/` | Folder removed, with the 7 functions of the MetaCyc-based reconstruction. RAVEN 3 has no replacement |
@@ -22,7 +22,7 @@ The changes below were found by comparing RAVEN 2.11.3 with RAVEN 3 in the code.
 | Any function in `legacy/` | Folder removed. RAVEN 3 has no replacement (see [Removed functionality](#removed-functionality)) |
 | `getGenesFromKEGG`, `getMetsFromKEGG`, `getRxnsFromKEGG`, `constructMultiFasta`, `getWSLpath`, `getBlastFromExcel` | Removed (see [Reconstruction: KEGG and homology pipelines](#kegg-reconstruction)) |
 | `getToolboxVersion(...)` | Removed as a function of its own. It is a local function of `exportForGit` |
-| `parallelPoolRAVEN(...)` | Renamed `parallelWorkersRAVEN`, with another signature and output (see [Renamed and merged functions](#renamed-merged-and-consolidated-functions)) |
+| `parallelPoolRAVEN(...)` | Renamed `parallelWorkersRAVEN`, with a different signature and output (see [Renamed and merged functions](#renamed-merged-and-consolidated-functions)) |
 | `getModelFromKEGG(keggPath, keepSpontaneous, keepUndefinedStoich, keepIncomplete, keepGeneral)` | Raises `parseRAVENargs:tooManyArgs`, because `keggPath` is removed and the function has four optional parameters |
 | `getKEGGModelForOrganism(...)` with 13 to 15 positional arguments | The parameters `nSequences` and `seqIdentity` are removed. A call with 14 or 15 arguments raises `parseRAVENargs:tooManyArgs`. A non-empty 13th argument, which is `nSequences` in RAVEN 2, is read as `globalModel` |
 | `getPhylDist(keggPath, onlyInKingdom)` | Raises `parseRAVENargs:tooManyArgs`, because `keggPath` is removed |
@@ -32,18 +32,18 @@ The changes below were found by comparing RAVEN 2.11.3 with RAVEN 3 in the code.
 
 ## Changes that alter results without an error
 
-The same call on the same model gives another output. Positions count all arguments of the call, required ones included: in `scoreModel(model, hpaData, arrayData, tissue, celltype, ...)` the model is position 1 and `celltype` is position 5.
+The same call on the same model gives a different output. Positions count all arguments of the call, required ones included: in `scoreModel(model, hpaData, arrayData, tissue, celltype, ...)` the model is position 1 and `celltype` is position 5.
 
 ### Argument positions and defaults that change meaning
 
 | Function | RAVEN 3 behaviour |
 |---|---|
-| `getModelFromKEGG(keggPath)` to `getModelFromKEGG(keggPath, keepSpontaneous, keepUndefinedStoich[, keepIncomplete])` | A call with one to four positional arguments shifts. The first argument, `keggPath` in RAVEN 2, is read as `keepSpontaneous` and has no effect. Each later argument is read as the next parameter in the RAVEN 2 order, so another class of reactions is removed |
+| `getModelFromKEGG(keggPath)` to `getModelFromKEGG(keggPath, keepSpontaneous, keepUndefinedStoich[, keepIncomplete])` | A call with one to four positional arguments shifts. The first argument, `keggPath` in RAVEN 2, is read as `keepSpontaneous` and has no effect. Each later argument is read as the next parameter in the RAVEN 2 order, so a different class of reactions is removed |
 | `getPhylDist(keggPath)` | `keggPath` is read as `'onlyInKingdom'` and has no effect. The function returns the full distance matrix |
 | `writeYAMLmodel(model, fileName, true)` | The third argument is read as `sortIds`, so the IDs are sorted. RAVEN 2 read it as `'preserveQuotes'` |
 | `scoreModel` | `isozymeScoring` and `complexScoring` replace the single `multipleGeneScoring` of RAVEN 2. By default (`complexScoring`) a reaction with an `and` rule gets the minimum over its genes. RAVEN 2 scored every reaction with the maximum over all its genes by default (`multipleGeneScoring` `'best'`) |
 | `scoreModel(..., celltype, noGeneScore, 'average')` | `'average'` at position 7 among all arguments, which is `multipleGeneScoring` in RAVEN 2, is read as `isozymeScoring`. It does not apply to `and` rules, which use `complexScoring` |
-| `scoreModel(..., celltype, noGeneScore, multipleGeneScoring, 'average')` | `'average'` at position 8 among all arguments, which is `multipleCellScoring` in RAVEN 2, is read as `complexScoring` without an error. The average is then taken over the genes of an `and` rule and no longer over cell types |
+| `scoreModel(..., celltype, noGeneScore, multipleGeneScoring, 'average')` | `'average'` at position 8 among all arguments, which is `multipleCellScoring` in RAVEN 2, is read as `complexScoring` without an error. The average runs over the genes of an `and` rule; RAVEN 2 averaged over the cell types |
 | `scoreModel`, output `geneScores` | A gene that is absent from the data receives `NaN`. The RAVEN 2 documentation states `-Inf` |
 | `scoreModel`, value names | RAVEN 2 accepted `'best'` for `multipleGeneScoring` and `multipleCellScoring`. RAVEN 3 uses `'max'` for `isozymeScoring`, `complexScoring` and `multipleCellScoring`. The parameter order is `celltype`, `noGeneScore`, `isozymeScoring`, `complexScoring`, `multipleCellScoring`, `hpaLevelScores` and `dataPrecedence` (default `'gene'`) |
 | `parseScores(file)` | The default predictor is `'deeploc'`. RAVEN 2 used `'wolf'`. How a WoLF PSORT file is handled without a predictor was not run |
@@ -72,12 +72,9 @@ The changelog of RAVEN 3 lists a bug fix for each of `permuteModel`, `optimizePr
 
 ## Changes to error and warning identifiers
 
-RAVEN 2 raised its errors through `dispEM` with an empty identifier (`MException('', ...)`), so no RAVEN 2 script could catch an error by `err.identifier`. RAVEN 3 replaces `dispEM` with `error()` and `warning()` calls. Not every call carries an identifier, and a script can match on `err.identifier` for the calls that do.
+RAVEN 2 raised its errors through `dispEM` with an empty identifier (`MException('', ...)`), so no RAVEN 2 script could catch an error by `err.identifier`. RAVEN 3 replaces `dispEM` with `error()` and `warning()` calls. Not every call carries an identifier, and a script can match on `err.identifier` for the calls that do. `RAVEN:badInput` appears in 220 lines and `RAVEN:warning` in 63 lines of `src/` and the root `.m` files (non-comment lines that contain the identifier). Further identifiers in the `RAVEN:` namespace are `RAVEN:modelError`, `RAVEN:badGrRule`, `RAVEN:infeasibleModel`, `RAVEN:infeasible`, `RAVEN:sampling`, `RAVEN:grRuleTooComplex`, `RAVEN:deprecated`, `RAVEN:legacyMethod`, `RAVEN:notMainBranch`, `RAVEN:glpkMILP`, `RAVEN:fetchToolboxAsset:unverified`, `RAVEN:fetchToolboxAsset:checksum`, `RAVEN:fetchToolboxAsset:manifest`, `RAVEN:runSuppOrth:supportLv`, `RAVEN:runSuppOrth:failed`, `RAVEN:runSuppOrth:notFound` and `RAVEN:hitsFromSuppOrth:unmappedProteins`. Identifiers in other namespaces include `parseRAVENargs:tooManyArgs`, `parseRAVENargs:noSpec`, `getPhylDist:noData`, `renameModelGenes:*`, `setGAM:*` and `parseYAML:*`. The list is not exhaustive.
 
-- `RAVEN:badInput` appears in 220 lines and `RAVEN:warning` in 63 lines of `src/` and the root `.m` files (non-comment lines that contain the identifier).
-- Further identifiers in the `RAVEN:` namespace are `RAVEN:modelError`, `RAVEN:badGrRule`, `RAVEN:infeasibleModel`, `RAVEN:infeasible`, `RAVEN:sampling`, `RAVEN:grRuleTooComplex`, `RAVEN:deprecated`, `RAVEN:legacyMethod`, `RAVEN:notMainBranch`, `RAVEN:glpkMILP`, `RAVEN:fetchToolboxAsset:unverified`, `RAVEN:fetchToolboxAsset:checksum`, `RAVEN:fetchToolboxAsset:manifest`, `RAVEN:runSuppOrth:supportLv`, `RAVEN:runSuppOrth:failed`, `RAVEN:runSuppOrth:notFound` and `RAVEN:hitsFromSuppOrth:unmappedProteins`.
-- Other namespaces include `parseRAVENargs:tooManyArgs`, `parseRAVENargs:noSpec`, `getPhylDist:noData`, `renameModelGenes:*`, `setGAM:*` and `parseYAML:*`. The list is not exhaustive.
-- Whether `try/catch` blocks that match on message text still match was not compared message by message.
+Whether `try/catch` blocks that match on message text match was not compared message by message.
 
 ## Changes that raise warnings
 

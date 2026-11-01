@@ -1,6 +1,8 @@
 # Benchmarks of `fseof`, `remove_genes` and other defaults
 
-Four defaults of raven-toolbox were measured without a study of their own: `flux_eps` of `fseof`, the sweep of `n_steps`, `max_fraction` and `correlation_threshold` of `fseof`, the handling of reactions without an enzyme in `remove_genes`, and `threshold` of `connect_blocked_reactions`. A table at the end lists further defaults that rest on the literature or on a convention. All runs used raven-toolbox commit `94f39407` and were made on 2026-11-01.
+Six defaults of raven-toolbox were measured without a study of their own: `flux_eps` of `fseof`; `n_steps`, `max_fraction` and `correlation_threshold` of `fseof`; `blocked_reactions` of `remove_genes`; and `threshold` of `connect_blocked_reactions`. A table lists further defaults that rest on the literature or on a convention. All runs used raven-toolbox commit `94f39407` and were made on 2026-11-01.
+
+The measurements give no reason to change `flux_eps` from `1e-6`. The sweep does not select the other three `fseof` defaults, which follow [Choi et al. 2010](https://doi.org/10.1128/AEM.00115-10) (not checked against the paper), and the default of `blocked_reactions` gives the model that `removeGenes` of RAVEN gives by default.
 
 Parameters with a measurement campaign of their own have a study listed under [Parameter tuning](index.md). [Tuned parameter defaults](../tuned-parameters.md) gives the current value of every parameter of both implementations with a one-line reason.
 
@@ -8,7 +10,7 @@ Parameters with a measurement campaign of their own have a study listed under [P
 
 ### `fseof`
 
-The `fseof` benchmarks ran on iJO1366 (2,583 reactions) with the biomass reaction of the model as the objective and `EX_succ_e` (succinate exchange) as the target. The enforced flux ran from 1.5387 to 15.387 in 10 levels, and the unconstrained growth rate was 0.98237 h⁻¹. The other arguments were `n_steps` 10, `max_fraction` 0.9, `correlation_threshold` 0.9 and the default `equality=False`, which sets each enforced flux as the lower bound of the target reaction.
+The `fseof` benchmarks ran on iJO1366 (2,583 reactions) with the biomass reaction of the model as the objective and `EX_succ_e` (succinate exchange) as the target. In the `flux_eps` runs the enforced flux ran from 1.5387 to 15.387 in 10 levels, and the unconstrained growth rate was 0.98237 h⁻¹. The other arguments were `n_steps` 10, `max_fraction` 0.9, `correlation_threshold` 0.9 and the default `equality=False`, which sets each enforced flux as the lower bound of the target reaction.
 
 At each enforced level `fseof` solves two problems, as `FSEOF` of RAVEN does. It first maximises the objective and then minimises the sum of fluxes with the objective held at 0.999999 of that optimum. A reaction is a target when four conditions hold:
 
@@ -36,7 +38,7 @@ The test of `threshold` used a synthetic network. The draft has an import of A o
 
 ### Software
 
-The Python runs used Python 3.14.2, cobra 0.32.1, optlang 1.9.1 and Gurobi 13.0.3 (gurobipy wheel). The MATLAB run used R2024b with RAVEN and Gurobi 13.0.1, selected through `setRavenSolver('gurobi')`. The `flux_eps` runs were repeated three times per value, each on a freshly read model, and gave the same target set and labels every time.
+The Python runs used Python 3.14.2, cobra 0.32.1, optlang 1.9.1 and Gurobi 13.0.3 (gurobipy wheel). The MATLAB run used R2024b with RAVEN and Gurobi 13.0.1, selected through `setRavenSolver('gurobi')`. The `flux_eps` runs were repeated three times per value, each on a freshly read model.
 
 ## Results
 
@@ -50,7 +52,7 @@ The Python runs used Python 3.14.2, cobra 0.32.1, optlang 1.9.1 and Gurobi 13.0.
 
 Of the 408 reactions, 406 are knockdown targets and 2 are knockout targets. Three runs per value gave the same set of targets.
 
-The parameter `flux_eps` is the floor below which `fseof` treats the theoretical maximum of the target flux as zero, and the scan then raises an error. The classification of targets does not read `flux_eps`, and `FSEOF` of RAVEN has no such parameter. From the code, two values of `flux_eps` give different results only when the theoretical maximum of the target lies between them: `fseof` raises at the larger value and runs at the smaller.
+`flux_eps` is the floor below which `fseof` treats the theoretical maximum of the target flux as zero, and the scan then raises an error. The classification of targets does not read `flux_eps`, and `FSEOF` of RAVEN has no such parameter. From the code, two values of `flux_eps` give different results if and only if the theoretical maximum of the target lies between them: `fseof` raises at the larger value and runs at the smaller.
 
 ### `fseof` targets at other values of three parameters
 
@@ -80,11 +82,13 @@ Every swept value changes the target set. None of the added targets is a noise t
 | `removeGenes(model, genes, 'removeBlockedRxns', true)` | 94 | 0.000 | deleted |
 | unmodified model | 95 | 0.874 (MATLAB biomass flux 0.8739) | present |
 
-The parameter `blocked_reactions` of `remove_genes` and `removeBlockedRxns` of `removeGenes` decide what happens to a reaction whose gene rule is emptied by a deletion. Both defaults keep such a reaction with bounds of zero, and the two defaults gave the same model. After the deletion of `b1779` that model predicts no growth, because GAPD stays in the network without capacity to carry flux. The setting `"remove"` and `removeBlockedRxns` true also predicted no growth. They delete GAPD, which changes the number of reactions and the set of reaction identifiers. The setting `"keep"` leaves GAPD with an empty gene rule and unchanged bounds, so the model predicted the growth of the unmodified model, 0.874 h⁻¹, although the only gene of GAPD was deleted. GAPD is essential for aerobic growth on glucose in e_coli_core, so the growth predicted with `"keep"` is a false positive. The docstring of `remove_genes` states no use for `"keep"`, and the documentation names the editing of gene annotations without changing the network as a use, without a source in the code.
+`blocked_reactions` of `remove_genes` and `removeBlockedRxns` of `removeGenes` decide what happens to a reaction whose gene rule is emptied by a deletion. Both default settings keep such a reaction with bounds of zero, and the two gave the same model. After the deletion of `b1779` that model predicts no growth, because GAPD stays in the network without capacity to carry flux. With `"remove"` and with `removeBlockedRxns` true the model also predicted no growth. Both delete GAPD, which changes the number of reactions and the set of reaction identifiers.
+
+The setting `"keep"` leaves GAPD with an empty gene rule and unchanged bounds, so the model predicted the growth of the unmodified model, 0.874 h⁻¹, although the only gene of GAPD was deleted. The default setting predicted no growth after the same deletion, so the growth predicted with `"keep"` is probably a false positive in this model (the bounds are those shipped with e_coli_core). The docstring of `remove_genes` states no use for `"keep"`. The documentation names the editing of gene annotations without changing the network as a use, and the code gives no source for that use.
 
 ### `connect_blocked_reactions` at four values of `threshold`
 
-The network is the synthetic network of the set-up.
+The draft network has an import of A, the reaction A to B and no exit for B, and the template supplies `EX_B`.
 
 | `threshold` | Gap filled | Reactions added | Maximum flux of the reaction A to B afterwards |
 |---|---|---|---|
@@ -114,7 +118,7 @@ Both implementations have the same value or behaviour for each of these paramete
 
 The measurements give no reason to change `flux_eps` from `1e-6`. The sweep does not select the other three `fseof` defaults: the target set changes with each swept value by 2 to 12 targets, and no tested value leaves it unchanged. The defaults follow [Choi et al. 2010](https://doi.org/10.1128/AEM.00115-10) (not checked against the paper). The 19 noise tracks are in the target set at every setting.
 
-The default `blocked_reactions="constrain"` of `remove_genes` gives the model that `removeGenes` of RAVEN gives by default. The settings `"remove"` and `"keep"` are available on request.
+The default `blocked_reactions="constrain"` of `remove_genes` gives the model that `removeGenes` of RAVEN gives by default. The settings `"remove"` and `"keep"` are selected with the `blocked_reactions` argument.
 
 ## Limits
 

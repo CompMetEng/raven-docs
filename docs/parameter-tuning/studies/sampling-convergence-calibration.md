@@ -2,7 +2,7 @@
 
 The function `random_sampling` of raven-toolbox draws flux vectors from a model with a Markov-chain sampler (`method='achr'` or `'chrr'`) or with random objectives (`method='random_objective'`). The study ran the two Markov-chain samplers on e_coli_core (95 reactions) and yeast-GEM and recorded three results: how strongly consecutive samples of one chain are correlated, whether independent chains reach the same flux distribution, and the wall time. It also records why two settings of the random-objective method differ from RAVEN in MATLAB.
 
-On e_coli_core, four chains of 300 samples agree at the R-hat threshold of 1.1 for every reaction, and the CHRR sampler is no better than ACHR there. On yeast-GEM, 50.7 % of the scored reactions exceed an R-hat of 1.1 at the default `thinning`, and no tested setting gave converged samples.
+On e_coli_core, four chains of 300 samples agree at the R-hat threshold of 1.1 for 87 of 87 scored reactions, and the CHRR sampler was no better than ACHR there in single runs. On yeast-GEM, 50.7 % of the scored reactions exceed an R-hat of 1.1 for `n_samples=300` at the default `thinning=100`; the default `n_samples` of 1000 was not tested. No setting measured with R-hat or `ρ` gave converged samples.
 
 ## Terms
 
@@ -51,7 +51,13 @@ The same settings with seeds 0 to 3 give the following `ρ`.
 
 For every seed, `ρ` falls as `thinning` rises. Between seeds, `ρ` differs by up to 0.28, and the ESS of 300 stored samples ranges from 3.2 to 11.8 at `thinning=20`, from 9.9 to 63.1 at 100 and from 28.8 to 64.9 at 500. Seed 1 gives the lowest `ρ` at all three values, and without it the ranges are 0.972 to 0.979, 0.924 to 0.936 and 0.769 to 0.825. The four chains of the yeast-GEM comparison with 4,105 reactions (seeds 0 to 3, `thinning=100`) give a mean `ρ` of 0.951, 0.847, 0.947 and 0.911, so a low value for seed 1 appears on both model files. The spread between seeds is 0.10 on the 4,105-reaction chains (0.847 to 0.951) and 0.28 on the 4,102-reaction chains (0.652 to 0.936), and seed 1 is the lowest in both.
 
-The value `n_samples` was not varied. With `ρ` fixed at its seed-0 value for the default `thinning=100`, the ESS formula is proportional to `n_samples`: about 10 from 300 stored samples, about 33 from the default 1000, and 100 needs about 3,000 stored samples. Building the ACHR warmup points alone took 185.9 s, 196.6 s and 195.4 s in the three runs, so the sampling steps took about 1 s, 5 s and 26 s for 6,000, 30,000 and 150,000 steps. The warmup is therefore about 95 % of the wall time at `thinning=100`, and the wall time rose from 189.5 s to 223.3 s (1.2-fold) while the number of steps rose 25-fold. With a fixed cost per run plus a cost per stored sample, 3,025 stored samples take about 242 s for one chain. Scaling the 203.6 s in proportion to 3,025 samples gives 2,053 s (about 34 min), an upper bound. The warmup time was measured on a second, fresh sampler after the run, so the split is approximate.
+The value `n_samples` was not varied. With `ρ` fixed at its seed-0 value for the default `thinning=100`, the ESS formula is proportional to `n_samples`: about 10 from 300 stored samples, about 33 from the default 1000, and 100 needs about 3,000 stored samples. Building the ACHR warmup points alone took 185.9 s, 196.6 s and 195.4 s in the three runs, so the sampling steps took about 1 s, 5 s and 26 s for 6,000, 30,000 and 150,000 steps.
+
+The warmup is therefore about 95 % of the wall time at `thinning=100`, and the wall time rose from 189.5 s to 223.3 s (1.2-fold) while the number of steps rose 25-fold.
+
+With a fixed cost per run plus a cost per stored sample, 3,025 stored samples take about 242 s for one chain. Scaling the 203.6 s in proportion to 3,025 samples gives 2,053 s (about 34 min), an upper bound.
+
+The warmup time was measured on a second, fresh sampler after the run, so the split is approximate.
 
 Within the measured range, a larger `thinning` gave more ESS per second of wall time (4.2 in 189.5 s at 20, 28.8 in 223.3 s at 500). That a larger `n_samples` at a fixed `thinning` raises the ESS in proportion and leaves `ρ` unchanged follows from the first-order autoregressive formula, and it was not measured.
 
@@ -100,7 +106,7 @@ The ACHR run used 4 chains × 300 samples and took 572.3 s wall time (about 9.5 
 
 The reactions with the highest R-hat were `r_4562` (18.90), `r_4358` (18.90), `r_0992` (5.18), `r_4249` (5.18), `r_4701` (5.18), `r_4621` (5.18), `r_1965` (5.09), `r_0917` (3.90), `r_0891` (3.90) and `r_0918` (3.90).
 
-The median scored reaction was 1.1020, and one in two reactions (50.7 %) exceeded 1.1, whereas 4.8 % passed 1.01. Each chain took 300 × 100 = 30,000 ACHR steps after its warmup points. The low ESS of one chain and the disagreement between chains are two separate measurements, and both show that these settings do not give a converged sample of yeast-GEM.
+The median scored reaction was 1.1020, and one in two reactions (50.7 %) exceeded 1.1, and 4.8 % were at or below 1.01. Each chain took 300 × 100 = 30,000 ACHR steps after its warmup points. The low ESS of one chain and the disagreement between chains are two separate measurements, and both show that these settings do not give a converged sample of yeast-GEM.
 
 The four parallel chains took 572.3 s, 2.8 times the 203.6 s of the single chain at the same settings. The two runs read different yeast-GEM files (4,105 and 4,102 reactions). Contention between the four Gurobi processes on the 12 cores is a possible cause of the difference, and it was not measured.
 
@@ -120,7 +126,7 @@ The 30,000 steps per chain of the default run (`thinning=100, n_samples=300`) we
 | R-hat > 1.1 | 50.7 % | 50.5 % |
 | worst reaction | `r_4562`, `r_4358` (18.90) | `r_4562`, `r_4358` (21.91) |
 
-Both runs scored 3325 reactions. The reallocation moved the median R-hat from 1.1020 to 1.1010 and the shares above the two thresholds by at most 1.7 percentage points. The reactions with the highest R-hat were the same, and the run took 612.4 s against 572.3 s (1.07 times). That the disagreement comes from how ACHR moves through this polytope, and not from the split of the steps, is an inference from this result, and it was not tested at genome scale. At a fixed number of steps, moving steps from `n_samples` to `thinning` did not improve the agreement between chains, and a larger total number of steps was not tested with R-hat.
+Both runs scored 3325 reactions. The reallocation moved the median R-hat from 1.1020 to 1.1010 and the shares above the two thresholds by at most 1.7 percentage points. The reactions with the highest R-hat were the same, and the run took 612.4 s against 572.3 s (1.07 times). That the disagreement comes from how ACHR moves through this polytope, and not from the split of the steps, is an inference from this result, and it was not tested on other models. At a fixed number of steps, moving steps from `n_samples` to `thinning` did not improve the agreement between chains, and a larger total number of steps was not tested with R-hat.
 
 ### CHRR on e_coli_core
 
@@ -152,9 +158,9 @@ Twenty samples per chain are too few for R-hat on yeast-GEM, and whether CHRR co
 
 ## Choice of `thinning` and `n_samples`
 
-The defaults are `method='achr'`, `thinning=100` and `n_samples=1000` ([Tuned parameter defaults](../../tuned-parameters.md)). The default is ACHR. On e_coli_core, CHRR differed from ACHR by +0.0012 in median R-hat (1.0027 and 1.0039), by −0.0034 in p90 (1.0171 and 1.0137) and by +0.0101 in maximum (1.0276 and 1.0377), with one run each and no measured spread between sets of seeds, and CHRR took 66 to 133 times as long.
+The defaults are `method='achr'`, `thinning=100` and `n_samples=1000` ([Tuned parameter defaults](../../tuned-parameters.md)). ACHR is the default because on e_coli_core CHRR differed from ACHR by +0.0012 in median R-hat (1.0027 and 1.0039), by −0.0034 in p90 (1.0171 and 1.0137) and by +0.0101 in maximum (1.0276 and 1.0377), with one run each and no measured spread between sets of seeds, and CHRR took 66 to 133 times as long.
 
-On a model the size of e_coli_core, the default `thinning` with 300 samples per chain gave chains that agree at R-hat 1.1 for every reaction. On yeast-GEM, no setting tested gave converged samples. A `thinning` up to 500 left `ρ` at 0.825 for seed 0 (0.644 to 0.825 over four seeds), and moving the same 30,000 steps from `n_samples` to `thinning` moved the median R-hat from 1.1020 to 1.1010 and the shares above 1.01 and 1.1 by at most 1.7 percentage points. With `n_samples=300` and `thinning=100`, 50.7 % of the 3325 scored reactions had R-hat above 1.1.
+On a model the size of e_coli_core, the default `thinning` with 300 samples per chain gave chains that agree at R-hat 1.1 for every scored reaction. On yeast-GEM, no setting measured with R-hat or `ρ` gave converged samples. A `thinning` up to 500 left `ρ` at 0.825 for seed 0 (0.644 to 0.825 over four seeds), and moving the same 30,000 steps from `n_samples` to `thinning` moved the median R-hat from 1.1020 to 1.1010 and the shares above 1.01 and 1.1 by at most 1.7 percentage points. With `n_samples=300` and `thinning=100`, 50.7 % of the 3325 scored reactions had R-hat above 1.1.
 
 The docstring of `random_sampling` recommends, for genome-scale models, a `thinning` of at least 1000 or a larger `n_samples`, `method='chrr'`, or an ESS or R-hat check. A `thinning` of 1000 or more was not measured. The driver script runs the R-hat check: it samples several chains with different seeds at given settings and reports the share of reactions above the R-hat thresholds, so a sampling result can be checked at the settings that produced it.
 

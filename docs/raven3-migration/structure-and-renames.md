@@ -32,31 +32,31 @@ The code of RAVEN 3 is in `src/`. RAVEN 2 kept its functions in the top-level fo
 
 The files `checkRaven.m` and `checkInstallation.m` (a wrapper) are in the repository root.
 
-Some code has no successor folder: the subfolder `external/metacyc/` with the MetaCyc function `external/combineMetaCycKEGGModels.m`, `pathway/` and `plotting/` (visualisation), `legacy/` (CellDesigner import and other code from before RAVEN 2.0), and the Excel-POI helpers of `io/` together with the Apache POI libraries in `software/apache-poi`.
+Some code has no successor folder: the subfolder `external/metacyc/` with the MetaCyc function `external/combineMetaCycKEGGModels.m`, `pathway/` and `plotting/` (visualisation), `legacy/` (CellDesigner import and other pre-2.0 code), and the Excel-POI helpers of `io/` together with the Apache POI libraries in `software/apache-poi`.
 
-A script that calls RAVEN functions by name keeps working when the whole RAVEN folder tree, subfolders included, is on the MATLAB path (through `addRavenToUserPath` or `addpath(genpath(...))`), because MATLAB resolves functions by name across the path. The reorganisation affects a script in three cases: it uses a hard-coded path to a specific `.m` file, it calls a removed function or a merged function that has no wrapper, or it contains a function with the name of a RAVEN 3 function. `checkFunctionUniqueness` warns about the last case.
+A script that calls RAVEN functions by name keeps working when the whole RAVEN folder tree, subfolders included, is on the MATLAB path (through `addRavenToUserPath` or `addpath(genpath(...))`), because MATLAB resolves functions by name across the path. The reorganisation affects a script in three cases: it uses a hard-coded path to a specific `.m` file, it calls a removed function or a merged function that has no wrapper, or it contains a function with the name of a RAVEN 3 function. `checkFunctionUniqueness` warns about the last case. Individual moved files are not mapped.
 
 ---
 
 (removed-functionality)=
 ## Removed functionality
 
-The table lists all 65 functions of RAVEN 2 that RAVEN 3 removes without a successor of the same name. The counts per RAVEN 2 folder are `pathway/` 6, `plotting/` 10, `external/` 12 (8 for MetaCyc, 4 others), `legacy/` 11, `io/` 12, `core/` 8, `utils/` 3, `solver/` 2 and `INIT/` 1. No function of RAVEN 3 calls a removed function. The name `getToolboxVersion` survives only as a local function of `exportForGit`.
+The table lists all 65 functions of RAVEN 2 that RAVEN 3 removes without a successor of the same name. The counts per RAVEN 2 folder are `pathway/` 6, `plotting/` 10, `external/` 12 (8 for MetaCyc, 4 others), `legacy/` 11, `io/` 12, `core/` 8, `utils/` 3, `solver/` 2 and `INIT/` 1. No function of RAVEN 3 calls a removed function. The name `getToolboxVersion` exists in RAVEN 3 as a local function of `exportForGit`.
 
 | Removed | Former purpose | Replacement |
 |---|---|---|
 | `pathway/colorPathway`, `pathway/getPathwayDimensions`, `pathway/mapPathwayRxnNames`, `pathway/markPathwayWithExpression`, `pathway/markPathwayWithFluxes`, `pathway/trimPathway` (6 functions) | Handling and colouring of metabolic pathway maps | None in RAVEN 3. Alternatives are the COBRA Toolbox, Escher, and the export of flux and omics data for plotting elsewhere |
 | `plotting/colorSubsystem`, `plotting/drawMap`, `plotting/drawPathway`, `plotting/getColorCodes`, `plotting/getObjectiveString`, `plotting/plotAdditionalInfo`, `plotting/plotLabels`, `plotting/setColorToMapRxns`, `plotting/setOmicDataToRxns`, `plotting/setTitle` (10 functions) | Drawing of metabolic maps and colouring with omics data | None, as above |
 | `external/metacyc/{getModelFromMetaCyc,getRxnsFromMetaCyc,getMetsFromMetaCyc,getEnzymesFromMetaCyc,getMetaCycModelForOrganism,addSpontaneousRxns,linkMetaCycKEGGRxns}`, `external/combineMetaCycKEGGModels` (8 functions) | Draft reconstruction from MetaCyc | None. The reconstruction methods of RAVEN 3 are the KEGG-based and the homology-based method |
-| `legacy/core/changeGeneAssoc`, `legacy/external/constructPathwayFromCelldesigner`, and the nine functions of the bundled `xml_toolbox` (`xml_format`, `xml_formatany`, `xml_help`, `xml_load`, `xml_parse`, `xml_parseany`, `xml_save`, `xml_strsplit`, `xml_unblank`) (11 functions) | CellDesigner import and compatibility code from before RAVEN 2.0 | None |
+| `legacy/core/changeGeneAssoc`, `legacy/external/constructPathwayFromCelldesigner`, and the nine functions of the bundled `xml_toolbox` (`xml_format`, `xml_formatany`, `xml_help`, `xml_load`, `xml_parse`, `xml_parseany`, `xml_save`, `xml_strsplit`, `xml_unblank`) (11 functions) | CellDesigner import and pre-2.0 compatibility code | None |
 | `io/importExcelModel`, `io/loadWorkbook`, `io/loadSheet`, `io/writeSheet`, `io/SBMLFromExcel`, `io/addJavaPaths`, `io/startup` (7 functions) | Excel model I/O through Apache POI | `io/writeExcel.m` (OOXML writer without dependencies) for export and `curation/curateModelFromTables.m` for tabular curation. RAVEN 3 cannot import a full Excel template (see [Excel I/O](#excel-io)) |
-| `io/exportModelToSIF`, `io/exportToTabDelimited` | Export of a SIF graph; tab-delimited export of a model | None. The only caller of `exportToTabDelimited` was the fallback of `exportToExcelFormat` for a path without file name, which is removed |
+| `io/exportModelToSIF`, `io/exportToTabDelimited` | Export of a SIF graph; tab-delimited export of a model | None. The sole caller of `exportToTabDelimited` was the fallback of `exportToExcelFormat` for a path without file name, which is removed |
 | `io/getFullPath`, `io/getMD5Hash`, `io/getToolboxVersion` | Canonical file path; MD5 hash of a file; git version of the toolbox | Inlined where needed: the MD5 hash through Java `MessageDigest` in `getBlast`, and the version as a local function of `exportForGit` |
 | `core/dispEM` | Display of errors and warnings (388 lines call it in RAVEN 2, counted outside `doc/` and `testing/`) | `warning()` and `error()`, and `utils/ravenList.m` for formatted lists of items (see [Backward-incompatible changes](#backward-incompatible-changes)) |
 | `core/followFluxes`, `core/followChanged` | Report of flux changes relative to a reference solution | `analysis/compareFluxes.m` compares two flux vectors of one model (reactions turned on or off, flipped and changed, with `cutoff` and `metaboliteList`) and replaces `core/followChanged`. `queries/printFluxes.m` prints the fluxes of one vector above a cut-off |
 | `core/printModel` | Printing of reactions to the screen or to a file | `queries/printModelStats.m` and `queries/printFluxes.m` cover model summaries and the printing of fluxes (see below the table) |
 | `core/getMetsInComp` | Indices of the metabolites in a compartment | `model.metComps == compIndex` |
-| `core/mapCompartments` | Merging and splitting of the score columns of a localisation-score structure by compartment rules | The `compartmentMap` option of `parseScores` and `getUniProtScores`. The default map `defaultCompartmentMap` applies to `getUniProtScores` and to `parseScores` with the `'uniprot'` predictor. Without a map, every label stays unchanged. With a map, a label that the map does not contain is dropped together with its score column. Merged columns take the maximum score, and splitting is not supported |
+| `core/mapCompartments` | Merging and splitting of the score columns of a localisation-score structure by compartment rules | The `compartmentMap` option of `parseScores` and `getUniProtScores`. The default map `defaultCompartmentMap` applies to `getUniProtScores` and to `parseScores` with the `'uniprot'` predictor. Elsewhere, without a map, every label stays unchanged. With a map, a label that the map does not contain is dropped together with its score column. Merged columns take the maximum score, and splitting is not supported |
 | `core/getExpressionStructure` | Loading of an expression structure from an ad hoc Excel format | `INIT/parseHPA.m` and `INIT/parseHPArna.m` read Human Protein Atlas files. Expression tables from other sources have to be assembled by hand as the `arrayData` structure documented in `scoreModel` |
 | `core/checkRxn` | Debugging of the synthesisability of one reaction | No direct successor. `gapfilling/findLeakMetabolite.m`, `gapfilling/canExchange.m` and `gapfilling/checkProduction.m` cover related checks |
 | `external/getWoLFScores` | Parsing of WoLF PSORT scores | None. `parseScores` with `'wolf'` raises `RAVEN:badInput` (see [Backward-incompatible changes](#backward-incompatible-changes)) |
@@ -76,13 +76,13 @@ The folder `deprecated/` holds `makeSomething`, `consumeSomething`, `canProduce`
 
 | RAVEN 2 functions | RAVEN 3 function | Notes |
 |---|---|---|
-| `makeSomething(model, ignoreMets, isNames, minNrFluxes, allowExcretion, params, ignoreIntBounds)` | `findLeakMetabolite(model, 'produce', ...)` | The arguments map one to one, and the wrapper forwards `varargin` unchanged |
+| `makeSomething(model, ignoreMets, isNames, minNrFluxes, allowExcretion, params, ignoreIntBounds)` | `findLeakMetabolite(model, 'produce', ...)` | The argument order maps one to one, and the wrapper forwards `varargin` unchanged |
 | `consumeSomething(model, ignoreMets, isNames, minNrFluxes, params, ignoreIntBounds)` | `findLeakMetabolite(model, 'consume', ...)` | The RAVEN 2 order has no position for `allowExcretion`, so the wrapper remaps the arguments by name to keep `params` and `ignoreIntBounds` |
 | `canProduce(model, mets)` | `canExchange(model, 'produce', 'mets', mets)` | None |
 | `canConsume(model, mets)` | `canExchange(model, 'consume', 'mets', mets)` | None |
 | `compareRxnsGenesMetsComps` | `comparison/compareMultipleModels.m` | The overlap output of RAVEN 2 (reactions, genes, metabolites, EC codes, metabolite names, equations and unique equations) is part of the output of `compareMultipleModels`. No wrapper |
 | `INIT/scoreComplexModel.m` | `INIT/scoreModel.m` | Merged, no wrapper. A call moves to `scoreModel` with the same positions and defaults for the first six optional arguments, and `dataPrecedence` is added as the 7th optional argument |
-| `INIT/ftINITFillGapsMILP.m` | `solver/getMinNrFluxes.m` | Available through the option `resolveTies` of `getMinNrFluxes`, which exists for `formulation` `'reversible'` only. The default `'irrev'` raises an error with `resolveTies`. The option `proveAbsGap` belongs to `ftINIT` |
+| `INIT/ftINITFillGapsMILP.m` | `solver/getMinNrFluxes.m` | Available through the option `resolveTies` of `getMinNrFluxes`, which exists for `formulation` `'reversible'`. The default `'irrev'` raises an error with `resolveTies`. The option `proveAbsGap` belongs to `ftINIT` |
 | `INIT/ftINITFillGapsForAllTasks.m` | `gapfilling/ftINITFillGaps.m` and the gap-fill mode `'preMerged'` of `fitTasks` | None. `ftINITFillGaps` exists in RAVEN 2 as well |
 | `getGenesFromKEGG`, `getMetsFromKEGG` and `getRxnsFromKEGG` | `reconstruction/kegg/readKEGGTable.m` (with `buildGlobalKEGGModel` and `buildGlobalGPR`) and the KEGG artefacts of `toolbox-assets` | The data source differs, so the signatures are not compatible (see [Reconstruction: KEGG and homology pipelines](#kegg-reconstruction)) |
 | `core/parallelPoolRAVEN.m` | `utils/parallelWorkersRAVEN.m` | `parallelWorkersRAVEN` returns a worker count for `parfor` (`0` or `Inf`) and starts no pool. `parallelPoolRAVEN` returns `[ps, oldPoolAutoCreate]` |
@@ -92,13 +92,13 @@ The folder `deprecated/` holds `makeSomething`, `consumeSomething`, `canProduce`
 
 RAVEN 2 has `INIT/scoreComplexModel.m` and `hpa/scoreModel.m`. RAVEN 3 has one `scoreModel`, which tINIT and ftINIT call with different settings. A call written for `hpa/scoreModel.m` differs in these points (checked against 2.11.3):
 
-- RAVEN 2 scored a reaction by the best or the average score over all its genes (`multipleGeneScoring`, values `'best'` and `'average'`). RAVEN 3 applies `isozymeScoring` (default `'max'`) to the `or` parts and `complexScoring` (default `'min'`) to the `and` parts of the rule. A reaction with an `and` rule therefore gets another default score.
+- RAVEN 2 scored a reaction by the best or the average score over all its genes (`multipleGeneScoring`, values `'best'` and `'average'`). RAVEN 3 applies `isozymeScoring` (default `'max'`) to the `or` parts and `complexScoring` (default `'min'`) to the `and` parts of the rule. A reaction with an `and` rule therefore gets a different default score.
 - Positions count all arguments of the call. The 7th to 9th arguments of a RAVEN 2 call (`multipleGeneScoring`, `multipleCellScoring`, `hpaLevelScores`) are read as `isozymeScoring`, `complexScoring` and `multipleCellScoring`. `hpaLevelScores` is the 10th argument.
 - `multipleCellScoring` accepts `'max'` and `'average'`. RAVEN 2 accepted `'best'` and `'average'`.
 - `dataPrecedence` is an argument of RAVEN 3 with the default `'gene'`.
 - A gene that is absent from the data receives `NaN` in `geneScores`, and the RAVEN 2 documentation states `-Inf`. `getINITModel` converts `NaN` back to `-Inf`.
 
-[Backward-incompatible changes](#backward-incompatible-changes) lists the same differences as table rows. The function `getINITModel` passes `'max'` for `isozymeScoring` and for `complexScoring`, and `'reaction'` for `dataPrecedence`. Whether these settings reproduce the scores of the RAVEN 2 `hpa/scoreModel` was not checked, and the RAVEN 2 value `'average'` of `multipleGeneScoring` has no equivalent among them.
+[Backward-incompatible changes](#backward-incompatible-changes) lists these differences as table rows. The function `getINITModel` passes `'max'` for `isozymeScoring` and for `complexScoring`, and `'reaction'` for `dataPrecedence`. Whether these settings reproduce the scores of the RAVEN 2 `hpa/scoreModel` was not checked, and the RAVEN 2 value `'average'` of `multipleGeneScoring` has no equivalent among them.
 
 ### Legacy tINIT functions
 

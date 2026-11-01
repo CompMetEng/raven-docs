@@ -2,7 +2,7 @@
 
 The study asks whether the ftINIT of raven-toolbox selects the same reactions as the `ftINIT` of RAVEN. Both tools extracted a cell-type model from Human-GEM with the RNA sequencing (RNA-seq) data of five cell lines of the Hart2015 dataset (DLD1, GBM, HCT116, HELA, RPE1), and the models were compared by their reaction sets, together with the time of each step.
 
-With the task layer, the raven-toolbox models share a Jaccard index of 0.981 to 0.988 with the RAVEN models. Without the task layer the index is 0.964 to 0.982.
+With the task layer, the raven-toolbox models share a Jaccard index of 0.981 to 0.988 with the RAVEN models. Without the task layer the index is 0.964 to 0.982. Each cell line, variant and `big_m` value ran once, and the RAVEN result is task-constrained, so the first range is the like-for-like comparison.
 
 ## Set-up
 
@@ -93,13 +93,13 @@ The no-task `ftinit` runs took 83 to 122 s at `big_m=100` and 81 to 91 s at `big
 
 ### Agreement with the task layer
 
-The task-constrained variant shares a Jaccard index of 0.981 to 0.988 with RAVEN across the five cell lines. Its reaction counts are within 0.2 % of the counts of RAVEN. The differences run in both directions in similar numbers: 46 to 70 reactions only in the raven-toolbox model and 43 to 71 only in the RAVEN model, out of about 7300.
+The task-constrained variant agrees with RAVEN in every cell line. Its reaction counts are within 0.2 % of the counts of RAVEN. The differences run in both directions in similar numbers: 46 to 70 reactions only in the raven-toolbox model and 43 to 71 only in the RAVEN model, out of about 7300.
 
-Neither tool was run twice on the same input, so the comparison does not separate alternate optima of the MILP from a difference between the two implementations. For scale, two raven-toolbox runs that differed only in the seed differed by 110 reactions in [ftINIT reproducibility with `resolve_ties` and `prove_abs_gap`](ftinit-determinism.md). That measurement used another set-up (Human-GEM v2.0.0-38, DLD1, `big_m=100`, an escalation schedule), so it indicates the order of magnitude and does not bound the spread here.
+Neither tool was run twice on the same input, so the comparison does not separate alternate optima of the MILP from a difference between the two implementations. For scale, two raven-toolbox runs that differed only in the seed differed by 110 reactions in [ftINIT reproducibility with `resolve_ties` and `prove_abs_gap`](ftinit-determinism.md). That measurement used another set-up (Human-GEM v2.0.0-38, DLD1, `big_m=100`, an escalation schedule), so it indicates the order of magnitude and does not bound the spread of this set-up.
 
 ### Agreement without the task layer
 
-The no-task variant shares a Jaccard index of 0.964 to 0.982 with RAVEN. It keeps fewer reactions than RAVEN in every cell line: 0.3 to 0.5 % fewer for four cell lines and 1.6 % fewer for RPE1. The reactions only in the RAVEN model (76 to 186) outnumber those only in the raven-toolbox model (53 to 76).
+The no-task variant keeps fewer reactions than RAVEN in every cell line: 0.3 to 0.5 % fewer for four cell lines and 1.6 % fewer for RPE1. The reactions only in the RAVEN model (76 to 186) outnumber those only in the raven-toolbox model (53 to 76).
 
 The no-task variant omits the task layer that the RAVEN result includes. With the task layer, the reactions only in the RAVEN model fall to 43 to 71 per cell line. That the task layer accounts for most of the surplus is an inference from these counts, and the reactions in the surplus were not checked against the task-essential reactions.
 
@@ -107,11 +107,15 @@ The no-task variant omits the task layer that the RAVEN result includes. With th
 
 Lowering the cap on the per-reaction big-M from 1000 to 100 changed the Jaccard index against RAVEN by at most 0.003 in each cell line, with one run per cell line and value. In every cell line the two raven-toolbox results shared a higher Jaccard index with each other (0.981 to 0.985) than either shared with RAVEN (0.964 to 0.982). For RPE1 the values were 0.984 between the two results and 0.964 and 0.967 with RAVEN. The cap therefore changed the reaction set (1 minus the Jaccard index between the two results, 0.015 to 0.019) by more than it changed the agreement with RAVEN (at most 0.003). At this resolution the two values agree equally well with RAVEN.
 
-### Run time
+### Comparison of run times
 
-After the template preparation, a task-constrained cell-type model took 146 to 381 s in raven-toolbox and 40 to 91 s in RAVEN, and a no-task model took 81 to 91 s. The template preparation took 1556 s (26 min) and 1695 s (28 min) in raven-toolbox and 4320 s (72 min) in RAVEN. The preparations ran with different parallelism (see the run-time table), so the times compare whole runs and not the code alone.
+After the template preparation, a task-constrained cell-type model took 146 to 381 s in raven-toolbox and 40 to 91 s in RAVEN, and a no-task model took 81 to 91 s. The template preparation took 1556 s (26 min) and 1695 s (28 min) in raven-toolbox and 4320 s (72 min) in RAVEN. The preparations ran with different parallelism (see the run-time table), so the times compare whole runs, including the parallelism.
 
 The [Reference run](../../guide/init.md#reference-run) of the guide Context-specific models with ftINIT reports a preparation of 47 min in MATLAB and 37 min in Python and an extraction of 797 s in MATLAB and 124 s in Python. That run used `prepINITModel` of RAVEN directly on Human-GEM `6812be2a` (12748 reactions) without the cleaning step, and series `1+0`. These four differences from this validation (preparation function, Human-GEM commit, cleaning step and series) were not separated, so the times are not comparable.
+
+## Constraint construction
+
+Each steady-state balance of the extraction MILP is built from a flat list of terms and summed with `optlang.symbolics.add`, and the gap-fill uses the same construction. The `sum()` of Python simplifies the growing expression again at each term, and the balances of hub metabolites such as ATP, H⁺ and H₂O are long sums.
 
 ## Numerical settings shared with RAVEN
 
@@ -122,11 +126,10 @@ raven-toolbox builds the extraction MILP with two numerical settings of RAVEN:
 
 [ftINIT parameter calibration and input robustness](init-param-calibration.md) measured on HCT116 which combinations of `big_m` and rescaling are feasible for the staged pipeline. With rescaling, `big_m=25` was infeasible and `big_m=100` feasible. Without rescaling, `big_m=1000` was feasible (157 s against 83 s with rescaling, Jaccard index 0.969 between the two results) and `big_m=100` infeasible.
 
-Each steady-state balance of the extraction MILP is built from a flat list of terms and summed with `optlang.symbolics.add`, and the gap-fill uses the same construction. The `sum()` of Python simplifies the growing expression again at each term, and the balances of hub metabolites such as ATP, H⁺ and H₂O are long sums.
 
 ## Use of the result
 
-The agreement was measured with the code defaults `big_m=1000` (`_BIG_M` in `raven_toolbox/init/ftinit.py`, listed in [Tuned parameter defaults](../../tuned-parameters.md))) and rescaling on (`scale=True` in `prep_init_model`, with `max_stoich_diff=25` in `rescale_for_init`, both in `raven_toolbox/init/prep.py`). A raven-toolbox model agreed most closely with a RAVEN `ftINIT` model when `prep_init_model` received the same task list as the preparation of RAVEN.
+The agreement was measured with the code defaults `big_m=1000` (`_BIG_M` in `raven_toolbox/init/ftinit.py`, listed in [Tuned parameter defaults](../../tuned-parameters.md)) and rescaling on (`scale=True` in `prep_init_model`, with `max_stoich_diff=25` in `rescale_for_init`, both in `raven_toolbox/init/prep.py`). A raven-toolbox model agreed most closely with a RAVEN `ftINIT` model when `prep_init_model` received the same task list as the preparation of RAVEN.
 
 ## Limits
 

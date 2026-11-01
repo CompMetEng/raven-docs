@@ -14,14 +14,14 @@ Three areas differ between RAVEN 2 and RAVEN 3: the model file formats, the draf
 | `importModel` accepted input | Any SBML level and version. The notes-based gene association `GENE_ASSOCIATION` of Level 2 files is read, and `SHORT NAME` is read for gene names. FBC fields are optional | SBML Level 3 Version 1 with FBC package version 2. Any other file raises the error `RAVEN:badInput` |
 | MIRIAM prefixes read on import | `urn:miriam:`, `http://identifiers.org/` and `https://identifiers.org/` | `http://identifiers.org/` and `https://identifiers.org/` |
 
-`importModel` of RAVEN 3 reads MIRIAM annotations of reaction EC codes, models and species with the prefixes `http://identifiers.org/` and `https://identifiers.org/`, and ignores `urn:miriam:` annotations.
+`importModel` of RAVEN 3 reads MIRIAM annotations (reaction EC codes, model and species annotations) with the prefixes `http://identifiers.org/` and `https://identifiers.org/`, and ignores `urn:miriam:` annotations.
 
 :::{admonition} Cross-references in older SBML files
 :class: warning
 An SBML file with `urn:miriam:` annotations is imported without an error, and its cross-references (for example `metMiriams`) are absent from the imported model. The `exportModel` function of RAVEN 2 writes `https://identifiers.org/` prefixes, so files written by RAVEN 2 are not affected. Files from other tools that use `urn:miriam:` can be converted to the `identifiers.org` form before the import.
 :::
 
-A file in an older SBML level or version has to be converted before `importModel` accepts it. The error message names another tool or an older RAVEN version for the conversion.
+A file in an older SBML level or version has to be converted before `importModel` accepts it. The error message suggests another tool or an older RAVEN version for the conversion.
 
 (excel-io)=
 ### Excel I/O
@@ -50,7 +50,7 @@ A pipeline that depends on the RAVEN 2 Excel curation template has two options. 
 | Metabolite SMILES | Top-level field | Under `annotation` as `smiles` |
 | Reaction notes key | `rxnNotes` | `notes` |
 | Gene-less model | `genes:` is omitted when `model.genes` is absent, and an empty field gives a bare `- genes:` | The line `- genes: []` |
-| Document start | A `---` line, then `!!omap` | `!!omap` only |
+| Document start | A `---` line, then `!!omap` | `!!omap` alone |
 | Field order, metabolites | `formula`, then `charge` | `charge`, then `formula` |
 | Field order, reactions | `rxnFrom` directly after `gene_reaction_rule`, and `references` before `subsystem` and `annotation` | `subsystem` and `annotation` first, then `references` and `rxnFrom` among the RAVEN-specific extras |
 | Field order, genes | `protein` before `annotation` | `protein` after `annotation` |
@@ -77,7 +77,7 @@ The function `conversion/ravenCobraWrapper.m` keeps its signature, `newModel = r
 | Argument `keggPath` of `getModelFromKEGG` | Optional, default `external/kegg` | Removed |
 | Ortholog HMM library | One `.hmm` file per KEGG Orthology (KO) entry and one `hmmsearch` call per KO, through the Windows Subsystem for Linux (WSL) on Windows | One concatenated library per domain (`kegg118_eukaryotes.hmm` and `kegg118_prokaryotes.hmm`), one `hmmsearch` call against the whole proteome, and no WSL |
 | `dataDir` | Any local folder | For the homology method, which takes a FASTA file, the folder name must end in `kegg118_eukaryotes` or `kegg118_prokaryotes`. The annotation method ignores `dataDir` |
-| `nSequences`, `seqIdentity` (CD-HIT clustering controls) | Configurable | Removed, because there is no local clustering step |
+| `nSequences`, `seqIdentity` (CD-HIT clustering controls) | Configurable | Removed; there is no local clustering step |
 | Default of `cutOff` | `10^-50` | `10^-30` |
 | Default of `minScoreRatioG` | `0.8` | `0.9` |
 | Calling convention | Positional | Positional or name-value (`parseRAVENargs`). A call with more positional arguments than the function defines raises `parseRAVENargs:tooManyArgs` |
@@ -124,9 +124,9 @@ RAVEN 3 parses gene-reaction rules into a tree. Five functions use the parser: `
 | `diffModels` | Not present | Compares grRules. Two rules are equal when their DNF forms are equal after sorting of genes and clauses, without absorption: `A or (A and B)` differs from `A` |
 | `curateModelFromTables` | Not present | Parses the rules of the table input |
 
-The function `addRxns` does not use the parser. It takes the new gene IDs of a grRule from `getGenesFromGrRules`, which splits at the space-bounded tokens `and`, `or`, `&` and `|`. RAVEN 2 split at the substrings "and" and "or" anywhere, so an ID such as `band1` was cut at "and".
+`addRxns` does not use the parser. It takes the new gene IDs of a grRule from `getGenesFromGrRules`, which splits at the space-bounded tokens `and`, `or`, `&` and `|`. RAVEN 2 split at the substrings "and" and "or" anywhere, so an ID such as `band1` was cut at "and".
 
-The parser functions are in `utils/`. The function `parseGrRule` builds a tree with `type` (`'gene'`, `'and'` or `'or'`) and `children`. The function `grRuleToDNF` converts the tree to DNF, an OR of AND clauses. The function `isDnfGrRule` checks whether a rule has that form, and `grRuleToString` renders a tree as a canonical string.
+The parser functions are in `utils/`. `parseGrRule` builds a tree with `type` (`'gene'`, `'and'` or `'or'`) and `children`. `grRuleToDNF` converts the tree to DNF, an OR of AND clauses. `isDnfGrRule` checks whether a rule has that form, and `grRuleToString` renders a tree as a canonical string.
 
 `parseGrRule` accepts `and` and `or` in any case and the symbols `&`, `&&`, `|` and `||`. It recognises operators as whole words, so `G1&G2` is one gene ID. A malformed rule raises `RAVEN:badGrRule`.
 

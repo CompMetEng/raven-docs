@@ -5,11 +5,11 @@ RAVEN exists in two implementations: the MATLAB toolbox RAVEN 3 and the Python p
 - RAVEN runs in MATLAB without the COBRA Toolbox.
 - raven-toolbox is built on [cobrapy](https://cobrapy.readthedocs.io/), and a model is a `cobra.Model`.
 
-The implementations differ in function names, in functions that only one of them has, in the form of the results and in the results of some functions. [Features specific to each implementation](raven3-vs-raven-toolbox/what-each-has.md) covers the functions that exist in one implementation only. [Differences in results between functions](raven3-vs-raven-toolbox/same-function-different-answer.md) covers functions that exist in both and return different results.
+The implementations differ in function names, in functions that a single one of them has, in the form of the results and in the results of some functions. [Features specific to each implementation](raven3-vs-raven-toolbox/what-each-has.md) covers the functions that exist in a single implementation. [Differences in results between functions](raven3-vs-raven-toolbox/same-function-different-answer.md) covers functions that exist in both and return different results.
 
 ## Choosing an implementation
 
-The conditions below favour one implementation. Both implementations provide homology and KEGG reconstruction, metabolic tasks, gap-filling, ftINIT, compartment assignment and model comparison.
+Each condition below favours the implementation named next to it. Both implementations provide homology and KEGG reconstruction, metabolic tasks, gap-filling, ftINIT, compartment assignment and model comparison.
 
 | Condition | Implementation |
 |---|---|
@@ -49,7 +49,7 @@ The two implementations set the solver differently.
 | Aspect | RAVEN | raven-toolbox |
 |---|---|---|
 | Configuration | `setRavenSolver('gurobi')` | `cobra.Configuration().solver = 'gurobi'` |
-| Solvers | GLPK, Gurobi, SCIP and the COBRA Toolbox solvers. `setRavenSolver` downloads the SCIP binary for Windows only | Any solver that cobrapy supports through optlang |
+| Solvers | GLPK, Gurobi, SCIP and the COBRA Toolbox solvers. `setRavenSolver` downloads the SCIP binary for Windows alone | Any solver that cobrapy supports through optlang |
 | Free licence | Gurobi (academic) | Gurobi (academic) |
 | Bundled open-source solver | GLPK, bundled with RAVEN | GLPK, installed with cobrapy |
 
