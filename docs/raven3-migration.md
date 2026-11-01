@@ -2,7 +2,7 @@
 
 The calling convention and an upgrade checklist for users of RAVEN 2 follow. Four detail pages follow the checklist. All statements on RAVEN 2 refer to RAVEN 2.11.3. The changelog of RAVEN 3 states its changes relative to RAVEN 2.9.3, so changelog entries may describe differences that are absent from the comparison with 2.11.3. The last RAVEN 2 release, 2.11.4, differs from 2.11.3 by bug fixes in `ftINIT`, `mergeLinear`, `replaceMets`, `checkInstallation`, `importModel`, `readYAMLmodel` and `optimizeProb`. The comparison with the Python package is in [Comparison of RAVEN and raven-toolbox](raven3-vs-raven-toolbox.md).
 
-RAVEN 3 is a breaking release. The codebase was reorganised, functions were removed (counts per subsystem are in [Structure, removals and renames](raven3-migration/structure-and-renames.md)), several external dependencies were dropped and the calling convention for optional arguments changed in the 112 functions that use `parseRAVENargs`. The rationale is in the [v3 development review](https://github.com/CompMetEng/RAVEN/blob/develop/docs/v3_review.md) of the project. Scripts that use reconstruction, KEGG, localisation or gene-deletion functions need a check. The changes that can affect a script are listed in [Backward-incompatible changes](raven3-migration/backward-incompatible.md#backward-incompatible-changes).
+RAVEN 3 is a breaking release. The codebase was reorganised, functions were removed (counts per folder are in [Structure, removals and renames](raven3-migration/structure-and-renames.md)), several external dependencies were dropped and the calling convention for optional arguments changed in the 112 functions that use `parseRAVENargs`. The rationale is in the [v3 development review](https://github.com/CompMetEng/RAVEN/blob/develop/docs/v3_review.md) of the project. Scripts that use reconstruction, KEGG, localisation or gene-deletion functions need a check. The changes that can affect a script are listed in [Backward-incompatible changes](raven3-migration/backward-incompatible.md#backward-incompatible-changes).
 
 :::{admonition} Changes to check first
 :class: warning
@@ -44,7 +44,7 @@ An old positional call keeps its meaning when the order of the parameters is unc
 
 | Page | Content |
 |---|---|
-| [Structure, removals and renames](raven3-migration/structure-and-renames.md) | The folder reorganisation, every removed function and subsystem, and every renamed or merged function. |
+| [Structure, removals and renames](raven3-migration/structure-and-renames.md) | The folder reorganisation, every removed function and folder, and every renamed or merged function. |
 | [Backward-incompatible changes](raven3-migration/backward-incompatible.md) | Changes that raise errors, changes that alter results without an error, changes to error and warning identifiers, changes that raise warnings and installation changes. |
 | [File formats, reconstruction and GPR parsing](raven3-migration/formats-and-reconstruction.md) | SBML, Excel and YAML I/O; the KEGG and homology reconstruction pipelines; the grRule parser. |
 | [New functionality, dependencies and error handling](raven3-migration/new-and-environment.md) | Gap-filling and ftINIT changes, functions added in RAVEN 3, the toolbox dependency comparison, and error and warning handling. |

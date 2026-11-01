@@ -17,9 +17,9 @@ The list covers the changes found by comparing RAVEN 2.11.3 with RAVEN 3 in the 
 | `findGeneDeletions(...)` with `analysisType`, `refModel` or `oeFactor` | The arguments are removed together with `qMOMA` (MOMA-based over-expression analysis). The test types `'sgo'` and `'dgo'` are removed. Single and double gene deletion (`sgd`, `dgd`) by flux balance analysis (FBA) remain. More than the `'testType'` argument raises `parseRAVENargs:tooManyArgs` |
 | `checkRxn(...)` | Removed, no direct successor. To find why a reaction cannot carry flux, use `gapfilling/findLeakMetabolite.m`, `gapfilling/canExchange.m` or `gapfilling/checkProduction.m` |
 | `dispEM(...)`, `followFluxes(...)`, `followChanged(...)`, `printModel(...)`, `mapCompartments(...)`, `getExpressionStructure(...)`, `getMetsInComp(...)` | Removed (see [Removed functionality](#removed-functionality) for the replacements, where one exists) |
-| Anything under `external/metacyc/` | Subsystem removed (MetaCyc-based reconstruction, 7 functions). No replacement in RAVEN 3 |
-| Anything under `pathway/` or `plotting/` | Subsystems removed: 16 functions for visualisation and plotting, such as `drawMap`, `drawPathway`, `markPathwayWithFluxes` and `setOmicDataToRxns`. No replacement in RAVEN 3; the COBRA Toolbox and Escher provide plotting |
-| Anything under `legacy/` | Subsystem removed. No replacement in RAVEN 3 (see [Removed functionality](#removed-functionality)) |
+| Anything under `external/metacyc/` | Folder removed (MetaCyc-based reconstruction, 7 functions). No replacement in RAVEN 3 |
+| Anything under `pathway/` or `plotting/` | Folders removed: 16 functions for visualisation and plotting, such as `drawMap`, `drawPathway`, `markPathwayWithFluxes` and `setOmicDataToRxns`. No replacement in RAVEN 3; the COBRA Toolbox and Escher provide plotting |
+| Anything under `legacy/` | Folder removed. No replacement in RAVEN 3 (see [Removed functionality](#removed-functionality)) |
 | `getGenesFromKEGG`, `getMetsFromKEGG`, `getRxnsFromKEGG`, `constructMultiFasta`, `getWSLpath`, `getBlastFromExcel` | Removed (see [Reconstruction: KEGG and homology pipelines](#kegg-reconstruction)) |
 | `getToolboxVersion(...)` | Removed as a standalone function. It is a local function of `exportForGit` |
 | `parallelPoolRAVEN(...)` | Renamed `parallelWorkersRAVEN`, with a different signature and output (see [Renamed and merged functions](#renamed-merged-and-consolidated-functions)) |
