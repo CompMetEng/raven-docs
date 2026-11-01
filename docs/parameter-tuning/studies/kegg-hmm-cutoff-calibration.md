@@ -219,7 +219,7 @@ The model-assembly flags decide which reactions a draft keeps, and have the same
 
 ## Reproduction
 
-The scripts are in [`scripts/parameter_tuning/kegg/`](https://github.com/CompMetEng/raven-toolbox/tree/develop/scripts/parameter_tuning/kegg) of raven-toolbox. They search with `hmmsearch` from the toolbox binary bundle (`resolve_binary("hmmsearch")`) and take the published kegg118 tables and HMM libraries through `ensure_kegg_data()` and `ensure_kegg_hmm_library("eukaryotes")` or `("prokaryotes")`.
+The scripts are in [`scripts/parameter_tuning/kegg/`](https://github.com/CompMetEng/raven-docs/tree/main/scripts/parameter_tuning/kegg) of the raven-docs repository. They search with `hmmsearch` from the toolbox binary bundle (`resolve_binary("hmmsearch")`) and take the published kegg118 tables and HMM libraries through `ensure_kegg_data()` and `ensure_kegg_hmm_library("eukaryotes")` or `("prokaryotes")`.
 
 | Script | Produces |
 |---|---|

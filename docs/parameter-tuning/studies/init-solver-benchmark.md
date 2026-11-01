@@ -44,7 +44,7 @@ Each setting ran once, on one model and one cell line. In a different set-up (th
 
 ## Source of the numbers and reproduction
 
-The table comes from `bigm/bm.py solver` and the overlap figures from `bigm/compare.py`. The scripts are in raven-toolbox under `scripts/parameter_tuning/init/`. The CI test for toy networks is separate:
+The table comes from `bigm/bm.py solver` and the overlap figures from `bigm/compare.py`. The scripts are in the raven-docs repository under `scripts/parameter_tuning/init/`. The CI test for toy networks is separate:
 
 ```bash
 # CI parameterised tests (seconds, runs always):

@@ -111,7 +111,7 @@ Each benchmark used one model: iJO1366 with one target for `fseof`, e_coli_core 
 
 ## Source
 
-The scripts are in raven-toolbox under `scripts/parameter_tuning/benchmarks/`: `small.py` (`flux_eps` and `remove_genes`), `fseof_sweep.py` (the sweep of three parameters), `gapfill_threshold.py` (the test of `threshold`) and `mat_small.m` (`removeGenes` in RAVEN). For example:
+The scripts are in the raven-docs repository under `scripts/parameter_tuning/benchmarks/`: `small.py` (`flux_eps` and `remove_genes`), `fseof_sweep.py` (the sweep of three parameters), `gapfill_threshold.py` (the test of `threshold`) and `mat_small.m` (`removeGenes` in RAVEN). For example:
 
 ```bash
 python scripts/parameter_tuning/benchmarks/small.py --repeats 3

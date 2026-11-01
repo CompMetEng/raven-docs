@@ -119,7 +119,7 @@ Scoring against curated genome-scale metabolic models (GEMs) of non-model fungi 
 
 ## Reproducing
 
-The scripts are in [`scripts/parameter_tuning/homology/`](https://github.com/CompMetEng/raven-toolbox/tree/develop/scripts/parameter_tuning/homology) of raven-toolbox. The driver `homology_cutoff_kegg.py` takes `--out` before the subcommand:
+The scripts are in [`scripts/parameter_tuning/homology/`](https://github.com/CompMetEng/raven-docs/tree/main/scripts/parameter_tuning/homology) of the raven-docs repository. The driver `homology_cutoff_kegg.py` takes `--out` before the subcommand:
 
 ```bash
 python homology_cutoff_kegg.py --out work fetch

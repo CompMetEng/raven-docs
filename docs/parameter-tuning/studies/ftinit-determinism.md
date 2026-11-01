@@ -171,7 +171,7 @@ Wall-clock figures come from jobs that shared nodes with other jobs and are appr
 
 ## Reproduction
 
-Requires Gurobi and a Human-GEM checkout. The numbers come from `det/prep.py` (preparation of the template with the essential tasks, about 2000 s), `det/build.py` (one build or repeats of `ftinit` on DLD1 with `big_m=100`, `mip_gap_abs=10` and `time_limit=1800`), `det/select_edit.py` (the 30 removed reactions of the template edit, seed 0), `det/ties.py` (tied-score blocks) and the summaries `det/analyse.py` and `det/det_extra.py`. The scripts are in raven-toolbox under `scripts/parameter_tuning/init/`. The campaign takes about 100 core-hours. The commands run through the Slurm wrappers as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT`, `PY`, `DET_SCRIPTS` and `PREP_DIR` set:
+Requires Gurobi and a Human-GEM checkout. The numbers come from `det/prep.py` (preparation of the template with the essential tasks, about 2000 s), `det/build.py` (one build or repeats of `ftinit` on DLD1 with `big_m=100`, `mip_gap_abs=10` and `time_limit=1800`), `det/select_edit.py` (the 30 removed reactions of the template edit, seed 0), `det/ties.py` (tied-score blocks) and the summaries `det/analyse.py` and `det/det_extra.py`. The scripts are in the raven-docs repository under `scripts/parameter_tuning/init/`. The campaign takes about 100 core-hours. The commands run through the Slurm wrappers as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT`, `PY`, `DET_SCRIPTS` and `PREP_DIR` set:
 
 ```bash
 jid=$(sbatch --parsable -J det-prep -o $WORK/logs/prep.log $DET_SCRIPTS/prep.sbatch)
