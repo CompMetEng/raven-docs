@@ -106,7 +106,7 @@ Both call the same BLAST+ executables with the same parameters, so the hit count
 
 Without `threads`, `run_blast`, `run_diamond` and `run_supporth` use every CPU the process may run on. In MATLAB, `getBlast`, `getDiamond` and `runSuppOrth` use the cores assigned to MATLAB (`feature('numcores')`); `runSuppOrth` is the one of the three with a `threads` option.
 
-`getDiamond` and `run_diamond` are drop-in alternatives that search with DIAMOND instead. DIAMOND indexes the database and searches in reduced amino-acid alphabets, which made it 10.5 and 19.7 times faster than BLASTP on two full proteome pairs (34 s against 358 s and 40 s against 788 s in [Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)), and less sensitive for distant homologs, where the seeds it uses are less likely to match. For a template within the same genus the difference is small; for a template several hundred million years away, BLASTP finds pairs DIAMOND misses.
+`getDiamond` and `run_diamond` are drop-in alternatives that search with DIAMOND instead. DIAMOND ran with `--more-sensitive` (the `run_diamond` default) and was 11.7 and 14.3 times faster than BLASTP on two full proteome pairs (12 s against 140 s and 14 s against 200 s in [Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)). It returned fewer hits, 32,192 against 54,513 for *K. lactis* against *S. cerevisiae*. After the default filters (identity 40, length 200, E-value 1e-30) the two aligners kept 87.9 to 92.3 % of the same pairs on four targets (Jaccard index).
 
 `makeFakeBlastStructure` and `make_ortholog_hits` wrap orthology assignments from another source (OrthoFinder, OMA, a published table) in the structure the transfer step expects, so no search is run.
 
@@ -157,7 +157,7 @@ The draft is smaller than the template because reactions whose genes have no acc
 
 Three cut-offs control which hits are accepted, and tightening any of them shrinks the draft.
 
-`maxE` / `max_evalue` (`1e-30`) is the maximum BLAST E-value, the number of hits of at least this quality expected by chance in a database this size. The default is strict by BLAST standards, where `1e-5` is a common threshold, because transferring a reaction on a marginal hit adds a claim about metabolism that nothing downstream questions.
+`maxE` / `max_evalue` (`1e-30`) is the maximum BLAST E-value, the number of hits of at least this quality expected by chance in a database this size. The default is strict by BLAST standards, where `1e-5` is a common threshold, because transferring a reaction on a marginal hit adds a claim about metabolism that nothing downstream questions. In four organisms the F0.5 score against KEGG was identical from `1e-4` to `1e-30`, was lower by up to 0.006 at `1e-50` and by 0.020 to 0.063 at `1e-100` ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)).
 
 `minLen` / `min_align_len` (`100`) is the minimum aligned length in residues. It rejects hits that align well over a short conserved domain while the rest of the protein is unrelated. The value was measured against KEGG orthology assignments across four organisms ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)): 50 and 100 gave the same score, 150 a score at most 0.003 lower, and 200 and 300 lower scores. At 200 the loss came mainly from recall; precision and recall were not reported for 300.
 

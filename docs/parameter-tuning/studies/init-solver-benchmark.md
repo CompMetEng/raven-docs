@@ -4,7 +4,7 @@ ftINIT builds mixed-integer linear programs (MILPs) and passes them to a solver 
 
 ## Set-up
 
-Every run calls `ftinit()` with the same input: Human-GEM prepared without a task list and with scaled stoichiometry, reaction scores from HCT116 expression, series `1+1` and `time_limit=900` s. The call also passes `mip_gap=0.001`, which a named series ignores. Software: Human-GEM commit `38567ab8`, raven-toolbox commit `94f3940`, Gurobi 13.0.1 and cobra 0.32.1, on 4 cores. Each setting ran once.
+Every run calls `ftinit()` with the same input: Human-GEM prepared without a task list and with scaled stoichiometry, reaction scores from HCT116 expression, series `1+1` and `time_limit=900` s. The call also passes `mip_gap=0.001`, which a named series ignores. Software: Human-GEM commit `38567ab8`, raven-toolbox commit `94f3940`, gurobipy 13.0.3 and cobra 0.32.1, on 4 cores. Gurobi library 13.0.3 from the gurobipy wheel (most likely); the logs print no version. Each setting ran once.
 
 The time is the wall-clock time of the whole benchmark step: reading the reference and the prepared model, scoring the reactions and calling `ftinit()`. A failed run reports the time until the failure.
 
@@ -22,7 +22,7 @@ The run log counts the steps from 0; the table counts them from 1.
 
 ## Gurobi
 
-Gurobi completed in 92 s with the default big-M, which caps each reaction at 1000, and in 128 s with every cap at 100. No step reached the 900 s limit. The calibration study reports 83 s for the same call with a limit of 600 s; it times `ftinit()` alone, while the 92 s here also include reading and scoring. The two Gurobi models were not compared reaction by reaction. In the calibration study, with a time limit of 600 s, the reaction sets at `big_m` 100 and 1000 share a Jaccard index of 0.981 ([ftINIT parameter calibration and input robustness](init-param-calibration.md)).
+Gurobi completed in 92 s with the default big-M, which caps each reaction at 1000, and in 128 s with every cap at 100. The log of the `big_m=1000` run carries the warning `ftINIT step 1 hit the 900s time limit with an unproven MIP gap (0.0030)`, although the run took 92 s in total, so one scheduled solve stopped at a limit. The logged `step 1` is the second step. The warning prints the `time_limit` argument, not the limit of the run that stopped. The stopped run is a shorter scheduled run, inferred from the total time; the log does not say which. No step ran for the full 900 s. The calibration study reports 83 s for the same call with a limit of 600 s; it times `ftinit()` alone, while the 92 s here also include reading and scoring. The reaction sets of the two Gurobi runs share a Jaccard index of 0.981, with 140 differing reactions.
 
 ## GLPK
 
@@ -30,11 +30,11 @@ GLPK completed the pipeline in 2182 s. Its MILP solver honours `configuration.ti
 
 ## Interfaces that failed
 
-HiGHS is reached through the `scipy` interface of optlang, which accepts continuous variables only and cannot hold the ftINIT MILP. The run failed with the error in the table after 1521 s. The script selected optlang's `hybrid_interface` module for HiGHS, but `hybrid` was not among the solver names offered in this environment: the error lists `glpk_exact`, `glpk`, `gurobi` and `scipy`. `glpk_exact` was offered and not run. The failure came after 10 s, the time spent reading the reference model before the solver name was set.
+HiGHS is reached through the `scipy` interface of optlang, which accepts continuous variables only and cannot hold the ftINIT MILP. The run failed with the error in the table after 1521 s. `bm.py` sets the solver name `hybrid` for the `hybrid` row, and `hybrid` was not among the solver names offered in this environment: the error lists `glpk_exact`, `glpk`, `gurobi` and `scipy`. `glpk_exact` was offered and not run. The failure came after 10 s, the time spent loading the prepared-model pickle (reference model and prepared model) before the solver name was set. No HiGHS run exists in this benchmark.
 
 ## Choice of solver
 
-Gurobi is the only solver that completed genome-scale ftINIT without reaching the time limit: 92 s against 2182 s for GLPK, which ended both main steps at the limit. HiGHS through `scipy` cannot be used.
+With one run per solver, Gurobi completed in 92 s and 128 s; GLPK completed in 2182 s with both main steps stopped at the limit; scipy and hybrid failed. HiGHS through `scipy` cannot hold the ftINIT MILP.
 
 Small networks do not need Gurobi. `tests/test_init_solvers.py` runs ftINIT on toy networks with every installed MILP solver, so development and continuous integration need no Gurobi licence.
 
@@ -42,15 +42,20 @@ Small networks do not need Gurobi. `tests/test_init_solvers.py` runs ftINIT on t
 
 Each setting ran once, on one model and one cell line. In a different set-up (the DLD1 cell line, `big_m=100`, with tasks and gap-filling), two Gurobi builds with different seeds differ by 110 reactions at baseline ([ftINIT reproducibility with `resolve_ties` and `prove_abs_gap`](ftinit-determinism.md)), so a difference of that size between solvers does not by itself indicate a solver effect. The 800 reactions that differ between GLPK and Gurobi (123 + 677) are larger. The `scipy` and `hybrid` rows record failures and give no solver timings.
 
-## Reproduction
+## Source of the numbers and reproduction
+
+The table comes from `bigm/bm.py solver` and the overlap figures from `bigm/compare.py`. The scripts are in raven-toolbox under `scripts/parameter_tuning/init/`. The CI test for toy networks is separate:
 
 ```bash
 # CI parameterised tests (seconds, runs always):
 python -m pytest tests/test_init_solvers.py -v
 
-# Genome-scale benchmark (minutes-to-hours, manual):
-python scripts/analyze_init_solvers.py --cell HCT116 \
-    --doc docs/parameter-tuning/studies/init-solver-benchmark.md
+# Genome-scale benchmark (needs the prepared model from job.sh prep):
+job.sh prep
+job.sh solver --solvers gurobi,hybrid
+job.sh solver --solvers glpk
+job.sh solver --solvers scipy
+python compare.py --out $WORK/out --shared $WORK/shared --logs $WORK/logs
 ```
 
-The first command checks the toy networks and runs in seconds. The second runs the genome-scale benchmark, which takes minutes to hours. It resumes per solver and reuses the prepared Human-GEM of [Human-GEM cell-type model validation against RAVEN](humangem-validation.md). The pinned script has no `big_m` option and runs the gurobi, hybrid and glpk interfaces only (`_INTERFACES` in `analyze_init_solvers.py`), so the command does not produce the `big_m=100` and `scipy` rows. The script writes its report to the file given by `--doc`; give another path to keep the page.
+The first command checks the toy networks and runs in seconds. The commands of the second block are the documented invocations; `job.sh` runs `bm.py` as a Slurm job, as in the README of the folder, with the environment variables `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and `PY` set. The `big_m=100` Gurobi row is part of `bm.py solver`. The tables are computed from the outputs by `compare.py`.

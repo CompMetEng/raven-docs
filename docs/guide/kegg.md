@@ -4,7 +4,7 @@
 
 [Reconstruction from homology](homology.md) needs a template model of a related organism. KEGG needs none: its orthology groups (KOs) are already linked to reactions, so annotating a genome with KOs gives a draft directly. Which method applies depends on one thing: whether the organism is already in KEGG.
 
-The documentation build does not run these examples. A KEGG reconstruction downloads tens of megabytes and takes minutes, so the page is not executed with the others. The Python numbers come from raven-toolbox 3.0.0b1 with the `kegg118` artefacts (about 2.5 minutes per call on a recent workstation, with or without the cache).
+The documentation build does not run these examples. A KEGG reconstruction downloads tens of megabytes and takes minutes, so the page is not executed with the others. The Python numbers come from raven-toolbox 3.0.0b1 with the `kegg118` artefacts.
 
 ## Functions
 
@@ -49,7 +49,7 @@ print(f"{len(model.reactions)} rxns, {len(model.metabolites)} mets, "
 1357 rxns, 1502 mets, 838 genes
 ```
 
-The artefacts (a reference model and three tables, about 47 MB) are fetched from the `kegg118` raven-data release on first use and cached; see [Download data and binaries](../installation/data-and-binaries.md) for where, and how to fetch them ahead of a batch run. The first run takes a few minutes and later runs take much the same time, because assembling the draft from the tables is the slow part and the download is not.
+The artefacts (a reference model and three tables, about 49 MB) are fetched from the `kegg118` raven-data release on first use and cached; see [Download data and binaries](../installation/data-and-binaries.md) for where, and how to fetch them ahead of a batch run. The first run takes a few minutes and later runs take much the same time, because assembling the draft from the tables is the slow part and the download is not.
 :::
 ::::
 
@@ -81,11 +81,11 @@ hanpo_model = get_kegg_model_from_sequences_with_artefacts("hanpo.faa", domain="
 :::
 ::::
 
-This method is expensive. The eukaryotic HMM library alone is 129 MB compressed, and one timed `hmmsearch` of a proteome (*S. cerevisiae*, 6021 queries) against the eukaryotic library took about 10.5 minutes on 12 threads. It also needs HMMER, which has no bundle for every platform; [Download data and binaries](../installation/data-and-binaries.md) has the matrix. Without `threads`, `run_hmmsearch`, `get_kegg_model_from_sequences`, `build_ko_hmm` and `build_hmm_library` use every CPU the process may run on; `getKEGGModelForOrganism` runs `hmmsearch` on the cores assigned to MATLAB (`feature('numcores')`) and has no `threads` option.
+This method is expensive. The eukaryotic HMM library alone is 135 MB compressed, and one timed `hmmsearch` of a proteome (*S. cerevisiae*, 6021 sequences) against the eukaryotic library (2698 profiles) took 89.7 s on 16 threads and 88.6 s on 12 threads (AMD EPYC 9354). It also needs HMMER, which has no bundle for every platform; [Download data and binaries](../installation/data-and-binaries.md) has the matrix. Without `threads`, `run_hmmsearch`, `get_kegg_model_from_sequences`, `build_ko_hmm` and `build_hmm_library` use every CPU the process may run on; `getKEGGModelForOrganism` runs `hmmsearch` on the cores assigned to MATLAB (`feature('numcores')`) and has no `threads` option.
 
 With a `fastaFile`, the organism id only names the model; the search uses no phylogenetic distance and ignores `maxPhylDist`.
 
-Three cut-offs shape the assignment. `cutOff` is the HMMER significance a hit needs at all. `minScoreRatioKO` drops genes that fit a KO far worse than the best gene in it, and `minScoreRatioG` drops KOs that fit a gene far worse than that gene's best KO; the two prune the same matrix from opposite sides. All three were measured in [KEGG HMM cut-off calibration](../parameter-tuning/studies/kegg-hmm-cutoff-calibration.md); `cutOff` and `minScoreRatioG` changed from the RAVEN 2 values. At `minScoreRatioG` 0.8 and `cutOff` 1e-50, raising `minScoreRatioKO` from 0.0 to 0.5 changed precision by 0.01 to 0.03 and recall not at all, and it keeps its original value of 0.3.
+Three cut-offs shape the assignment. `cutOff` is the HMMER significance a hit needs at all. `minScoreRatioKO` drops genes that fit a KO far worse than the best gene in it, and `minScoreRatioG` drops KOs that fit a gene far worse than that gene's best KO; the two prune the same matrix from opposite sides. All three were measured in [KEGG HMM cut-off calibration](../parameter-tuning/studies/kegg-hmm-cutoff-calibration.md); `cutOff` and `minScoreRatioG` changed from the RAVEN 2 values. At `minScoreRatioG` 0.8 and `cutOff` 1e-50, raising `minScoreRatioKO` from 0.0 to 0.5 raised precision by 0.00 to 0.03 and lowered recall by 0.00 to 0.01, and it keeps the RAVEN 2 value of 0.3.
 
 ## Contents of a KEGG draft
 

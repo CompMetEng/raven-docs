@@ -4,7 +4,7 @@ raven-toolbox's ftINIT was run on Human-GEM with the RNA sequencing (RNA-seq) da
 
 ## Set-up
 
-Software: Human-GEM commit `38567ab8` (v2.1.1 plus 15 commits), RAVEN commit `2d0630e3` on MATLAB 2024b, raven-toolbox commit `94f3940`, and Gurobi 13.0.1 for both tools, with 4 cores per run.
+Software: Human-GEM commit `38567ab8` (v2.1.1 plus 15 commits), RAVEN commit `2d0630e3` on MATLAB 2024b, raven-toolbox commit `94f3940`, and Gurobi for both tools, with 4 cores per run. The Python runs load the Gurobi library 13.0.3 from the gurobipy wheel (most likely; the logs print no version), and the MATLAB side links to the Gurobi module library 13.0.1 (from the linkage of the MATLAB interface; MATLAB prints no version).
 
 Template preparation is the step that runs once per template model, before any cell line. For RAVEN, the Human-GEM function `prepHumanModelForftINIT` removed the drug reactions, the amino-acid triplet reactions and the duplicate complex I reaction from Human-GEM, set the spontaneous and custom reaction lists, and prepared the model with the essential tasks of `metabolicTasks_Essential.txt`. RAVEN's prepared model, the model from which RAVEN extracts, has 9730 reactions. For raven-toolbox, `prep_init_model` ran on the same cleaned Human-GEM (11265 reactions). Every reaction in every raven-toolbox result is in RAVEN's prepared model, so the reaction identifiers of the two results are compared directly.
 
@@ -102,11 +102,12 @@ raven-toolbox builds the extraction MILP with two numerical settings of RAVEN:
 
 - Per-reaction big-M. The on-off constraints of a scored reaction use `max(min(ub, big_m), min(-lb, big_m), force_on)` as big-M, an infinite bound counting as `big_m`. The default cap `big_m=1000` is RAVEN's `bigMCap` in `ftINITInternalAlg`. The cap limits the flux a reaction can carry while it counts as on.
 - Stoichiometric rescaling. `prep_init_model` applies RAVEN's `rescaleModelForINIT` to the merged model: each coefficient of a reaction is capped at 25 times the smallest coefficient of that reaction, and the reaction is then scaled to a mean absolute coefficient of 1.
+
 Which combinations of `big_m` and rescaling are feasible for the staged pipeline was measured on HCT116 in [ftINIT parameter calibration and input robustness](init-param-calibration.md): with rescaling, `big_m=25` was infeasible and `big_m=100` feasible; without rescaling, `big_m=1000` was feasible (157 s against 83 s with rescaling, Jaccard 0.969 between the two results) and `big_m=100` infeasible.
 
 ## Constraint construction
 
-Each steady-state balance of the extraction MILP is built from a flat list of terms and summed with `optlang.symbolics.add`; the same construction is used in the gap-fill. Python's `sum()` re-simplifies the growing expression at each term, and the balances of hub metabolites such as ATP, H⁺ and H₂O have 10³ terms or more. In one timing, summing 1500 terms took 59 s with `sum` and 0.01 s with `optlang.symbolics.add`; the set-up of that timing is not recorded.
+Each steady-state balance of the extraction MILP is built from a flat list of terms and summed with `optlang.symbolics.add`; the same construction is used in the gap-fill. Python's `sum()` re-simplifies the growing expression at each term, and the balances of hub metabolites such as ATP, H⁺ and H₂O are long sums.
 
 ## Use of the result
 
@@ -118,4 +119,17 @@ Each cell line, variant and `big_m` value ran once, without seed repeats, so the
 
 ## Reproduction
 
-The script that ran this validation is not part of the pinned raven-toolbox. Its outputs, kept in the working directory that the analysis scripts take as `--work`, are reused by later studies: a model exported from the RAVEN run as `raven_refModel.xml`, and the prepared Human-GEM of raven-toolbox as `rg_prep.pkl` (no-task) and `rg_prep_tasks.pkl` (task-constrained). `scripts/analyze_init_solvers.py` reads `rg_prep.pkl` and `scripts/analyze_init_robustness.py` reads `rg_prep_tasks.pkl`; both score reactions against `raven_refModel.xml`. `scripts/analyze_init_params.py` reads `raven_refModel.xml` and prepares its own models from it.
+The numbers come from `bigm/bm.py prep`, `preptask` and `val` (raven-toolbox side), `bigm/ml_prep.m` and `bigm/ml_cell.m` (RAVEN side) and `bigm/compare.py`, which prints every table of the study. The scripts are in raven-toolbox under `scripts/parameter_tuning/init/`. The commands run through the Slurm wrappers `job.sh` and `mljob.sh` as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `RAVEN_ROOT`, `HUMANGEM_ROOT` and `PY` set:
+
+```bash
+job.sh prep
+job.sh preptask
+mljob.sh ml_prep
+for c in DLD1 GBM HCT116 HELA RPE1; do
+  job.sh val --cell $c
+  mljob.sh ml_cell $c
+done
+python compare.py --out $WORK/out --shared $WORK/shared --logs $WORK/logs
+```
+
+The preparations `prep`, `preptask` and `ml_prep` write the prepared models `prep_notask.pkl`, `prep_task.pkl` and `matlab_prepData.mat` to `shared/`. The tables are computed from the outputs by `compare.py`.

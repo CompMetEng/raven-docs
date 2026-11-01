@@ -435,3 +435,5 @@ nBurnin                       # sampleCHRR and randomSampling argument
 allow_met_secr                # argument of the ftinit step schedule
 run_hmmscan                   # imported by analyze_hmm_cutoffs.py; not in query.py
 parse_hmmscan_tblout          # imported by analyze_hmm_cutoffs.py; not in query.py
+cannot_connect                # output of connect_blocked_reactions
+ml_prep                       # MATLAB script of the validation study
