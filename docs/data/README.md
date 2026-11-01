@@ -14,7 +14,7 @@ The models that the pages of the [user guide](../guide/index.md) load are copied
 | [`curation-mets.tsv`](curation-mets.tsv) | 0.3 kB | written for this guide | [Table-driven curation](../guide/curation.md): a metabolite curation table |
 | [`hpa-sample.tsv`](hpa-sample.tsv) | 1 kB | an excerpt of ten rows in Human Protein Atlas format | [Context-specific models with ftINIT](../guide/init.md) |
 
-The two small yeast models are part of the RAVEN Toolbox (MIT licence). yeast-GEM is the consensus genome-scale model of *Saccharomyces cerevisiae* ([SysBioChalmers/yeast-GEM](https://github.com/SysBioChalmers/yeast-GEM), CC-BY-4.0). It is pinned at release v9.1.0, so the numbers printed in the guide stay reproducible while the model develops.
+The two small yeast models are part of the RAVEN Toolbox (GPL-3.0 licence). yeast-GEM is the consensus genome-scale model of *Saccharomyces cerevisiae* ([SysBioChalmers/yeast-GEM](https://github.com/SysBioChalmers/yeast-GEM), CC-BY-4.0). It is pinned at release v9.1.0, so the numbers printed in the guide stay reproducible while the model develops.
 
 The `.yml` files are RAVEN YAML, read by `readYAMLmodel` in MATLAB and `read_yaml_model` in Python. `yeast-GEM.xml` is SBML, read by `importModel` and by `read_sbml_model` of cobrapy.
 
