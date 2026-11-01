@@ -17,7 +17,7 @@ Each condition below favours the implementation named next to it. Both implement
 | The model is used with cobrapy tools as a `cobra.Model` | raven-toolbox |
 | The KEGG artefacts are built from a specified KEGG release (requires a KEGG FTP subscription) | raven-toolbox |
 | The surrounding code is MATLAB | RAVEN |
-| A model built with tINIT is reproduced | RAVEN |
+| A model built with the legacy tINIT method, which ftINIT replaces, is reproduced | RAVEN |
 | Dynamic flux balance analysis (FBA) is run with `runDynamicFBA` | RAVEN |
 | A model is converted in memory to the COBRA Toolbox structure with `ravenCobraWrapper` | RAVEN |
 

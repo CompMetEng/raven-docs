@@ -8,7 +8,7 @@ The code of RAVEN 3 is in `src/`. RAVEN 2 kept its functions in the top-level fo
 
 | RAVEN 3 folder (under `src/`) | Contents | RAVEN 2 source |
 |---|---|---|
-| `INIT/` | `ftINIT`, `INIT/tINIT/` with `getINITModel` and `runINIT`, and the parsing of HPA and expression data and the scoring of genes (`parseHPA`, `parseHPArna`, `scoreModel`) | `INIT/`, `hpa/` |
+| `INIT/` | `ftINIT`, `INIT/tINIT/` with `getINITModel` and `runINIT` (the legacy tINIT method), and the parsing of HPA and expression data and the scoring of genes (`parseHPA`, `parseHPArna`, `scoreModel`) | `INIT/`, `hpa/` |
 | `analysis/` | Analyses based on flux balance analysis (FBA): flux variability analysis (FVA), sampling, FSEOF, OptKnock, robustness, production envelope, flux comparison and flux tracing | `core/` |
 | `annotation/` | MIRIAM editing, SBO term assignment, ΔG CSV I/O | `struct_conversion/` (and new functions) |
 | `biomass/` | Fitting and scaling of the biomass composition, growth-associated maintenance (GAM) | `core/` (and new functions) |
@@ -90,7 +90,7 @@ The folder `deprecated/` holds `makeSomething`, `consumeSomething`, `canProduce`
 
 ### Gene scoring with `scoreModel`
 
-RAVEN 2 has `INIT/scoreComplexModel.m` and `hpa/scoreModel.m`. RAVEN 3 has one `scoreModel`, which tINIT and ftINIT call with different settings. A call written for `hpa/scoreModel.m` differs in these points (checked against 2.11.3):
+RAVEN 2 has `INIT/scoreComplexModel.m` and `hpa/scoreModel.m`. RAVEN 3 has one `scoreModel`, which the legacy method tINIT and its replacement ftINIT call with different settings. A call written for `hpa/scoreModel.m` differs in these points (checked against 2.11.3):
 
 - RAVEN 2 scored a reaction by the best or the average score over all its genes (`multipleGeneScoring`, values `'best'` and `'average'`). RAVEN 3 applies `isozymeScoring` (default `'max'`) to the `or` parts and `complexScoring` (default `'min'`) to the `and` parts of the rule. A reaction with an `and` rule therefore gets a different default score.
 - Positions count all arguments of the call. The 7th to 9th arguments of a RAVEN 2 call (`multipleGeneScoring`, `multipleCellScoring`, `hpaLevelScores`) are read as `isozymeScoring`, `complexScoring` and `multipleCellScoring`. `hpaLevelScores` is the 10th argument.
@@ -102,4 +102,4 @@ RAVEN 2 has `INIT/scoreComplexModel.m` and `hpa/scoreModel.m`. RAVEN 3 has one `
 
 ### Legacy tINIT functions
 
-The functions `getINITModel` and `runINIT` (in `INIT/tINIT/`) are marked legacy and are not scheduled for removal. `utils/legacyMethodNotice.m` issues a `RAVEN:legacyMethod` warning once, which can be silenced, and points to `ftINIT`. The method `ftINIT` is meant for new work, and `getINITModel` and `runINIT` reproduce models that were built with them.
+The method ftINIT replaces the legacy method tINIT. The functions `getINITModel` and `runINIT` (in `INIT/tINIT/`) implement tINIT, are marked legacy and are not scheduled for removal. `utils/legacyMethodNotice.m` issues a `RAVEN:legacyMethod` warning once, which can be silenced, and points to `ftINIT`. The method `ftINIT` is meant for new work, and `getINITModel` and `runINIT` reproduce models that were built with them.

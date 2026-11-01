@@ -31,9 +31,9 @@
 > the National Academy of Sciences 120(6): e2217868120.
 > <https://doi.org/10.1073/pnas.2217868120>
 
-### tINIT
+### Legacy tINIT method
 
-`runINIT` and `getINITModel` (RAVEN's MATLAB implementation of tINIT) build on the INIT method described in the following paper. tINIT has no citation of its own.
+`runINIT` and `getINITModel` (the legacy tINIT method of RAVEN in MATLAB, which ftINIT replaces) build on the INIT method described in the following paper. tINIT has no citation of its own.
 
 > Agren R, Bordel S, Mardinoglu A, Pornputtapong N, Nookaew I, Nielsen J
 > (2012). **Reconstruction of genome-scale active metabolic networks for 69

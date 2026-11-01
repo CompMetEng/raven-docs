@@ -78,7 +78,7 @@ Whether `try/catch` blocks that match on message text match was not compared mes
 
 ## Changes that raise warnings
 
-- `getINITModel` and `runINIT` issue a one-time notice with the identifier `RAVEN:legacyMethod` that points to `ftINIT`. `warning('off','RAVEN:legacyMethod')` silences it. The help text of both functions states that the function remains supported, although the changelog of RAVEN 3 marks both as deprecated (see [Gap-filling and context-specific model extraction](#ftinit)).
+- `getINITModel` and `runINIT`, the functions of the legacy tINIT method, issue a one-time notice with the identifier `RAVEN:legacyMethod` that points to `ftINIT`. `warning('off','RAVEN:legacyMethod')` silences it. The help text of both functions states that the function remains supported, although the changelog of RAVEN 3 marks both as deprecated (see [Gap-filling and context-specific model extraction](#ftinit)).
 - `makeSomething`, `consumeSomething`, `canProduce` and `canConsume` are wrappers in the folder `deprecated/` around `findLeakMetabolite` and `canExchange`. They issue a one-time `RAVEN:deprecated` warning that they will be removed in the next major release.
 - `checkInstallation` is `checkRaven` in RAVEN 3, moved from `installation/` to the repository root, with the same signature: `[currVer, installType] = checkRaven(developMode, checkBinaries)`. The wrapper `checkInstallation` forwards every argument and output to `checkRaven` and issues a `RAVEN:deprecated` warning that names `checkRaven` on every call. The wrapper will be removed in the next major release.
 

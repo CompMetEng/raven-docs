@@ -31,9 +31,9 @@ Further features of raven-toolbox have no RAVEN counterpart in the generated map
 
 ## Features specific to RAVEN
 
-### tINIT
+### Legacy tINIT method
 
-The functions `getINITModel` and `runINIT` are the original tINIT implementation, and RAVEN keeps them for models built with them. raven-toolbox implements ftINIT as its sole INIT variant, as a design decision. A tINIT model has to be reproduced in MATLAB (see [Context-specific models with ftINIT](../guide/init.md)).
+The functions `getINITModel` and `runINIT` are the legacy tINIT method, which ftINIT replaces. RAVEN keeps them for models built with them. raven-toolbox implements ftINIT as its sole INIT variant, as a design decision. A model built with tINIT has to be reproduced in MATLAB (see [Context-specific models with ftINIT](../guide/init.md)).
 
 ### COBRA Toolbox conversion
 
