@@ -1,12 +1,12 @@
 # Gap-filling
 
-Homology-based draft models tend to have many **gaps**: missing reactions that break a pathway needed to produce biomass macromolecules. The pathway is likely functional in the template, but `getBlast` and `getModelFromHomology` cannot always find a homolog for every gene, leaving the pathway incomplete. Gap-filling identifies and resolves these gaps so the draft becomes a functional model.
+Homology-based draft models tend to have many gaps, which are missing reactions that break a pathway needed to produce the biomass macromolecules. The pathway is likely functional in the template, and `getBlast` and `getModelFromHomology` cannot find a homolog for every gene, which leaves the pathway incomplete. Gap-filling identifies and resolves the gaps, and the draft becomes a functional model.
 
-RAVEN's `fillGaps` adds the smallest set of reactions from the template models needed to support flux through the draft.
+`fillGaps` of RAVEN adds the smallest set of reactions from the template models that supports flux through the draft.
 
 ## Forcing biomass production
 
-Gap-filling is set up to support growth on glycerol as carbon source with biomass production as objective. The model is forced to carry a small non-zero biomass flux, and glycerol uptake is raised so the fluxes stay above the MILP solver tolerance:
+Gap-filling is set up for growth on glycerol as the carbon source with biomass production as the objective. The model is forced to carry a small non-zero biomass flux, and the glycerol uptake is raised so that the fluxes stay above the tolerance of the MILP solver:
 
 ```matlab
 model = setParam(model, 'obj', 'r_4041', 1);
@@ -16,7 +16,7 @@ model = setParam(model, 'lb', 'r_1808', -10);    % allow glycerol uptake
 
 ## Preparing the template models
 
-Gaps should be resolved with enzymatic and transport reactions, and not with new exchange reactions. New exchange reactions could, for example, introduce other carbon sources. All exchange reactions, and the biomass pseudoreactions, are therefore removed from the template copies used as the reaction source. Reactions already shared between the two templates are also dropped to shrink the MILP search space:
+Gaps are resolved with enzymatic and transport reactions. New exchange reactions are excluded because they could introduce other carbon sources. All exchange reactions are therefore removed from the copies of the templates that are the reaction source, and the script also removes the biomass pseudoreactions. Reactions that both templates share are also dropped, to reduce the MILP search space:
 
 ```matlab
 modelSce2  = removeReactions(modelSce,  getExchangeRxns(modelSce, 'both'), true, true, true);
@@ -31,7 +31,7 @@ modelRhto2 = removeReactions(modelRhto2, rxns);
 [~, ~, addedRxns, model] = fillGaps(model, {modelSce2, modelRhto2}, false, true);
 ```
 
-Setting `allowNetProduction` to `false` prevents additional exchange reactions, and `useModelConstraints` to `true` ensures that the glycerol-to-biomass flux is gap-filled. Verify that the model grows, then scale the lipids and restore the carbon-uptake bounds:
+`allowNetProduction` set to `false` prevents additional exchange reactions, and `useModelConstraints` set to `true` ensures that the flux from glycerol to biomass is gap-filled. The growth of the model is verified, then the lipids are scaled and the bounds of the carbon uptake are restored:
 
 ```matlab
 sol = solveLP(model, 1);
@@ -43,10 +43,17 @@ model = setParam(model, 'lb', 'r_4041', 0);
 model = deleteUnusedGenes(model);
 ```
 
-After gap-filling, the model produces all the macromolecules that constitute *H. polymorpha* biomass.
+After gap-filling, the model produces all macromolecules of the *H. polymorpha* biomass.
 
 ## Semi-automatic gap analysis
 
-RAVEN has functions to find gaps: `canExchange` (net synthesis or consumption of metabolites, `'produce'` or `'consume'`), `checkProduction` (smallest set of metabolites needing net synthesis), `getAllSubGraphs` (disconnected subnetworks) and `haveFlux` (reactions that can or cannot carry flux). Absence of a biomass macromolecule from `canExchange(model, 'produce')` indicates a gap.
+RAVEN has functions that find gaps:
 
-Next: [Saving to GitHub and simulating](simulation.md).
+- `canExchange` finds the net synthesis or consumption of metabolites (`'produce'` or `'consume'`).
+- `checkProduction` finds the smallest set of metabolites that need net synthesis.
+- `getAllSubGraphs` finds disconnected subnetworks.
+- `haveFlux` finds the reactions that can or cannot carry flux.
+
+A biomass macromolecule that is absent from `canExchange(model, 'produce')` indicates a gap.
+
+The next page is [Saving to GitHub and simulating](simulation.md).

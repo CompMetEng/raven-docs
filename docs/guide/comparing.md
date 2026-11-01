@@ -1,18 +1,18 @@
 # Comparing models
 
-Curation produces several versions of one model: a draft and a curated version, the model before and after gap-filling, a local build and a published one. Two different questions follow: what changed, answered by an exact entry-by-entry diff, and how alike the models are, answered by an overview across whole sets. The first is for review and for continuous integration (CI); the second is for deciding whether two models describe the same organism at all.
+Curation produces several versions of one model, such as a draft and a curated version, the model before and after gap-filling, or a local build and a published one. Two questions follow. What changed is answered by an exact entry-by-entry difference, which serves review and continuous integration (CI). How alike the models are is answered by an overview over whole sets, which serves to decide whether two models describe the same organism.
 
 ## Functions
 
 | MATLAB | Python | Purpose |
 |---|---|---|
 | `diffModels` | `diff_models` | every semantic difference between two models |
-| `compareMultipleModels` | `compare_models` | overlap in reactions, metabolites, genes, across two or more models |
-| `compareFluxes` | `compare_fluxes` | which fluxes changed between two solutions of the same model |
+| `compareMultipleModels` | `compare_models` | overlap in reactions, metabolites and genes across two or more models |
+| `compareFluxes` | `compare_fluxes` | fluxes that changed between two solutions of the same model |
 
 ## Setup
 
-`smallYeast.yml` and `smallYeastBad.yml`: the same model, one of them carrying deliberate errors. The examples compare these two models.
+The examples compare `smallYeast.yml` and `smallYeastBad.yml`, where the second file is a copy of the first with deliberate errors.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -50,7 +50,7 @@ good 53 rxns, bad 54 rxns
 
 ## Entry-by-entry differences
 
-`diffModels` matches by identifier and compares what it finds: stoichiometry, bounds, objective coefficients, gene rules, formulas, charges. It first answers yes or no on whether the models are the same, and then states the differences.
+`diffModels` matches entries by identifier and compares stoichiometry, bounds, objective coefficients, gene rules, formulas and charges. It first reports whether the models are the same and then lists the differences.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -94,11 +94,11 @@ equal: False, 11 differences
 :::
 ::::
 
-This is the comparison for a test. `DiffReport` is falsy when the models differ, so `assert diff_models(before, after)` is a working regression test for a curation script, and in MATLAB, `report.equal` does the same job.
+This comparison suits a test. `DiffReport` is falsy when the models differ, so `assert diff_models(before, after)` is a regression test for a curation script, and in MATLAB `report.equal` serves the same purpose.
 
 ## Similarity across models
 
-The second question is coarser: the overlap of two models across the whole reaction set. `compare_models` builds a presence matrix, one row per identifier, one column per model, and reduces it to a Jaccard similarity. `compareMultipleModels` takes two models or twenty and reports the overlap on seven identity notions at once (reactions, metabolites, genes, EC numbers, metabolite names, equations with and without compartments), plus a similarity matrix. Pass `'printResults', true` for the full breakdown on screen.
+The second question is coarser and concerns the overlap of two models over the whole reaction set. `compare_models` builds a presence matrix with one row per identifier and one column per model and reduces it to a Jaccard similarity. `compareMultipleModels` takes two or twenty models and reports the overlap for seven notions of identity (reactions, metabolites, genes, EC numbers, metabolite names, and equations with and without compartments) and a similarity matrix. `'printResults', true` prints the complete breakdown.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -140,15 +140,15 @@ similarity: 0.945
 :::
 ::::
 
-:::{admonition} A high similarity does not mean the models agree
+:::{admonition} A high similarity does not mean that the models agree
 :class: warning
 
-These two models are 0.945 alike on the reaction set, and one of them is broken. The differences listed in [Entry-by-entry differences](#entry-by-entry-differences) are a doubled stoichiometric coefficient and a reaction made irreversible, changes that alter what the model predicts while barely moving a set-overlap score. Similarity is for grouping models, not for validating one.
+The two models have a similarity of 0.945 on the reaction set, and one of them is broken. The differences in [Entry-by-entry differences](#entry-by-entry-differences) are a doubled stoichiometric coefficient and a reaction made irreversible. These changes alter the predictions of the model and hardly move a set-overlap score. Similarity serves to group models and does not validate one.
 :::
 
 ## Comparison by behaviour
 
-Two models with the same reactions can behave differently, and two models with different reactions can behave identically. What settles it is a simulation of both under the same constraints: growth first, then flux ranges or tasks, not a single flux vector, which is one optimum among many (see [Flux variability and alternative optima](fva.md)).
+Two models with the same reactions can behave differently, and two models with different reactions can behave identically. A simulation of both under the same constraints decides. Growth is compared first, then flux ranges or tasks, and a single flux vector is not compared, because it is one optimum among many ([Flux variability and alternative optima](fva.md)).
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -185,24 +185,24 @@ growth: good 0.1222, bad 0.0000
 :::
 ::::
 
-The errors in `smallYeastBad` change the prediction. On the same medium, with the same objective, the good model grows and the bad one does not grow at all, from a model that a set-overlap score called 94.5 % similar. A diff shows that the models differ; only a simulation shows what effect the difference has on growth. (MATLAB reports that zero as `-0.0000`; the minus sign is a formatting artefact of a zero objective, not a negative growth rate.)
+The errors in `smallYeastBad` change the prediction. On the same medium and with the same objective, the good model grows and the bad model does not grow at all, although a set-overlap score called them 94.5 % similar. A difference shows that the models differ, and only a simulation shows the effect of the difference on growth. MATLAB reports the zero as `-0.0000`, and the minus sign is a formatting artefact of a zero objective and not a negative growth rate.
 
-RAVEN can also run this comparison. `compareMultipleModels` takes `funcCompare` and a `taskFile`, and then compares the models by which metabolic tasks each one passes and not by which reactions each one has. That is the same shift from contents to behaviour made by hand in the examples, and [Metabolic tasks](tasks.md) is where the task file comes from. `groupVector` labels the models, by tissue or by condition, so the similarity matrix is reported per group.
+RAVEN can run this comparison as well. `compareMultipleModels` takes `funcCompare` and a `taskFile` and compares the models by the metabolic tasks that each passes, not by the reactions that each has. This is the shift from content to behaviour that the examples make by hand. The task file is described in [Metabolic tasks](tasks.md). `groupVector` labels the models, for example by tissue or by condition, and the similarity matrix is then reported per group.
 
-The two tabs also show what `compareMultipleModels` and `compare_models` count differently. RAVEN's matrix has one row per combination of models, in-first-only, in-second-only, in-both, with `nElements` counting each; raven-toolbox's has one row per identifier with a column per model. Both answer the same question, but they are indexed in opposite directions.
+The two examples also show what `compareMultipleModels` and `compare_models` count differently. The matrix of RAVEN has one row per combination of models (in the first only, in the second only, in both) with `nElements` counting each. The matrix of raven-toolbox has one row per identifier and one column per model. Both answer the same question and are indexed in opposite directions.
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- Comparing on identifiers alone. Both functions match by id. Two models from different databases share few ids and look unrelated even when they describe the same metabolism; see [Combining and simplifying models](combining.md), where merging matches on names instead.
-- Reading similarity as quality. It measures overlap, not correctness.
-- Comparing one flux vector per model. An FBA solution is one of many optima, so two models, or two solvers on one model, can return different vectors with the same growth. Check that both solves succeeded and compare growth first, then ranges or tasks. `compareFluxes` and `compare_fluxes` compare two solutions of one model, so they need every reaction in both.
-- Forgetting the medium. A flux comparison compares conditions as much as models. Set the same bounds on both, explicitly, before drawing any conclusion.
-- Diffing a model against a reloaded copy of itself. Writing and reading a model can change formatting, ordering and rounding; a diff that reports differences after a round trip may reflect the file format; see [Reading and writing models](io.md).
+- Models are compared by identifier alone. Both functions match by identifier. Two models from different databases share few identifiers and look unrelated although they describe the same metabolism. [Combining and simplifying models](combining.md) merges by name instead.
+- Similarity is read as quality. It measures overlap and not correctness.
+- One flux vector per model is compared. An FBA solution is one of many optima, so two models, or two solvers on one model, can return different vectors with the same growth. Both solves are checked for success, and growth is compared first, then ranges or tasks. `compareFluxes` and `compare_fluxes` compare two solutions of one model, so every reaction must be in both.
+- The medium is forgotten. A flux comparison compares conditions as much as models. The same bounds are set explicitly on both models before a conclusion is drawn.
+- A model is compared with a reloaded copy of itself. Writing and reading a model can change formatting, order and rounding, and differences after a round trip can come from the file format ([Reading and writing models](io.md)).
 :::
 
 ## See also
 
-- [Quality control](quality-control.md), checking a single model, not a pair.
-- [Combining and simplifying models](combining.md), putting models together, and what has to line up first.
-- [Simulating growth with FBA](fba.md), the simulation a flux comparison depends on.
+- [Quality control](quality-control.md): checking one model and not a pair.
+- [Combining and simplifying models](combining.md): putting models together and what must line up first.
+- [Simulating growth with FBA](fba.md): the simulation that a flux comparison depends on.

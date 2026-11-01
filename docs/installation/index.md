@@ -1,6 +1,6 @@
 # Installation
 
-RAVEN is available as a MATLAB toolbox and as the Python package raven-toolbox. Both build the same models with the same algorithms, and the choice depends on the workflow.
+RAVEN is available as a MATLAB toolbox and as the Python package raven-toolbox. Both build the same models with the same algorithms, and the workflow decides which to use.
 
 ::::{grid} 1 2 2 2
 
@@ -8,14 +8,14 @@ RAVEN is available as a MATLAB toolbox and as the Python package raven-toolbox. 
 :link: raven
 :link-type: doc
 
-Installation of the MATLAB toolbox through the MATLAB Add-Ons manager, a release download or `git`, with upgrading and removal.
+Installation of the MATLAB toolbox with the Add-Ons manager, a release download or `git`, and its upgrade and removal.
 :::
 
 :::{grid-item-card} raven-toolbox (Python)
 :link: python
 :link-type: doc
 
-`pip install raven-toolbox`, development installs, upgrading and removal.
+`pip install --pre raven-toolbox`, a development installation, and the upgrade and removal of the package.
 :::
 
 ::::
@@ -26,8 +26,8 @@ Both versions need a linear-programming solver. The options are the same for eit
 
 | Solver | Licence | Suited to |
 |---|---|---|
-| Gurobi | Free academic | Genome-scale models, ftINIT and the legacy tINIT method, gap-filling (recommended) |
-| GLPK   | Open source   | Small to medium models, getting started |
+| Gurobi | Free academic | Genome-scale models, ftINIT, the legacy tINIT method and gap-filling (recommended) |
+| GLPK   | Open source   | Small and medium models, and getting started |
 | SCIP   | Open source   | MILP problems (MATLAB); `setRavenSolver('scip')` downloads the binary on Windows only |
 
 In MATLAB, `setRavenSolver('gurobi')` selects the active solver. In raven-toolbox, the solver is configured through cobrapy (`cobra.Configuration`).

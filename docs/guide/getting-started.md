@@ -1,6 +1,6 @@
 # Getting started
 
-Load a model, see how large it is, and inspect a single reaction, metabolite and gene. Every later page assumes these operations.
+The page covers loading a model, reporting its size and inspecting one reaction, one metabolite and one gene. The later pages use these operations.
 
 ## Functions
 
@@ -8,16 +8,16 @@ Load a model, see how large it is, and inspect a single reaction, metabolite and
 |---|---|---|
 | `readYAMLmodel` | `read_yaml_model` | read a RAVEN YAML model |
 | `importModel` | `read_sbml_model` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | read an SBML model |
-| `printModelStats` | model attributes {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | how big the model is |
-| `getIndexes` | `get_by_id` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | look something up by identifier |
-| `constructEquations` | `Reaction.reaction` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | a reaction as a readable string |
-| `getElementalBalance` | `check_mass_balance` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | is a reaction balanced |
+| `printModelStats` | model attributes {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | size of the model |
+| `getIndexes` | `get_by_id` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | find an object by identifier |
+| `constructEquations` | `Reaction.reaction` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | reaction equation as a string |
+| `getElementalBalance` | `check_mass_balance` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | mass balance of a reaction |
 
 ## Setup
 
-The examples use `smallYeast.yml`, a model of central carbon metabolism in yeast that ships with RAVEN. Download it from [`docs/data/smallYeast.yml`](../data/smallYeast.yml) and run everything from the directory that contains it.
+The examples use `smallYeast.yml`, a model of the central carbon metabolism of yeast that ships with RAVEN. The file is [`docs/data/smallYeast.yml`](../data/smallYeast.yml), and the examples run in the directory that contains it.
 
-Install one of the toolboxes first ([Installation](../installation/index.md)). Every page lists the files it needs under its Setup heading; they are all in [`docs/data/`](../data/README.md), or clone the repository and work in `raven-docs/docs/data`. The blocks on a page build on each other: run them in order in one MATLAB or Python session.
+One of the toolboxes must be installed first ([Installation](../installation/index.md)). The Setup section of every page names the files that the page needs. All of them are in [`docs/data/`](../data/README.md), which is also the working directory when the `raven-docs` repository is cloned. The blocks of a page build on each other and run in order in one MATLAB or Python session.
 
 ## Loading the model
 
@@ -34,7 +34,7 @@ disp(model.id);
 smallYeast
 ```
 
-A RAVEN model is a MATLAB struct of parallel arrays. `model.rxns`, `model.mets` and `model.genes` hold the identifiers, and every other field lines up with one of them by position: `model.lb(4)` is the lower bound of the reaction named in `model.rxns{4}`. The stoichiometric matrix `model.S` has one row per metabolite and one column per reaction, in those same orders. Working with the model means working with indices into these arrays, so looking an identifier up comes first.
+A RAVEN model is a MATLAB struct of parallel arrays. `model.rxns`, `model.mets` and `model.genes` hold the identifiers, and every other field is aligned with one of them by position: `model.lb(4)` is the lower bound of the reaction in `model.rxns{4}`. The stoichiometric matrix `model.S` has one row per metabolite and one column per reaction, in the order of `model.mets` and `model.rxns`. Most operations work on indices into these arrays, so an identifier is first converted to an index.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -50,11 +50,11 @@ print(model.id)
 smallYeast
 ```
 
-In Python a RAVEN model is a `cobra.Model`. raven-toolbox defines no model class of its own, so every cobrapy tool, and anything else in the Python COBRA ecosystem, operates on it directly. Reactions, metabolites and genes are objects held in collections. Each object records what it is connected to, so there are no indices to keep aligned.
+A RAVEN model in Python is a `cobra.Model`. raven-toolbox defines no model class, so cobrapy and the other tools of the Python COBRA ecosystem operate on the model directly. Reactions, metabolites and genes are objects in collections, and each object holds references to the objects it is connected to. No indices need to be kept aligned.
 :::
 ::::
 
-For SBML use `importModel` in MATLAB and cobrapy's `read_sbml_model` in Python; [Reading and writing models](io.md) covers every supported format.
+SBML models are read with `importModel` in MATLAB and with `read_sbml_model` of cobrapy in Python. [Reading and writing models](io.md) covers all supported formats.
 
 ## Model size
 
@@ -86,7 +86,7 @@ Unique metabolites	45
 ** Unique reactions are defined as being biochemically unique (no compartmentalization)
 ```
 
-The per-compartment counts do not sum to the total, because a reaction or gene is counted in every compartment in which one of its metabolites is located; a transport reaction appears under both. Unique means biochemically unique, ignoring compartments: 52 metabolites reduce to 45 because seven of them exist in both the cytosol and the mitochondrion. The same 45 is what [Combining and simplifying models](combining.md) arrives at when it flattens the compartments.
+A reaction or gene is counted in every compartment in which one of its metabolites is located, and a transport reaction is therefore counted under two compartments. The per-compartment counts do not add up to the total for this reason. A unique metabolite is counted once across compartments: 52 metabolites reduce to 45, because 7 of them exist in both the cytosol and the mitochondrion. [Combining and simplifying models](combining.md) arrives at the same 45 when it merges the compartments.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -99,13 +99,13 @@ print(len(model.reactions), len(model.metabolites), len(model.genes))
 53 52 61
 ```
 
-There is no equivalent of `printModelStats`. The collections are attributes, so their lengths are the totals, and per-compartment counts come from filtering them. After a solve, `model.summary()` prints the exchange fluxes and the objective.
+Python has no equivalent of `printModelStats`. The collections are attributes, so their lengths are the totals, and the counts per compartment are obtained by filtering the collections. After a solve, `model.summary()` prints the exchange fluxes and the objective.
 :::
 ::::
 
 ## Inspecting a reaction
 
-Glucose-6-phosphate isomerase, `PGI`, shows most of what a reaction carries: it is reversible, it has a gene association, and it should be mass balanced.
+Glucose-6-phosphate isomerase (`PGI`) is reversible, has a gene association and is expected to be mass balanced, which covers most of what a reaction carries.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -127,7 +127,7 @@ bounds: [-1000 1000]
 YBR196C
 ```
 
-`getIndexes` turns an identifier into the position used by every other field. `constructEquations` builds the readable equation from the stoichiometric column, substituting metabolite names for identifiers, so the equation reads in words.
+`getIndexes` converts an identifier to the position used by every other field. `constructEquations` builds the equation from the stoichiometric column of that reaction and replaces the metabolite identifiers by metabolite names.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -147,11 +147,11 @@ bounds: (-1000.0, 1000.0) reversible: True
 YBR196C
 ```
 
-`Reaction.reaction` substitutes metabolite identifiers, so the same reaction reads differently from the MATLAB equation above. Both describe the same stoichiometry.
+`Reaction.reaction` writes metabolite identifiers with their compartment suffix, where the MATLAB equation above uses metabolite names. Both describe the same stoichiometry.
 :::
 ::::
 
-The bounds carry the direction. A lower bound of −1000 means the reaction may run backwards; a lower bound of zero means it may not. cobrapy derives `reversibility` from the bounds each time it is asked, so the two cannot disagree. RAVEN stores an explicit `model.rev` field alongside the bounds, so one can be set without the other; [Model structure and identifiers](model-structure.md) covers what to do about that.
+The bounds define the direction. A lower bound of −1000 allows the reaction to run backwards, and a lower bound of zero does not. cobrapy derives `reversibility` from the bounds whenever it is read, so the two cannot disagree. RAVEN stores a separate `model.rev` field next to the bounds, and one can be changed without the other. [Model structure and identifiers](model-structure.md) describes how to handle this.
 
 ## Inspecting a metabolite
 
@@ -171,7 +171,7 @@ alpha-D-glucose 6-phosphate (C6H13O9P) in compartment c
 takes part in 4 reactions
 ```
 
-The reaction count comes from counting non-zero entries in the metabolite's row of `model.S`. `model.metComps` holds an index into `model.comps`, not the compartment letter itself, so the compartment needs two lookups.
+The number of reactions is the number of non-zero entries in the row of the metabolite in `model.S`. `model.metComps` holds an index into `model.comps`, not the compartment identifier, so the compartment takes two lookups.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -187,11 +187,11 @@ alpha-D-glucose 6-phosphate (C6H13O9P) in compartment c
 takes part in 4 reactions
 ```
 
-`Metabolite.reactions` is maintained by the model as reactions are added and removed, so it needs no matrix lookup.
+The model updates `Metabolite.reactions` when reactions are added or removed, so no matrix lookup is needed.
 :::
 ::::
 
-The formula makes a mass-balance check possible. A metabolite without one leaves every reaction it appears in undecidable, which is the distinction drawn in [Mass balance of a reaction](#mass-balance-of-a-reaction).
+The formula of a metabolite is required for a mass-balance check. A reaction that contains a metabolite without a formula cannot be decided, and it is a different case from an unbalanced reaction ([Mass balance of a reaction](#mass-balance-of-a-reaction)).
 
 ## Inspecting a gene
 
@@ -209,7 +209,7 @@ fprintf('%s -> %s\n', model.geneShortNames{gi}, strjoin(rxnIds, ', '));
 PGI1 -> PGI
 ```
 
-`model.rxnGeneMat` is a reactions-by-genes incidence matrix; a non-zero entry means that gene appears in that reaction's rule. It records which genes are involved; how they combine is recorded only in `model.grRules`, as `and` and `or` in text.
+`model.rxnGeneMat` is an incidence matrix of reactions by genes. A non-zero entry means that the gene appears in the rule of the reaction. The matrix does not record how the genes combine; only `model.grRules` records that, as `and` and `or` in text.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -225,11 +225,11 @@ PGI1 -> ['PGI']
 :::
 ::::
 
-Both toolboxes distinguish the identifier from the name. `YBR196C` is the systematic identifier and `PGI1` the standard gene name; the model is keyed on the former.
+Both toolboxes distinguish the identifier of a gene from its name. `YBR196C` is the systematic identifier and `PGI1` is the standard gene name. The model is keyed on the identifier.
 
 ## Mass balance of a reaction
 
-Draft models routinely contain reactions that do not balance. Checking one is the same operation in both toolboxes; doing it for a whole model is covered in [Quality control](quality-control.md).
+Draft models contain reactions that do not balance. The check of one reaction is the same in both toolboxes. [Quality control](quality-control.md) checks a whole model.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -244,7 +244,7 @@ fprintf('elemental %d, charge %d\n', balance.balanceStatus, balance.chargeStatus
 elemental 1, charge -1
 ```
 
-The two statuses are reported separately, and each has three values: `1` balanced, `0` unbalanced, `-1` undecidable. `PGI` balances elementally and its charge is undecidable: the metabolites in this model carry formulas but no charges, so there is nothing to sum. That is a different statement from "the charges do not balance": one says the check could not run, the other says it failed.
+The element balance and the charge balance are reported separately, each as `1` (balanced), `0` (unbalanced) or `-1` (undecidable). `PGI` is balanced elementally, and its charge balance is undecidable because the metabolites of this model have formulas but no charges, so there is nothing to sum. An undecidable balance means that the check could not run, and a failed charge balance means that the charges differ.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -257,20 +257,20 @@ print(pgi.check_mass_balance())
 {}
 ```
 
-An empty dictionary means the reaction balances. Anything listed is an element, or `charge`, mapped to the amount by which the two sides differ, so the result says both whether and by how much. cobrapy reports charge in the same dictionary, not separately, and omits what it cannot decide, so an empty result covers both "balanced" and "nothing to check".
+An empty dictionary means that the reaction balances. Each entry maps an element, or `charge`, to the difference between the two sides, so the result gives the size of an imbalance as well as its presence. cobrapy reports the charge in the same dictionary and omits what it cannot decide. An empty dictionary therefore covers both a balanced reaction and a reaction with nothing to check.
 :::
 ::::
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- A lookup fails. Identifiers are case-sensitive and carry the compartment suffix (`G6P_c`, not `G6P`). Neither toolbox returns a sentinel for a name it cannot find: `getIndexes` errors with `Could not find object 'X' in the model` and `get_by_id` raises `KeyError`, so a typo stops the script; nothing else is indexed without warning.
-- The model loads but nothing grows. In `smallYeast.yml` every uptake reaction is closed (`glcIN` has bounds `[0 0]`). Opening a medium is covered in [Growth media and conditions](media.md).
-- Gene identifiers differ between model and FASTA. Systematic names (`YBR196C`) and standard names (`PGI1`) are not interchangeable; RAVEN stores the systematic name as the identifier and the standard name as the gene name.
+- A lookup fails. Identifiers are case-sensitive and carry the compartment suffix (`G6P_c`, not `G6P`). Neither toolbox returns a placeholder for an identifier that is absent: `getIndexes` raises the error `Could not find object 'X' in the model`, and `get_by_id` raises `KeyError`.
+- The model loads and does not grow. In `smallYeast.yml` every uptake reaction is closed (`glcIN` has bounds `[0 0]`). [Growth media and conditions](media.md) opens a medium.
+- Gene identifiers differ between the model and a FASTA file. RAVEN stores the systematic name (`YBR196C`) as the identifier and the standard name (`PGI1`) as the gene name, and the two are not interchangeable.
 :::
 
 ## See also
 
-- [Guide overview](index.md), the other pages, and the planned pages.
-- [Comparison of RAVEN and raven-toolbox](../raven3-vs-raven-toolbox.md), what each toolbox has, and where cobrapy takes over.
-- [API reference](../api/index.md), every function in both toolboxes.
+- [Guide overview](index.md): the other pages.
+- [Comparison of RAVEN and raven-toolbox](../raven3-vs-raven-toolbox.md): the features of each toolbox and the functions that cobrapy provides.
+- [API reference](../api/index.md): all functions of both toolboxes.
