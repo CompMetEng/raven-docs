@@ -89,7 +89,7 @@ print(f"enforced flux from {result.enforced[0]:.3f} to {result.enforced[-1]:.3f}
 enforced flux from 0.180 to 1.800
 ```
 
-The two examples count different things. `targets.logical` in MATLAB flags amplification targets only, as does `targets.amplify`, and `targets.knockdown` and `targets.knockout` hold the others. `result.targets` holds every classified reaction, with a `target_type` column of `amplify`, `knockdown` or `knockout`, and `result.amplification` selects the amplification targets. Both scans use the same defaults: ten steps, a top of the scan at 0.9 of the target flux in the pFBA solution that maximises the target (`coefficient` in MATLAB, `max_fraction` in Python), and a correlation of at least 0.9. Both impose the enforced flux as a lower bound on the target reaction by default. `equality=True` in Python fixes the flux at each level instead, as the GECKO function `ecFSEOF` does. In Python, targets of equal score are listed in model order.
+The two examples count different things. `targets.logical` in MATLAB flags the amplification targets, as does `targets.amplify`, and `targets.knockdown` and `targets.knockout` hold the others. `result.targets` holds every classified reaction, with a `target_type` column of `amplify`, `knockdown` or `knockout`, and `result.amplification` selects the amplification targets. Both scans use the same defaults: ten steps, a top of the scan at 0.9 of the target flux in the pFBA solution that maximises the target (`coefficient` in MATLAB, `max_fraction` in Python), and a correlation of at least 0.9. Both impose the enforced flux as a lower bound on the target reaction by default. `equality=True` in Python fixes the flux at each level instead, as the GECKO function `ecFSEOF` does. In Python, targets of equal score are listed in model order.
 
 Both examples find 14 amplification targets. `fseof` classifies the fluxes of a reaction with the same fixed thresholds as `FSEOF`: `1e-10` for a track above zero and `1e-8` for a final flux of zero.
 
@@ -176,7 +176,7 @@ end
   F16P_c   z  1.126  p 0.1301  genes 4
 ```
 
-`printResults` prints the top 20, and `outputFile` writes them. `geneFoldChanges` adds two results next to the full test, one for the up-regulated genes and one for the down-regulated genes. A metabolite that is of interest in one direction only can then be told apart from a metabolite that responds in either direction.
+`printResults` prints the top 20, and `outputFile` writes them. `geneFoldChanges` adds two results next to the full test, one for the up-regulated genes and one for the down-regulated genes. A metabolite of interest in a single direction can then be told apart from a metabolite that responds in either direction.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -213,15 +213,15 @@ Both toolboxes compute the background correction in closed form and report the s
 :::{admonition} Troubleshooting
 :class: warning
 
-- FSEOF is read as a prediction. It reports what the stoichiometry allows when product formation is forced, which is a hypothesis to test and not an expected yield.
+- FSEOF is read as a prediction. It reports what the stoichiometry allows when product formation is forced, which is a hypothesis to test.
 - The target list contains noise. With a lowered correlation threshold, alternative optima appear as targets. When the flux of a reaction is not close to linear in the enforced product, its slope has no meaning.
 - A product that the model cannot make is forced. When the target exchange cannot carry flux, every step of the scan is infeasible and there is nothing to correlate. A single solve checks this first.
-- Reporter metabolites are computed on an unfiltered gene list. The correction handles the size of the neighbourhood and does not handle a uniform p-value distribution that arises because nothing is differentially expressed. The distribution of the input is inspected before the ranking is trusted.
-- Currency metabolites rank at the top. ATP, NADH and water take part in many reactions and therefore tend to rank at the top. They are excluded, or the ranking is read beyond them.
+- Reporter metabolites are computed on an unfiltered gene list. The correction handles the size of the neighbourhood and does not handle a uniform p-value distribution that arises because nothing is differentially expressed. The distribution of the input should be inspected before the ranking is trusted.
+- Currency metabolites rank at the top. ATP, NADH and water take part in many reactions and therefore tend to rank at the top. They should be excluded, or the ranking read beyond them.
 :::
 
 ## See also
 
 - [Simulating growth with FBA](fba.md): the solve that each FSEOF step performs.
 - [Random sampling](sampling.md): the other way to ask what a network can do, which a single optimum does not show.
-- [Deletions and essentiality](deletions.md): knockouts and not amplification.
+- [Deletions and essentiality](deletions.md): knockouts.

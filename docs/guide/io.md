@@ -40,7 +40,7 @@ smallYeast 53 reactions
 yeastGEM_v9.1.0 4102 reactions
 ```
 
-Both warnings are informational, and the read continues. The first reports that `importModel` removed the prefixes `R_`, `M_`, `G_` and `C_` that SBML requires on identifiers. It removes them only when every identifier of that type has one, and `removePrefix` set to `false` keeps them, which a comparison with the identifiers in the file requires. The second warning reports that the model gives the same database identifier to several metabolites with different names. The duplication is in yeast-GEM, and it makes these annotations unusable for matching metabolites across models.
+Both warnings are informational, and the read continues. The first reports that `importModel` removed the prefixes `R_`, `M_`, `G_` and `C_` that SBML requires on identifiers. It removes them when every identifier of that type has one, and `removePrefix` set to `false` keeps them, which a comparison with the identifiers in the file requires. The second warning reports that the model gives the same database identifier to several metabolites with different names. The duplication is in yeast-GEM, and it makes these annotations unusable for matching metabolites across models.
 
 `importModel` reads SBML Level 3 Version 1 with FBC version 2 and raises an error for older files. The [RAVEN 3 migration guide](../raven3-migration/formats-and-reconstruction.md#sbml-io) covers files that are rejected.
 :::
@@ -203,7 +203,7 @@ print(load_workbook("smallYeast.xlsx").sheetnames)
 ['RXNS', 'METS', 'COMPS', 'GENES', 'MODEL']
 ```
 
-`export_to_excel` needs the `excel` extra (`pip install --pre raven-toolbox[excel]`) and writes the same five sheets, with the sheets ENZYMES and ENZRXNS added for an enzyme-constrained model. Neither toolbox exports a whole model as tab-delimited files. The only such output is the reaction table that `exportForGit` writes as its `txt` format, and pandas over the collections of the model covers other tables.
+`export_to_excel` needs the `excel` extra (`pip install --pre raven-toolbox[excel]`) and writes the same five sheets, with the sheets ENZYMES and ENZRXNS added for an enzyme-constrained model. Neither toolbox exports a whole model as tab-delimited files. The sole such output is the reaction table that `exportForGit` writes as its `txt` format, and pandas over the collections of the model covers other tables.
 :::
 ::::
 
@@ -230,7 +230,7 @@ Document written
 dependencies.txt, smallYeast.xml, smallYeast.yml
 ```
 
-`dir` lists names only, so the subdirectories with the files do not appear in the output. The files are `repo/model/yml/smallYeast.yml` and `repo/model/xml/smallYeast.xml`. `subDirs` set to `false` puts all files in one folder. The identifiers are always sorted before writing, and successive releases give a clean difference. `exportForGit` writes the five formats `mat`, `txt`, `xlsx`, `xml` and `yml` by default, and `formats` selects a subset. `COBRAtext` writes metabolite identifiers in the `txt` table, where the default is metabolite names. `mainBranchFlag` makes the export fail unless RAVEN, and GECKO for an enzyme-constrained model, is on its main branch, which ties a release to a released toolbox version.
+`dir` lists names, so the subdirectories with the files do not appear in the output. The files are `repo/model/yml/smallYeast.yml` and `repo/model/xml/smallYeast.xml`. `subDirs` set to `false` puts all files in one folder. The identifiers are always sorted before writing, and successive releases give a clean difference. `exportForGit` writes the five formats `mat`, `txt`, `xlsx`, `xml` and `yml` by default, and `formats` selects a subset. `COBRAtext` writes metabolite identifiers in the `txt` table, where the default is metabolite names. `mainBranchFlag` makes the export fail unless RAVEN, and GECKO for an enzyme-constrained model, is on its main branch, which ties a release to a released toolbox version.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -256,7 +256,7 @@ print(sorted(p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_fil
 :class: warning
 
 - The SBML writer rejects an identifier. SBML identifiers start with a letter or an underscore. Both toolboxes add a prefix to a whole field when one identifier in it does not, and `importModel` and `read_sbml_model` remove the prefixes on reading.
-- The model identifier differs between two copies of the same release. cobrapy decodes `__46__` in the identifiers of reactions, metabolites and genes and not in the model identifier, so yeast-GEM read from SBML reports `yeastGEM_v9__46__1__46__0`. The identifier is decoded with `re.sub(r"__(\d+)__", lambda m: chr(int(m.group(1))), model.id)`, or `model.name` is compared. Matching entities on annotations fails because some database identifiers are shared by metabolites with different names.
+- The model identifier differs between two copies of the same release. cobrapy decodes `__46__` in the identifiers of reactions, metabolites and genes and leaves the model identifier encoded, so yeast-GEM read from SBML reports `yeastGEM_v9__46__1__46__0`. The identifier is decoded with `re.sub(r"__(\d+)__", lambda m: chr(int(m.group(1))), model.id)`, or `model.name` is compared. Matching entities on annotations fails because some database identifiers are shared by metabolites with different names.
 - The Excel export fails with a missing module. The Python export needs `openpyxl`, which `raven-toolbox[excel]` installs.
 - A YAML round trip drops a field. RAVEN YAML holds the RAVEN model fields, and a field that a plugin added outside them is not guaranteed to survive. A text difference of the two files shows the loss.
 - A release written with `write_sbml_model` shows large differences. `exportForGit` and `export_for_git` sort the identifiers, and `write_sbml_model` called directly does not, so the file is reordered whenever the model is.

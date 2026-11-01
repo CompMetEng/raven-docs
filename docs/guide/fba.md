@@ -44,11 +44,11 @@ The objective is `model.c`, a vector with one entry per reaction, and `model.c =
 | `stat` | Meaning |
 |---|---|
 | `1` | solved to optimality |
-| `0` | a feasible solution was found and not proven optimal |
+| `0` | a feasible solution was found without a proof of optimality |
 | `-1` | no feasible solution exists |
 | `-2` | solved, and the second optimisation requested by `minFlux` failed |
 
-The fluxes are provisional for every value other than `1`, so `stat` is checked before `x` is read. A solve with `minFlux` at its default also returns `sol.sPrice` and `sol.rCost`, the shadow prices and the reduced costs from the dual of the linear program.
+The fluxes are provisional for every value other than `1`, so `stat` should be checked before `x` is read. A solve with `minFlux` at its default also returns `sol.sPrice` and `sol.rCost`, the shadow prices and the reduced costs from the dual of the linear program.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -72,7 +72,7 @@ growth:    0.0809 /h
 
 `optimize` maximises by default and returns a `Solution`, whose `fluxes` is a pandas Series indexed by reaction identifier.
 
-The objective is printed as a difference of two terms, because cobrapy gives every reaction a forward and a reverse variable, both non-negative, and reports the net flux as forward minus reverse. The suffix of the reverse variable is a hash and differs between models. Only the expression is split. `r_2111` remains one reaction, and `solution.fluxes['r_2111']` is its net flux.
+The objective is printed as a difference of two terms, because cobrapy gives every reaction a forward and a reverse variable, both non-negative, and reports the net flux as forward minus reverse. The suffix of the reverse variable is a hash and differs between models. The expression is split, and the reaction is not. `r_2111` remains one reaction, and `solution.fluxes['r_2111']` is its net flux.
 :::
 ::::
 
@@ -201,7 +201,7 @@ back to aerobic: 0.0809 /h
 
 Without `with`, the bound change would remain, and every later result of the examples would be an anaerobic result. The block undoes the edits that cobrapy records: bounds, the objective, added or removed reactions and metabolites, stoichiometry changed with `add_metabolites`, gene rules and gene knockouts. Plain attribute edits are not recorded and remain after the block. These are names, formulas, charges, `subsystem`, the model identifier and the contents of `annotation` and `notes`. They are made on `model.copy()`.
 
-The anaerobic growth rate is zero. A closed oxygen exchange does not make yeast-GEM grow by fermentation. Growth also needs the uptake of sterols and fatty acids and a different biomass composition, which a condition provides ([Growth media and conditions](media.md)). The minus sign on that zero is solver noise and not a negative growth rate. A value is compared with a tolerance around `0`.
+The anaerobic growth rate is zero. A closed oxygen exchange does not make yeast-GEM grow by fermentation. Growth also needs the uptake of sterols and fatty acids and a different biomass composition, which a condition provides ([Growth media and conditions](media.md)). The minus sign on that zero is solver noise. A value is compared with a tolerance around `0`.
 :::
 ::::
 
@@ -278,7 +278,7 @@ growth:     0.0809 /h
 total flux: 100.6
 ```
 
-`minFlux` selects the second optimisation. The value `1` minimises the sum of absolute fluxes and needs one further linear program. The value `3` minimises the number of active reactions, which is a mixed-integer problem. Its result is easier to read as a pathway, and the solve takes much longer. The value `0` skips the second solve and is the only setting that reports shadow prices.
+`minFlux` selects the second optimisation. The value `1` minimises the sum of absolute fluxes and needs one further linear program. The value `3` minimises the number of active reactions, which is a mixed-integer problem. Its result is easier to read as a pathway, and the solve takes much longer. The value `0` skips the second solve and is the sole setting that reports shadow prices.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -308,7 +308,7 @@ The growth rate does not change, and the total flux is the smallest that achieve
 - The status is `infeasible`. A constraint is too tight, most often a closed uptake or a bound with the wrong sign. [Growth media and conditions](media.md) covers the media.
 - The solve succeeds and growth is zero. The model is feasible and its optimum is zero, because a nutrient is missing or a gap blocks the biomass pseudoreaction.
 - The same model gives different flux distributions. Alternative optima exist. pFBA selects one, and flux variability analysis (FVA) compares ranges of fluxes.
-- `sol.f` is read as a negated objective. RAVEN minimises `-c'x` internally and negates the result before returning it, so `sol.f` is the growth rate and not its negative.
+- `sol.f` is read as a negated objective. RAVEN minimises `-c'x` internally and negates the result before returning it, so `sol.f` is the growth rate itself.
 - The coefficients of a model span many orders of magnitude. Badly scaled stoichiometry makes the optimum differ between solvers. `params.maxRatio` of `solveLP` splits every reaction whose coefficients span a larger ratio through auxiliary metabolites before solving, and the feasible region does not change.
 :::
 

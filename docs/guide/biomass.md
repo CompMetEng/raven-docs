@@ -195,7 +195,7 @@ protein 0.5000, carbohydrate 0.3481, total 1.0000
 
 `scale_biomass` edits the model in place and returns `None`, and `scaleBiomassFraction` returns a new struct and leaves its input unchanged. The same split applies in [Combining and simplifying models](combining.md), and the Python example copies the model first.
 
-`balanceOut` names the component that absorbs the change. That component is rescaled so that the components sum to `targetTotal` (`target_total` in Python), 1 g/gDW, whatever the total was before; here 0.9954 becomes 1.0000. The proton rebalance of a rescaled pseudoreaction can leave the total slightly above the target. The balancing component must be large enough to absorb the difference. When it would have to become negative, both functions raise an error, so the pseudoreaction does not turn around. Without `balanceOut`, the component is rescaled alone, which is correct only when another step restores the total.
+`balanceOut` names the component that absorbs the change. That component is rescaled so that the components sum to `targetTotal` (`target_total` in Python), 1 g/gDW, whatever the total was before; here 0.9954 becomes 1.0000. The proton rebalance of a rescaled pseudoreaction can leave the total slightly above the target. The balancing component must be large enough to absorb the difference. When it would have to become negative, both functions raise an error, so the pseudoreaction does not turn around. Without `balanceOut`, the component is rescaled alone, which is correct when another step restores the total.
 
 `scaleBiomassPseudoreaction` and `rescale_pseudoreaction` work on one pseudoreaction. They rebalance the protons afterwards with the `proton_met` of the configuration, so the charge of the reaction stays balanced when its coefficients change.
 
@@ -261,10 +261,10 @@ Thermodynamic data is kept in a separate file. `loadDeltaGCSV` and `load_delta_g
 :::{admonition} Troubleshooting
 :class: warning
 
-- The configuration does not match the model. Components are matched by the name of the pseudoreaction and not by its identifier. A component whose pseudoreaction is missing contributes zero without an error, and a mistyped name appears as a total that is too small.
+- The configuration does not match the model. Components are matched by the name of the pseudoreaction. A component whose pseudoreaction is missing contributes zero without an error, and a mistyped name appears as a total that is too small.
 - The mass strategy is wrong. `mw` where the convention is `mw_minus_2h` or `mw_minus_water` increases the mass of every polymer by the mass of the bonds, and the total is then not close to 1.
 - A component is rescaled without balancing. Setting the protein content to a measured value and leaving the rest unchanged alters the total and rescales every growth rate of the model.
-- A lipid is counted twice. A representation with a backbone and a chain states the same mass in two ways, and only one of them is included.
+- A lipid is counted twice. A representation with a backbone and a chain states the same mass in two ways, and one of them is included.
 - SBO terms are used as a validation. They record what the model already implies. Downstream software uses them, and they do not check the model.
 :::
 

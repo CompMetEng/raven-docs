@@ -2,7 +2,7 @@
 
 A GEM covers metabolism at a large scale, and the size makes errors almost inevitable, in a self-built model and in a model from another source. The exercise is a systematic round of quality control on a deliberately broken version of the small yeast model, `smallYeastBad.yml`.
 
-Model validation is iterative, as some errors appear only after others are fixed. In the RAVEN approach, the user tries to make a model do something that it should not do, for example create mass from nothing. This finds errors that a check of the intended behaviour misses.
+Model validation is iterative, as some errors appear after others are fixed. In the RAVEN approach, the user tries to make a model do something that it should not do, for example create mass from nothing. This finds errors that a check of the intended behaviour misses.
 
 `tutorial4.m` leaves several gaps to fill, and the completed version is `tutorial4_solutions.m`. The `gapReport` function wraps many of these checks, and doing them step by step shows how they work.
 
@@ -35,7 +35,7 @@ printFluxes(model, sol.x, false, [], [], '%rxnID (%rxnName):%flux\n\t%eqn\n');
 ```
 
 :::{dropdown} Answer to step 2: production of ethanol from nothing
-A large amount of ethanol is produced. `ADH1` should produce one unit of ethanol only. Its equation is changed with `model = changeRxns(model, 'ADH1', 'acetaldehyde[c] + NADH[c] => ethanol[c] + NAD(+)[c]', 3);`
+A large amount of ethanol is produced. `ADH1` should produce one unit of ethanol. Its equation is changed with `model = changeRxns(model, 'ADH1', 'acetaldehyde[c] + NADH[c] => ethanol[c] + NAD(+)[c]', 3);`
 :::
 
 ### 3. Allowing every metabolite to be excreted

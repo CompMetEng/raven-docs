@@ -116,9 +116,9 @@ fprintf('%d genes tested, %d essential\n', numel(genes), sum(growth < 1e-6));
 
 - `1`: the deletion was solved.
 - `2`: the problem had no optimal solution (infeasible or failed), and the fluxes are reported as zero.
-- `4`: the gene was skipped because it occurs only in dead-end reactions, so deleting it cannot change the result.
+- `4`: the gene was skipped because all its reactions are dead ends, so deleting it cannot change the result.
 
-A deletion that is solved with zero growth gets `1` and not `2`, so lethality is read from the growth row.
+A deletion that is solved with zero growth gets `1`, so lethality is read from the growth row.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -177,7 +177,7 @@ print(f"{len(essential)} essential reactions")
 
 `single_reaction_deletion` keeps the objective and counts the reactions whose removal lowers the growth below the threshold that is applied afterwards, `1e-6` here. This is essentiality with respect to growth, which is the question of most deletion studies, and the function returns 24 reactions where the MATLAB example returns none.
 
-`find_task_essential_reactions` in raven-toolbox gives essentiality with respect to a task and not to the objective ([Metabolic tasks](tasks.md)).
+`find_task_essential_reactions` in raven-toolbox gives essentiality with respect to a task ([Metabolic tasks](tasks.md)).
 :::
 ::::
 
@@ -270,11 +270,11 @@ The reference is computed before the knockout. Without `solution=`, cobrapy take
 :::{admonition} Troubleshooting
 :class: warning
 
-- Gene and reaction knockouts are confused. Deleting a gene silences a reaction only when the gene rule says so. Isozymes mask single knockouts, which the double deletions test.
+- Gene and reaction knockouts are confused. Deleting a gene silences a reaction when the gene rule says so. Isozymes mask single knockouts, which the double deletions test.
 - The essentiality numbers of the two toolboxes are compared. `getEssentialRxns` measures feasibility and `single_reaction_deletion` measures growth, which are different questions.
 - A knockout looks lethal because the medium is wrong. Essentiality is relative to the medium and the objective, and both are stated with the result ([Growth media and conditions](media.md)).
-- Essentiality is read from a threshold. `growth < 1e-6` is a numerical limit and not a biological one. A mutant at 1 % of the wild-type growth is not dead.
-- A double deletion runs on a genome-scale model. The run time grows with the square of the number of genes, so the lists are restricted or the wait is accepted.
+- Essentiality is read from a threshold. `growth < 1e-6` is a numerical limit. A mutant at 1 % of the wild-type growth is not dead.
+- A double deletion runs on a genome-scale model. The run time grows with the square of the number of genes, so the lists should be restricted or the wait accepted.
 :::
 
 ## See also

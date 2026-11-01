@@ -20,7 +20,7 @@ There are four tables. Each is optional, except that the two reaction tables are
 | reactions | `rxnIdx`, `rxnNames`, `grRules`, `lb`, `ub`, `rev`, `subSystems`, `eccodes`, `rxnNotes`, `rxnReferences`, `rxnConfidenceScores`, then MIRIAM |
 | reaction coefficients | `rxnIdx`, `rxnNames`, `metNames`, `comps`, `coefficient`, one row per reaction and metabolite |
 
-Columns are found by their header, so the order does not matter and the optional columns can be omitted. Both toolboxes read a `grRules` cell with the grammar of `parseGrRule`, so `G1&G2` is one gene identifier and `G1 & G2` is two genes joined by `and`. Entities are matched by name and not by identifier: metabolites by `metaboliteName[comp]`, genes by gene name, and reactions by the stoichiometry of their reactants and products. A row that matches nothing adds a new entity, and a row that matches an existing entity overwrites it. `rxnIdx` links the two reaction tables and is local to the files, without meaning in the model.
+Columns are found by their header, so the order does not matter and the optional columns can be omitted. Both toolboxes read a `grRules` cell with the grammar of `parseGrRule`, so `G1&G2` is one gene identifier and `G1 & G2` is two genes joined by `and`. Entities are matched by name: metabolites by `metaboliteName[comp]`, genes by gene name, and reactions by the stoichiometry of their reactants and products. A row that matches nothing adds a new entity, and a row that matches an existing entity overwrites it. `rxnIdx` links the two reaction tables and is local to the files, without meaning in the model.
 
 ## Setup
 
@@ -96,7 +96,7 @@ updated: ['MAL_m', 'AKG_m', 'P2G_c', 'P3G_c']
 
 ## Adding entities and overwriting values
 
-A row whose name matches nothing in the model adds a new entity. The identifier is generated and not taken from the file. Both toolboxes find the largest zero-padded number that carries the prefix and continue from it, so the new identifiers continue the scheme of the model.
+A row whose name matches nothing in the model adds a new entity. The identifier is generated. Both toolboxes find the largest zero-padded number that carries the prefix and continue from it, so the new identifiers continue the scheme of the model.
 
 The prefixes are arguments: `metPrefix` and `rxnPrefix` in MATLAB, `met_id_prefix` and `rxn_id_prefix` in Python. The defaults are `M_` and `R_`, the BiGG convention. A model derived from yeast-GEM uses `s_` and `r_`, and other prefixes give a model with two identifier schemes.
 
@@ -105,20 +105,20 @@ Adding a reaction needs both reaction tables. The row in the reactions table hol
 :::{admonition} Blank cells
 :class: warning
 
-An empty cell is an instruction and not an omission. By default, it overwrites the existing value of the model, so a table written to correct one charge erases the text annotations in every column that is present and blank in that row. `overwriteWithEmpty` set to false, or `overwrite_with_empty=False` in Python, keeps the existing values.
+An empty cell is an instruction. By default, it overwrites the existing value of the model, so a table written to correct one charge erases the text annotations in every column that is present and blank in that row. `overwriteWithEmpty` set to false, or `overwrite_with_empty=False` in Python, keeps the existing values.
 
 Some cells never overwrite: an empty `grRules` cell, and empty bounds. An empty charge or confidence score becomes 0 when another row has a value. A charge, confidence-score or annotation (MIRIAM) column without any value is not written. In Python, a text column that is present and blank in every row also clears the stored values.
 
-The table includes the columns that are curated, and every value that must survive is written in the file. A blank cell keeps the existing value only when `overwriteWithEmpty` is false.
+The table includes the columns that are curated, and every value that must survive is written in the file. A blank cell keeps the existing value when `overwriteWithEmpty` is false.
 :::
 
 :::{admonition} Troubleshooting
 :class: warning
 
 - The names do not match. A trailing space, a different capitalisation or `name[comp]` with the wrong compartment makes the row add a duplicate entity and leaves the intended entity uncurated.
-- Reactions are matched by stoichiometry. Two reactions with the same reactants and products that differ only in direction or bounds are one reaction to the matcher.
+- Reactions are matched by stoichiometry. Two reactions with the same reactants and products that differ in direction or bounds alone are one reaction to the matcher.
 - The identifier prefix is wrong. The default is `M_` and `R_`. On a model with `s_` and `r_`, the additions are correct and their identifiers differ from all others in the model.
-- Changes are not recorded. The tables are the record. They are committed together with the model, as the curation is otherwise as difficult to review as the function calls it replaced.
+- Changes are not recorded. The tables are the record. They should be committed together with the model, as the curation is otherwise as difficult to review as the function calls it replaced.
 :::
 
 ## See also

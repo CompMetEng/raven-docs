@@ -71,7 +71,7 @@ fprintf('%d reactions, %d fixed, widest span %.1f\n', ...
 53 reactions, 1 fixed, widest span 1000.0
 ```
 
-`getAllowedBounds` solves two linear programmes (LPs) per reaction, one that minimises and one that maximises, and runs them in parallel. The first call in a session therefore opens a parallel pool and reports the number of workers. `'runParallel', false` keeps the calculation in one process, which is quicker for a model of this size and the only option without the Parallel Computing Toolbox.
+`getAllowedBounds` solves two linear programmes (LPs) per reaction, one that minimises and one that maximises, and runs them in parallel. The first call in a session therefore opens a parallel pool and reports the number of workers. `'runParallel', false` keeps the calculation in one process, which is quicker for a model of this size and the sole option without the Parallel Computing Toolbox.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -95,7 +95,7 @@ print(f"{len(span)} reactions, {(span < 1e-9).sum()} fixed, "
 
 ## Range at the optimum
 
-With the growth at its maximum, the analysis determines which fluxes can move. It also determines how many fluxes are free again when growth only has to reach 90 % of the maximum.
+With the growth at its maximum, the analysis determines which fluxes can move. It also determines how many fluxes are free again when growth has to reach 90 % of the maximum.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -134,7 +134,7 @@ growth >= 90% of optimum: 1 reactions fixed
 :::
 ::::
 
-At the optimum, only `FRDS2` and `SDH` can move ([Loops in flux ranges](#loops-in-flux-ranges)), and every other flux is determined. When growth may drop to 90 %, only `ethIN` stays fixed, and it is closed. A margin of 10 % frees nearly every flux.
+At the optimum, `FRDS2` and `SDH` are the sole fluxes that can move ([Loops in flux ranges](#loops-in-flux-ranges)), and every other flux is determined. When growth may drop to 90 %, `ethIN` is the sole flux that stays fixed, and it is closed. A margin of 10 % frees nearly every flux.
 
 A reaction with a span of zero at the optimum is a reaction for which the model has no choice, so these fluxes are the predictions that the model determines. A flux with a wide range at the optimum depends on the vertex that the solver returned.
 
@@ -192,11 +192,11 @@ inflated by loops: ['FRDS2', 'SDH']
 
 The two methods give the same number. Closing one arm of the cycle and adding loopless constraints each reduce the widest range in the model from 1000 to 4. `FRDS2` and `SDH` catalyse the same interconversion in opposite directions. Together they form a cycle that carries any flux while it consumes and produces nothing. The pair therefore reaches the default bound of 1000, and the largest range of the model follows from the stoichiometry and does not describe the organism.
 
-The `loopless` argument names the algorithm that forbids the cycle. `"fastSNP"` adds loopless constraints to the model and gives optimal bounds. `"cycleFreeFlux"` removes loops from each solution, which is faster and does not guarantee the tightest bounds. `loopless=True` works and means `"cycleFreeFlux"`, and it is deprecated, so the algorithm is named. `find_good_reactions` applies the same idea to select the reactions for sampling and keeps a reaction only when its loopless range is not trivial.
+The `loopless` argument names the algorithm that forbids the cycle. `"fastSNP"` adds loopless constraints to the model and gives optimal bounds. `"cycleFreeFlux"` removes loops from each solution, which is faster and does not guarantee the tightest bounds. `loopless=True` works and means `"cycleFreeFlux"`, and it is deprecated, so the algorithm is named. `find_good_reactions` applies the same idea to select the reactions for sampling and keeps a reaction when its loopless range is not trivial.
 
 ## Representative solution
 
-A single flux distribution is needed for a figure or for a comparison of two conditions. It is taken from parsimonious FBA (pFBA) and not from whatever the solver returns first. The pFBA solution carries no loop flux and is less arbitrary than the first vertex that is found, and it need not be unique: when two pathways cost the same total flux, pFBA can return either. A single flux is reported together with its range.
+A single flux distribution is needed for a figure or for a comparison of two conditions. It is taken from parsimonious FBA (pFBA). The pFBA solution carries no loop flux and is less arbitrary than the first vertex that is found, and it need not be unique: when two pathways cost the same total flux, pFBA can return either. A single flux is reported together with its range.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -242,7 +242,7 @@ All three methods agree here, because this optimum carries no loop flux, althoug
 - A flux with a wide range is reported. When the range at the optimum is wide, the number in a results table is one of many equally good solutions.
 - A loop is mistaken for capacity. Wide ranges on internal cycles follow from the stoichiometry and do not describe the organism ([Loops in flux ranges](#loops-in-flux-ranges)).
 - Loopless FVA is a mixed-integer linear programme (MILP). `loopless="fastSNP"` adds binary variables, so it is much slower than plain FVA and needs a good solver for anything larger than a small model.
-- FVA on a genome-scale model needs two LPs per reaction. cobrapy parallelises it, so `processes` matters. Where spawning processes is blocked, `Configuration().processes = 1` is set, and the run takes longer.
+- FVA on a genome-scale model needs two LPs per reaction. cobrapy parallelises it, so `processes` matters. Where spawning processes is blocked, `Configuration().processes = 1` should be set, and the run takes longer.
 :::
 
 ## See also

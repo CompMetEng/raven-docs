@@ -29,7 +29,7 @@ model = addLipidReactions(template, model, modelSce);   % lipid + transport reac
 model = addSLIMEreactions(template, model, modelSce);   % SLIME split reactions
 ```
 
-The full script reads three template files (`lipidTemplates.txt`, `lipidTransport.txt` and `SLIMERtemplates.txt`) and reorganises them into a `template` structure. It first removes the pre-existing matching reactions and `SLIME rxn` reactions, and the curated set replaces them. Only a subset of the possible acyl-chain distributions is included, to reduce complexity.
+The full script reads three template files (`lipidTemplates.txt`, `lipidTransport.txt` and `SLIMERtemplates.txt`) and reorganises them into a `template` structure. It first removes the pre-existing matching reactions and `SLIME rxn` reactions, and the curated set replaces them. A subset of the possible acyl-chain distributions is included, to reduce complexity.
 
 ## Scaling the acyl chains
 

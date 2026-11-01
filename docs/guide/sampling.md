@@ -173,13 +173,13 @@ chrr: 9 dimensions, MVE converged: False, 1 fixed
 :::
 ::::
 
-The dimension is a property of the polytope and not of the sampler. It is the number of degrees of freedom of the network after the implicitly determined reactions are eliminated. A model with 53 reactions has far fewer than 53, and the two toolboxes, which implement CHRR separately, both compute 9.
+The dimension is a property of the polytope. It is the number of degrees of freedom of the network after the implicitly determined reactions are eliminated. A model with 53 reactions has far fewer than 53, and the two toolboxes, which implement CHRR separately, both compute 9.
 
-`MVE converged: False` is a warning and not a failure. MVE is the maximum-volume ellipsoid that is used for the rounding. The rounding stopped before it reached its tolerance. The last ellipsoid is a valid rounding and the samples are usable. On a polytope this elongated, mixing is slower than the defaults assume, and more thinning helps when the distribution is uneven.
+`MVE converged: False` is a warning. MVE is the maximum-volume ellipsoid that is used for the rounding. The rounding stopped before it reached its tolerance. The last ellipsoid is a valid rounding and the samples are usable. On a polytope this elongated, mixing is slower than the defaults assume, and more thinning helps when the distribution is uneven.
 
 ## Sampling a constrained state
 
-Sampling an unconstrained model answers what the network could do, which is rarely the question. The model is constrained first, by holding growth near its optimum or by fixing a measured flux, and the remaining space is sampled.
+Sampling an unconstrained model answers what the network could do, which is rarely the question. The model should be constrained first, by holding growth near its optimum or by fixing a measured flux, and the remaining space is sampled.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -217,7 +217,7 @@ ethanol: free 0.73, growth >= 90% 0.03
 
 ## Reactions to sample over
 
-The `randomObjective` method needs reactions that carry flux outside loops, to serve as objectives. Reactions that carry flux only through a loop are unsuitable, and the two toolboxes screen them out differently. raven-toolbox runs a loopless FVA, the test that [Flux variability](fva.md) applied by hand. RAVEN runs a plain FVA (`getAllowedBounds`) and drops the reactions that reach 0.999 times the upper bound of the loop (1000 in this model), which is where loop flux ends up. Both keep the same 50 reactions here.
+The `randomObjective` method needs reactions that carry flux outside loops, as objectives. Reactions that carry flux through a loop alone are unsuitable, and the two toolboxes screen them out differently. raven-toolbox runs a loopless FVA, the test that [Flux variability](fva.md) applied by hand. RAVEN runs a plain FVA (`getAllowedBounds`) and drops the reactions that reach 0.999 times the upper bound of the loop (1000 in this model), which is where loop flux ends up. Both keep the same 50 reactions here.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -253,10 +253,10 @@ The list passed back as `good_reactions=` on a later call skips the FVA, which i
 :::{admonition} Troubleshooting
 :class: warning
 
-- No seed is set. The numbers change in every run. A seed is set and reported together with the solver, because the warmup points come from LPs and another solver gives another chain, as does a solve of the same model before the sampling with GLPK ([First sample](#first-sample)). The distribution is reported and not the draws.
-- Thinning is too small. Consecutive MCMC steps are correlated, so only every 100th is recorded. This suffices for this model and not for a genome-scale model. On yeast-GEM, samples 100 steps apart have a correlation of 0.93, and independent chains disagree on most reactions ([Flux sampling convergence and settings](../parameter-tuning/studies/sampling-convergence-calibration.md)). Reported results need chains with different seeds that agree.
-- A mean is read as a prediction. The mean of a sample describes the feasible space and the sampler and not the cell. It is a feasible state located where most of the volume is, which puts the mean growth below half of the optimum in [Distribution and range](#distribution-and-range). With `randomObjective` the samples are vertices, and a reaction can average 5 while every sample has it at 0 or 10.
-- A model with a wide-open medium is sampled. With an unconstrained medium the space is enormous and the distribution says nothing, so the model is constrained first.
+- No seed is set. The numbers change in every run. A seed should be set and reported together with the solver, because the warmup points come from LPs and another solver gives another chain, as does a solve of the same model before the sampling with GLPK ([First sample](#first-sample)). The distribution is reported.
+- Thinning is too small. Consecutive MCMC steps are correlated, so every 100th step is recorded. This suffices for this model and falls short for a genome-scale model. On yeast-GEM, samples 100 steps apart have a correlation of 0.93, and independent chains disagree on most reactions ([Flux sampling convergence and settings](../parameter-tuning/studies/sampling-convergence-calibration.md)). Reported results need chains with different seeds that agree.
+- A mean is read as a prediction. The mean of a sample describes the feasible space and the sampler. It is a feasible state located where most of the volume is, which puts the mean growth below half of the optimum in [Distribution and range](#distribution-and-range). With `randomObjective` the samples are vertices, and a reaction can average 5 while every sample has it at 0 or 10.
+- A model with a wide-open medium is sampled. With an unconstrained medium the space is enormous and the distribution says nothing, so the model should be constrained first.
 - Loops are present. They inflate the sampled space, and every sample drawn inside a cycle is wasted ([Flux variability](fva.md)).
 - The runtime on a genome-scale model is long. `achr` starts with two LPs per reaction for its warmup points, and `chrr` starts with an FVA and a rounding step. The sampling steps after that solve no LP. `randomObjective` solves one LP per sample. A few hundred samples show the shape, and tens of thousands are not needed for that.
 :::

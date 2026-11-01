@@ -55,7 +55,7 @@ fprintf('RAVEN solver preference: %s\n', getpref('RAVEN', 'solver'));
 RAVEN solver preference: ...
 ```
 
-RAVEN stores the choice in the MATLAB preferences, so it persists across sessions. The answer is the last setting of the installation, and the output is therefore elided. The preference belongs to the installation and not to the model, so a script that changes it changes it for everything that runs afterwards. `checkRaven` prints the solver together with a test solve.
+RAVEN stores the choice in the MATLAB preferences, so it persists across sessions. The answer is the last setting of the installation, and the output is therefore elided. The preference belongs to the installation, so a script that changes it changes it for everything that runs afterwards. `checkRaven` prints the solver together with a test solve.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -116,9 +116,9 @@ The two solution objects carry the same information under different names.
 | `sol.msg` | `solution.status` | message of the solver |
 | `sol.sPrice`, `sol.rCost` | `solution.shadow_prices`, `solution.reduced_costs` | dual values |
 
-`sol.stat` takes four values: `1` for solved to optimality, `0` for feasible and not proven optimal, `-1` for infeasible, and `-2` for solved with a failure of the flux minimisation (`minFlux`) afterwards. Only `1` means that the fluxes answer the question.
+`sol.stat` takes four values: `1` for solved to optimality, `0` for feasible without a proof of optimality, `-1` for infeasible, and `-2` for solved with a failure of the flux minimisation (`minFlux`) afterwards. Only `1` means that the fluxes answer the question.
 
-The dual values do not correspond in all cases. RAVEN reports `sPrice` and `rCost` only when `solveLP` runs without flux minimisation, because the second optimisation replaces the problem that the duals describe.
+The dual values do not correspond in all cases. RAVEN reports `sPrice` and `rCost` when `solveLP` runs without flux minimisation, because the second optimisation replaces the problem that the duals describe.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -136,7 +136,7 @@ stat 1: Optimal solution found
 growth 0.1222 /h
 ```
 
-`solveLP` builds a problem struct in the COBRA format and passes it to `optimizeProb`, which calls the selected solver. `optimizeProb` is called directly to solve a problem that the toolbox built, such as the MILPs inside gap-filling. It takes two name-value arguments: `'params'`, a struct that is passed to the solver, and `'verbose'`, which shows the progress of a MILP. RAVEN handles one field of `params` itself and does not pass it on. `maxRatio` applies to LPs only, splits badly scaled columns through auxiliary metabolites before solving and leaves the feasible region unchanged.
+`solveLP` builds a problem struct in the COBRA format and passes it to `optimizeProb`, which calls the selected solver. `optimizeProb` is called directly to solve a problem that the toolbox built, such as the MILPs inside gap-filling. It takes two name-value arguments: `'params'`, a struct that is passed to the solver, and `'verbose'`, which shows the progress of a MILP. RAVEN handles one field of `params` itself and does not pass it on. `maxRatio` applies to LPs, splits badly scaled columns through auxiliary metabolites before solving and leaves the feasible region unchanged.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -176,7 +176,7 @@ fprintf('stat %d: %s\n', sol.stat, sol.msg);
 stat -1: The problem is infeasible
 ```
 
-`sol.f` and `sol.x` are empty and not zero, so arithmetic on them returns an empty result without an error. An infeasible solve that is not checked appears as a blank in a report.
+`sol.f` and `sol.x` are empty, so arithmetic on them returns an empty result without an error. An infeasible solve that is not checked appears as a blank in a report.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -194,19 +194,19 @@ status: infeasible
 slim_optimize: nan
 ```
 
-The status is checked before a number is used. `slim_optimize` does not build a full solution, which makes it fast inside a loop, and it returns `nan` without a reason.
+The status should be checked before a number is used. `slim_optimize` does not build a full solution, which makes it fast inside a loop, and it returns `nan` without a reason.
 :::
 ::::
 
-An infeasible model is over-constrained, and no solution satisfies the constraints as written. A feasible model with an optimum of zero is a different case, and it describes the biology and not the constraints.
+An infeasible model is over-constrained, and no solution satisfies the constraints as written. A feasible model with an optimum of zero is a different case, and it describes the biology.
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- A solver is set and not installed. `setRavenSolver('gurobi')` stores the preference whether or not Gurobi is present, and the failure appears at the next solve. `checkRaven` tests the solver directly.
+- A solver is set and missing. `setRavenSolver('gurobi')` stores the preference whether or not Gurobi is present, and the failure appears at the next solve. `checkRaven` tests the solver directly.
 - A large MILP runs on GLPK. Both toolboxes send MILPs to GLPK, and RAVEN warns when it does. Gap-filling and ftINIT on a genome-scale model run for hours on GLPK where Gurobi takes minutes.
-- Fluxes are read after a solve that is not optimal. `sol.stat` of `0` means that a feasible point was found and not proven optimal, and `-2` means that the parsimonious step failed after an optimal first solve. Both return numbers.
-- Solvers give slightly different results. Alternative optima allow two solvers to return different flux distributions with the same objective value. One solver is fixed for any comparison.
+- Fluxes are read after a solve that is not optimal. `sol.stat` of `0` means that a feasible point was found without a proof of optimality, and `-2` means that the parsimonious step failed after an optimal first solve. Both return numbers.
+- Solvers give slightly different results. Alternative optima allow two solvers to return different flux distributions with the same objective value. One solver should be fixed for any comparison.
 :::
 
 ## See also

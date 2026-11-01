@@ -13,7 +13,7 @@ A draft model has holes: reactions that cannot carry flux because an upstream st
 | `gapFillTopological` | `analyse_topology` | connectivity without solving an LP |
 | `fitTasks` | `fill_tasks` | fill until a task passes ([Metabolic tasks](tasks.md)) |
 
-`gapFillTopological` and `analyse_topology` take their defaults from the model. The seeds are the metabolites of every reaction that has only substrates and a negative lower bound, or only products and a positive upper bound, whatever the number of metabolites. When the model has no such reaction, RAVEN and the toolbox warn that there is no seed. Reactions without substrates fire in the scope computation whatever their bounds, so closing an uptake reaction does not remove its metabolite from the scope. The targets are the substrates and products of the first objective reaction. Without targets, a model without an objective reaction raises `RAVEN:badInput` in MATLAB and `ValueError` in Python.
+`gapFillTopological` and `analyse_topology` take their defaults from the model. The seeds are the metabolites of every reaction that has substrates alone and a negative lower bound, or products alone and a positive upper bound, whatever the number of metabolites. When the model has no such reaction, RAVEN and the toolbox warn that there is no seed. Reactions without substrates fire in the scope computation whatever their bounds, so closing an uptake reaction does not remove its metabolite from the scope. The targets are the substrates and products of the first objective reaction. Without targets, a model without an objective reaction raises `RAVEN:badInput` in MATLAB and `ValueError` in Python.
 
 ## Setup
 
@@ -58,7 +58,7 @@ print(f"draft {len(draft.reactions)} rxns, template {len(template.reactions)} rx
 draft 52 rxns, template 53 rxns
 ```
 
-With the medium as shipped (closed), 51 of the 53 reactions of `smallYeast` are blocked, because nothing can enter and not because of gaps. Gap-filling a model in that state asks the wrong question.
+With the medium as shipped (closed), 51 of the 53 reactions of `smallYeast` are blocked, because nothing can enter. Gap-filling a model in that state asks the wrong question.
 :::
 ::::
 
@@ -99,7 +99,7 @@ print(sorted(blocked)[:5])
 
 ## Connectivity gap-filling
 
-Connectivity gap-filling is structural. It finds the template reactions that let a blocked reaction carry flux when they are added to the draft. It uses no objective and no growth, only connectivity.
+Connectivity gap-filling is structural. It finds the template reactions that let a blocked reaction carry flux when they are added to the draft. It uses no objective and no growth, and it considers connectivity.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -136,7 +136,7 @@ Both toolboxes return the reaction that was removed, and this identity is the re
 
 Both are MILPs. `connect_blocked_reactions` runs on the GLPK that ships with cobrapy. `fillGaps` runs on the GLPK that ships with RAVEN and warns that Gurobi is recommended (`setRavenSolver('gurobi')`).
 
-`allow_net_production` sets how strict the test is. A reaction can be blocked because a substrate is unavailable or because a product has nowhere to go. With net production allowed, only the first case counts. Turning it off asks the harder question and usually adds more reactions.
+`allow_net_production` sets how strict the test is. A reaction can be blocked because a substrate is unavailable or because a product has nowhere to go. With net production allowed, the first case counts. Turning it off asks the harder question and usually adds more reactions.
 :::
 ::::
 
@@ -179,7 +179,7 @@ print(f"{len(result.added_reactions)} reactions added")
 1 reactions added
 ```
 
-The two examples add 5 and 1 reactions (MATLAB adds 8 with Gurobi: the LP has alternative optima, and the solver selects one). They apply the same method to different inputs. The MATLAB call first merges the whole template into the draft and renames every identifier that the draft already has, which the rename warning in the MATLAB output lists. Its universal database therefore holds a second copy of the reactions of the draft, and the LP can rescue a blocked reaction through those duplicates. `fill_gaps_fast_lp` matches by identifier and treats the shared reactions as present already, so only the missing reaction is a candidate. When the template holds reactions that the draft lacks, which is the usual case, the gap between the counts closes.
+The two examples add 5 and 1 reactions (MATLAB adds 8 with Gurobi: the LP has alternative optima, and the solver selects one). They apply the same method to different inputs. The MATLAB call first merges the whole template into the draft and renames every identifier that the draft already has, which the rename warning in the MATLAB output lists. Its universal database therefore holds a second copy of the reactions of the draft, and the LP can rescue a blocked reaction through those duplicates. `fill_gaps_fast_lp` matches by identifier and treats the shared reactions as present already, so the missing reaction is the sole candidate. When the template holds reactions that the draft lacks, which is the usual case, the gap between the counts closes.
 :::
 ::::
 
@@ -276,7 +276,7 @@ filled growth 0.1222
 :::
 ::::
 
-Hexokinase is added back. Both functions add template reactions only, and the reactions of the draft keep their bounds, including forced fluxes such as the ATP maintenance. A draft reaction that runs in the wrong direction is therefore not reversed to close a gap. It is a curation finding: the bounds are corrected in the draft ([Editing an existing model](editing.md)) and the filling is repeated.
+Hexokinase is added back. Both functions add template reactions, and the reactions of the draft keep their bounds, including forced fluxes such as the ATP maintenance. A draft reaction that runs in the wrong direction is therefore not reversed to close a gap. It is a curation finding: the bounds are corrected in the draft ([Editing an existing model](editing.md)) and the filling is repeated.
 
 ## Filling towards a task
 
@@ -306,19 +306,19 @@ from raven_toolbox.init import fill_tasks
 
 [Metabolic tasks](tasks.md) describes the task list, and [Context-specific models](init.md) describes `fill_tasks` in its usual role, the repair of a model that ftINIT has reduced.
 
-`fitTasks` fills one task at a time, so the order of the task list can change the result. `rxnScores` weights the candidates. It accepts negative scores only and maximises their sum, so a reaction with a score closer to zero is cheaper to add. ftINIT uses this to prefer reactions that its expression data support. `gapFillMode` selects the back-end: `'merge'` combines the reference model with the draft for every task, and `'preMerged'` expects a reference that already contains the draft, which is the form that ftINIT passes.
+`fitTasks` fills one task at a time, so the order of the task list can change the result. `rxnScores` weights the candidates. It accepts negative scores and maximises their sum, so a reaction with a score closer to zero is cheaper to add. ftINIT uses this to prefer reactions that its expression data support. `gapFillMode` selects the back-end: `'merge'` combines the reference model with the draft for every task, and `'preMerged'` expects a reference that already contains the draft, which is the form that ftINIT passes.
 :::
 ::::
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- The identifiers do not line up. Gap-filling adds only what it can match. Two models built from different databases share almost no metabolite identifiers, and gap-filling then adds nothing or adds duplicates.
+- The identifiers do not line up. Gap-filling adds what it can match. Two models built from different databases share almost no metabolite identifiers, and gap-filling then adds nothing or adds duplicates.
 - Every gap is filled. Some reactions are blocked because the organism cannot perform them. Each addition is a claim about biology, and `fillGaps` makes hundreds of them in one call.
 - Net production hides the problem. `allowNetProduction` makes more reactions look connectable because it ignores where the products go. It helps in early stages and misleads in later stages.
-- A MILP runs on a genome-scale model. It is slow, most of all on GLPK, and a time limit is set ([Solvers and configuration](solvers.md)).
+- A MILP runs on a genome-scale model. It is slow, most of all on GLPK, and a time limit should be set ([Solvers and configuration](solvers.md)).
 - A draft reaction runs in the wrong direction. `gapFillMILP` and `fill_gaps_milp` do not change the reactions of the draft, so the wrong direction appears as a failed fill or as a detour around the reaction.
-- The numbers of added reactions of the two toolboxes are compared. The toolboxes treat different reactions as candidates, so the counts are comparable only when the template holds reactions that the draft lacks.
+- The numbers of added reactions of the two toolboxes are compared. The toolboxes treat different reactions as candidates, so the counts are comparable when the template holds reactions that the draft lacks.
 :::
 
 ## See also

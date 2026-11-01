@@ -58,7 +58,7 @@ end
 
 `getExchangeRxns` identifies an exchange reaction by its stoichiometry (a reaction without substrates or without products), so it does not depend on a naming convention. `reactionType` selects a subset. The values `'uptake'`, `'excrete'`, `'reverse'` and `'blocked'` classify a reaction by what its bounds permit. The values `'in'` and `'out'` classify by the side of the boundary metabolite and ignore the bounds.
 
-The filter in the code and `'uptake'` answer different questions. `'uptake'` returns the reactions that can only take up. Every open exchange reaction in yeast-GEM also has an upper bound of 1000, so it can secrete and is classified `'reverse'`. The medium is the selection `model.lb < 0`.
+The filter in the code and `'uptake'` answer different questions. `'uptake'` returns the reactions that can take up and cannot secrete. Every open exchange reaction in yeast-GEM also has an upper bound of 1000, so it can secrete and is classified `'reverse'`. The medium is the selection `model.lb < 0`.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -94,7 +94,7 @@ for rxn_id, uptake in sorted(model.medium.items()):
   r_4600  Ca(2+) exchange                1000.0
 ```
 
-`model.medium` is a dictionary of `{exchange identifier: maximum uptake rate}`. The rate is a positive number, and cobrapy flips the sign, so an entry of `1.0` means a lower bound of `-1.0`. The dictionary lists the open exchange reactions only, and the loop prints 16 of 270 reactions.
+`model.medium` is a dictionary of `{exchange identifier: maximum uptake rate}`. The rate is a positive number, and cobrapy flips the sign, so an entry of `1.0` means a lower bound of `-1.0`. The dictionary lists the open exchange reactions, and the loop prints 16 of 270 reactions.
 :::
 ::::
 
@@ -201,7 +201,7 @@ The three results are three different states. `nan` means that the LP had no sol
 
 ## Anaerobic growth and conditions
 
-An anaerobic yeast-GEM needs more than a closed oxygen exchange. Without oxygen the model cannot make sterols and unsaturated fatty acids, so they are supplied. Heme a leaves the cofactor pseudoreaction, the biomass gains an FADH2 term, and two reactions that glucose represses are blocked. These edits belong together, and both toolboxes read them from one YAML file, a condition, which is reviewed as data and not buried in a script.
+An anaerobic yeast-GEM needs more than a closed oxygen exchange. Without oxygen the model cannot make sterols and unsaturated fatty acids, so they are supplied. Heme a leaves the cofactor pseudoreaction, the biomass gains an FADH2 term, and two reactions that glucose represses are blocked. These edits belong together, and both toolboxes read them from one YAML file, a condition, which is reviewed as data.
 
 [`anaerobic.yml`](../data/anaerobic.yml) is that file, transcribed from `anaerobicModel.m` of yeast-GEM, without its step for the amino-acid ratios:
 
@@ -265,7 +265,7 @@ bounds changed: 12
 anaerobic growth: 0.1615 /h
 ```
 
-`apply_condition` edits the model in place and returns it, so a copy is passed when the aerobic model is still needed. It also accepts the path: `apply_condition(model, "anaerobic.yml")`. `load_condition` parses the file without applying it, which allows a condition to be inspected or edited before it is applied.
+`apply_condition` edits the model in place and returns it, so a copy should be passed when the aerobic model is needed. It also accepts the path: `apply_condition(model, "anaerobic.yml")`. `load_condition` parses the file without applying it, which allows a condition to be inspected or edited before it is applied.
 
 The growth rate of 0.1615 /h compares with the 0.8370 /h that the same model reached aerobically in [Defining a whole medium](#defining-a-whole-medium). Both are on 10 mmol glucose, because the condition is applied to the model as that section left it. Fermentation yields much less ATP per glucose than respiration, and the ratio of the two growth rates is the comparison.
 :::
@@ -309,7 +309,7 @@ medium = getMinimalMedium(model, 'minGrowth', 0.9 * sol.f);
 ==============================================================
 ```
 
-The candidates are the exchange reactions with `lb < 0`, so a nutrient that the model cannot take up is never proposed. `minGrowth` defaults to 10 % of the optimum under the current bounds, a limit loose enough that most components drop out, and it is set explicitly when the question concerns a given growth rate. `verbose` set to `false` suppresses the table and returns the identifiers only.
+The candidates are the exchange reactions with `lb < 0`, so a nutrient that the model cannot take up is never proposed. `minGrowth` defaults to 10 % of the optimum under the current bounds, a limit loose enough that most components drop out, and it is set explicitly when the question concerns a given growth rate. `verbose` set to `false` suppresses the table and returns the identifiers.
 
 Of the 16 open uptakes, 14 are kept. Water and H+ are dropped because other reactions supply them. `getMinimalMedium` solves a mixed-integer linear programme (MILP) that minimises the number of open uptakes. The GLPK that ships with RAVEN solves it as well, with a warning that recommends Gurobi. `minimal_medium` of cobrapy solves by default an LP that minimises the summed uptake flux (in mmol/gDW/h, all metabolites weighted equally), so it returns rates.
 :::
@@ -340,14 +340,14 @@ r_4597     0.001
 r_4600     0.000
 ```
 
-The values are uptake rates and not bounds. A zero is a component that the solution needs at a rate below the printed precision and not a component that the solution does without. `minimize_components=True` solves the MILP for the number of components, which also runs on GLPK. It returns the import fluxes of one feasible solution, which define the medium, and the rates are not minimal. Values close to the solver tolerance count as zero, and with Gurobi the answer for this model contains a heme a uptake of 1e-6. An integer value returns alternative media as columns.
+The values are uptake rates. A zero is a component that the solution needs at a rate below the printed precision and is no component that the solution does without. `minimize_components=True` solves the MILP for the number of components, which also runs on GLPK. It returns the import fluxes of one feasible solution, which define the medium, and the rates are not minimal. Values close to the solver tolerance count as zero, and with Gurobi the answer for this model contains a heme a uptake of 1e-6. An integer value returns alternative media as columns.
 :::
 ::::
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- The model is infeasible after setting a medium. An essential nutrient is closed. The components are reopened one at a time, or `minimal_medium` is run on the working model and compared.
+- The model is infeasible after setting a medium. An essential nutrient is closed. The components should be reopened one at a time, or `minimal_medium` run on the working model and compared.
 - The signs of two conventions are mixed. For an exchange written `metabolite <=>`, as in yeast-GEM, uptake is a negative flux, and `model.medium` takes positive numbers. Both are correct, and mixing them gives wrong bounds.
 - The model grows without a carbon source. A reaction usually produces carbon from nothing. [Quality control](quality-control.md) describes the diagnosis with `canExchange` and `gap_report`.
 - A result cannot be reproduced. A medium defined inside a script differs between users who edit the script. A condition file is data, and a text difference shows its changes.

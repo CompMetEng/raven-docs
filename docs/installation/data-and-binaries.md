@@ -53,7 +53,7 @@ In MATLAB the KEGG artefacts go to the directory `dataDir`, which `getKEGGModelF
 
 ## Tool resolution
 
-raven-toolbox resolves an executable in a fixed order and reaches the network only at the download step:
+raven-toolbox resolves an executable in a fixed order and reaches the network at the download step:
 
 ```text
 explicit binary= argument
@@ -63,7 +63,7 @@ explicit binary= argument
   → an error naming the conda package and the manual alternative
 ```
 
-An existing installation therefore takes precedence, and the bundled copy is used only on a machine without one. The environment variable of a tool is `RAVEN_PYTHON_` followed by the tool name: `RAVEN_PYTHON_BLASTP`, `RAVEN_PYTHON_MAKEBLASTDB`, `RAVEN_PYTHON_DIAMOND`, `RAVEN_PYTHON_HMMSEARCH`, `RAVEN_PYTHON_HMMBUILD`, `RAVEN_PYTHON_HMMPRESS`, `RAVEN_PYTHON_HMMSCAN`, `RAVEN_PYTHON_MAFFT` and `RAVEN_PYTHON_CDHIT`.
+An existing installation therefore takes precedence, and the bundled copy is used on a machine without one. The environment variable of a tool is `RAVEN_PYTHON_` followed by the tool name: `RAVEN_PYTHON_BLASTP`, `RAVEN_PYTHON_MAKEBLASTDB`, `RAVEN_PYTHON_DIAMOND`, `RAVEN_PYTHON_HMMSEARCH`, `RAVEN_PYTHON_HMMBUILD`, `RAVEN_PYTHON_HMMPRESS`, `RAVEN_PYTHON_HMMSCAN`, `RAVEN_PYTHON_MAFFT` and `RAVEN_PYTHON_CDHIT`.
 
 ## Fetching before first use
 
@@ -113,7 +113,7 @@ Every tool is invoked as a subprocess, so the availability of a native build for
 | MAFFT | yes | yes | no |
 | CD-HIT | yes | yes | no |
 
-On Windows, homology reconstruction and the KEGG query path run natively, because they need only the first three tools. Building an HMM library needs MAFFT and CD-HIT, which have no Windows builds. Building runs in Windows Subsystem for Linux 2 (WSL2), with Python and the binaries both inside it, because raven-toolbox calls the resolved executable directly and does not translate paths between Windows and WSL.
+On Windows, homology reconstruction and the KEGG query path run natively, because they need the first three tools. Building an HMM library needs MAFFT and CD-HIT, which have no Windows builds. Building runs in Windows Subsystem for Linux 2 (WSL2), with Python and the binaries both inside it, because raven-toolbox calls the resolved executable directly and does not translate paths between Windows and WSL.
 
 :::{admonition} Troubleshooting
 :class: warning

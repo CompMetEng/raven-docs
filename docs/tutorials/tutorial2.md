@@ -16,11 +16,11 @@ sol = solveLP(smallModel);
 printFluxes(smallModel, sol.x, true);
 ```
 
-The import of the incomplete model gives a RAVEN warning that some internal metabolites are used in one reaction only, so the only feasible solution is zero flux. When `sol.f` equals zero, the problem cannot be solved, and the uptake and excretion of all necessary metabolites are added to the model before `solveLP` is run again.
+The import of the incomplete model gives a RAVEN warning that some internal metabolites are used in one reaction, so the sole feasible solution is zero flux. When `sol.f` equals zero, the problem cannot be solved, and the uptake and excretion of all necessary metabolites are added to the model before `solveLP` is run again.
 
 ### 2. Internal and external metabolites
 
-Under the steady-state assumption, the production rate of each internal metabolite equals its consumption rate. A metabolite that takes part in one reaction only can therefore carry no flux. Exchange reactions, which involve external (boundary) metabolites that do not need to be mass-balanced, remove this restriction.
+Under the steady-state assumption, the production rate of each internal metabolite equals its consumption rate. A metabolite that takes part in one reaction can therefore carry no flux. Exchange reactions, which involve external (boundary) metabolites that do not need to be mass-balanced, remove this restriction.
 
 ### 3. Adding the glycolysis reactions and exchanges
 

@@ -39,7 +39,7 @@ model = read_yaml_model("smallYeast.yml")
 
 ## Fixing a stoichiometry
 
-The whole equation is given and not a single coefficient. The toolbox rewrites the column of the reaction in the stoichiometric matrix, which keeps all fields consistent.
+The whole equation is given. The toolbox rewrites the column of the reaction in the stoichiometric matrix, which keeps all fields consistent.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -108,7 +108,7 @@ YBR196C or YLR354C
 genes now: ['YBR196C', 'YLR354C']
 ```
 
-A gene that is not in the model is created. `replace=False` appends an isozyme to the rule and gives `(old) or (new)`, which records an additional catalyst and not a correction. The default overwrites the rule. A reaction without a rule receives the new rule alone, without empty brackets.
+A gene that is not in the model is created. `replace=False` appends an isozyme to the rule and gives `(old) or (new)`, which records an additional catalyst. The default overwrites the rule. A reaction without a rule receives the new rule alone, without empty brackets.
 :::
 ::::
 
@@ -129,7 +129,7 @@ fprintf('%s\n', grRules{idx});
 YBR196C or YLR354C
 ```
 
-`standardizeGrRules` returns the rules and a matching `rxnGeneMat`, not a model, so the results are assigned back into the struct. Disjunctive normal form is a flat `or` of `and` groups, one group per alternative complex, which is the form that the scoring in [Context-specific models](init.md) expects.
+`standardizeGrRules` returns the rules and a matching `rxnGeneMat` and no model, so the results are assigned back into the struct. Disjunctive normal form is a flat `or` of `and` groups, one group per alternative complex, which is the form that the scoring in [Context-specific models](init.md) expects.
 :::
 :::{tab-item} 🐍 Python
 :sync: python

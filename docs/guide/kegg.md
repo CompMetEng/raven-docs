@@ -28,9 +28,9 @@ model = getKEGGModelForOrganism('sce', ...
     'dataDir', fullfile(tempdir, 'kegg118_eukaryotes'));
 ```
 
-Without a `fastaFile`, the reconstruction runs from the organism abbreviation alone. No sequence search takes place, and the HMM library is not fetched, because the download takes place only when a FASTA file is supplied. The reconstruction needs the global KEGG model, which `getModelFromKEGG` supplies. On first use there is no `keggModel.mat` to load. The function downloads the published artefacts (the reference model without genes and the tables of KOs, reactions and organism genes), assembles them and caches the result. The first build takes a while and needs a few hundred MB of disk, and later calls load the cached file.
+Without a `fastaFile`, the reconstruction runs from the organism abbreviation alone. No sequence search takes place, and the HMM library is not fetched, because the download takes place when a FASTA file is supplied. The reconstruction needs the global KEGG model, which `getModelFromKEGG` supplies. On first use there is no `keggModel.mat` to load. The function downloads the published artefacts (the reference model without genes and the tables of KOs, reactions and organism genes), assembles them and caches the result. The first build takes a while and needs a few hundred MB of disk, and later calls load the cached file.
 
-This method does not read `dataDir`, `cutOff`, `minScoreRatioKO`, `minScoreRatioG` and `outDir`, which apply to a sequence search only. `maxPhylDist` applies only here, with the organism identifier `eukaryotes` or `prokaryotes`: `-1` keeps the genes of that domain, and any other value keeps the genes of every organism. The settings `keepSpontaneous`, `keepUndefinedStoich`, `keepIncomplete` and `keepGeneral` apply.
+This method does not read `dataDir`, `cutOff`, `minScoreRatioKO`, `minScoreRatioG` and `outDir`, which apply to a sequence search. `maxPhylDist` applies to this method, with the organism identifier `eukaryotes` or `prokaryotes`: `-1` keeps the genes of that domain, and any other value keeps the genes of every organism. The settings `keepSpontaneous`, `keepUndefinedStoich`, `keepIncomplete` and `keepGeneral` apply.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -83,7 +83,7 @@ hanpo_model = get_kegg_model_from_sequences_with_artefacts("hanpo.faa", domain="
 
 This method is expensive. The eukaryotic HMM library is 135 MB compressed. One timed `hmmsearch` of a proteome (*S. cerevisiae*, 6021 sequences) against the eukaryotic library (2698 profiles) took 89.7 s on 16 threads and 88.6 s on 12 threads (AMD EPYC 9354). The method also needs HMMER, which is not available as a bundle for every platform, and [Download data and binaries](../installation/data-and-binaries.md) has the matrix. Without `threads`, `run_hmmsearch`, `get_kegg_model_from_sequences`, `build_ko_hmm` and `build_hmm_library` use every CPU that the process can run on. `getKEGGModelForOrganism` runs `hmmsearch` on the cores assigned to MATLAB (`feature('numcores')`) and has no `threads` option.
 
-With a `fastaFile`, the organism identifier only names the model. The search uses no phylogenetic distance and ignores `maxPhylDist`.
+With a `fastaFile`, the organism identifier names the model. The search uses no phylogenetic distance and ignores `maxPhylDist`.
 
 Three cut-offs shape the assignment. `cutOff` is the HMMER significance that a hit needs. `minScoreRatioKO` removes genes that fit a KO worse than the best gene of that KO, and `minScoreRatioG` removes KOs that fit a gene worse than the best KO of that gene. The two prune the same matrix from opposite sides. [KEGG HMM cut-off calibration](../parameter-tuning/studies/kegg-hmm-cutoff-calibration.md) measured all three, and `cutOff` and `minScoreRatioG` differ from the RAVEN 2 values. At `minScoreRatioG` 0.8 and `cutOff` 1e-50, raising `minScoreRatioKO` from 0.0 to 0.5 raised the precision by 0.00 to 0.03 and lowered the recall by 0.00 to 0.01. The default keeps the RAVEN 2 value of 0.3.
 
@@ -100,7 +100,7 @@ exchange rxns:   0
 objective:       none
 ```
 
-The draft has no compartments. KEGG describes reactions and not cell biology, so every metabolite is in one undifferentiated space. A KEGG draft cannot distinguish mitochondrial and cytosolic reactions until it is localised. [Combining and simplifying models](combining.md) covers the reverse operation and what it discards.
+The draft has no compartments. KEGG describes reactions, so every metabolite is in one undifferentiated space. A KEGG draft cannot distinguish mitochondrial and cytosolic reactions until it is localised. [Combining and simplifying models](combining.md) covers the reverse operation and what it discards.
 
 The flags decide how inclusive the draft is. `keepIncomplete` / `keep_incomplete` keeps reactions that KEGG labels incomplete, erroneous or unclear. `keepUndefinedStoich` / `keep_undefined_stoich` keeps reactions with `n` or `x` in the stoichiometry, which cannot be balanced as written. With both turned off:
 
@@ -121,7 +121,7 @@ This removes nine reactions from this organism, and the effect differs between o
 :class: warning
 
 - The draft is expected to be a model. It has no biomass reaction, no exchange reactions, no compartments and no medium. It is an inventory of reactions with gene associations.
-- The KO assignment is trusted. A KO is an orthology group and not a demonstrated activity in the organism, and a partial HMM hit is weaker.
+- The KO assignment is trusted. A KO is an orthology group, which does not demonstrate an activity in the organism, and a partial HMM hit is weaker.
 - The stoichiometry is undefined. Reactions with `n` or `x` coefficients cannot be mass-balanced. They are kept by default because removing them removes real chemistry, and they affect [Quality control](quality-control.md).
 - The KEGG release changes. The artefacts are built from one KEGG release, `kegg118` here. A rebuild with another release gives a different model, so the release should be recorded.
 :::

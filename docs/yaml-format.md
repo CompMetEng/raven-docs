@@ -67,7 +67,7 @@ Three structural rules apply to the field-by-field description:
 
 1. The whole document is one ordered mapping (`!!omap`) at the root. Every nested mapping that preserves key order is also an `!!omap`: `metaData`, each metabolite, reaction and gene entry, `annotation`, `metabolites`, `compartments` and the ec sections.
 2. Each metabolite, reaction and gene is one `- !!omap` element of a list. Inside the mapping, every field is written as `- key: value`. This is the native shape of cobrapy, and the reader of RAVEN MATLAB depends on it.
-3. Strings are unquoted by default. Quotes appear only when YAML would otherwise misparse the value: an empty string, a leading indicator character, `-`, `?` or `:` followed by whitespace, an embedded `: ` or ` #`, and values that read as `true`, `false`, `y`, `n`, `yes`, `no`, `on`, `off`, `null`, a number or a date. The section on numbers, strings and quoting lists the cases.
+3. Strings are unquoted by default. Quotes appear when YAML would otherwise misparse the value: an empty string, a leading indicator character, `-`, `?` or `:` followed by whitespace, an embedded `: ` or ` #`, and values that read as `true`, `false`, `y`, `n`, `yes`, `no`, `on`, `off`, `null`, a number or a date. The section on numbers, strings and quoting lists the cases.
 
 ---
 
@@ -96,7 +96,7 @@ Three structural rules apply to the field-by-field description:
 | `ec-rxns` | optional | GECKO | Table per reaction with kcat, source and enzymes. |
 | `ec-enzymes` | optional | GECKO | Table per enzyme with MW, sequence and concentration. |
 
-cobrapy writes `id`, `name` and `version` at the root level and not inside `metaData`. The RAVEN readers accept both placements, and the RAVEN writers write the `metaData` form.
+cobrapy writes `id`, `name` and `version` at the root level. The RAVEN readers accept both placements, and the RAVEN writers write the `metaData` form.
 
 ---
 
@@ -124,7 +124,7 @@ The field order has the cobra-core fields first and the RAVEN extensions after t
   - metFrom: KEGG            # RAVEN extension
 ```
 
-cobrapy writes the first seven keys only, which are the cobra-core block. raven-toolbox and RAVEN MATLAB also write `inchis`, `deltaG` and `metFrom` when those fields are populated. On reading, cobrapy keeps the RAVEN extensions on the metabolite as attributes (attribute fall-through), raven-toolbox captures them in `metabolite.notes` under their YAML name, and RAVEN MATLAB stores them in `model.inchis`, `model.metDeltaG` and `model.metFrom`.
+cobrapy writes the first seven keys, which are the cobra-core block. raven-toolbox and RAVEN MATLAB also write `inchis`, `deltaG` and `metFrom` when those fields are populated. On reading, cobrapy keeps the RAVEN extensions on the metabolite as attributes (attribute fall-through), raven-toolbox captures them in `metabolite.notes` under their YAML name, and RAVEN MATLAB stores them in `model.inchis`, `model.metDeltaG` and `model.metFrom`.
 
 An annotation entry with several values is written as a YAML list (`chebi:` followed by several `-` items), and a single value is written inline (`kegg.compound: C00002`). SMILES strings are stored in the annotation block under the key `smiles`. A `smiles` field at the top level of a metabolite entry is also accepted on reading.
 
@@ -159,7 +159,7 @@ An annotation entry with several values is written as a YAML list (`chebi:` foll
 
 Some fields are conditional:
 
-- `objective_coefficient` is written only when it is not zero (cobrapy convention).
+- `objective_coefficient` is written when it is not zero (cobrapy convention).
 - The `metabolites` block is `!!omap []` (a flow-style empty omap) when the reaction has no metabolites, which keeps the file a valid YAML 1.2 document.
 - `eccodes` is written inline (`eccodes: 2.7.1.1`) for one code and as a list for several codes. The same applies to `references`.
 
@@ -292,7 +292,7 @@ The default string style is bare, without quotes. raven-toolbox and RAVEN MATLAB
 
 The characters `[`, `]`, `{` and `}` inside a value do not trigger quoting.
 
-In a double-quoted string, only `\` and `"` are escaped. Other characters, including Unicode and newlines where the model permits them, are passed through.
+In a double-quoted string, `\` and `"` are escaped. Other characters, including Unicode and newlines where the model permits them, are passed through.
 
 The reader of raven-toolbox repairs three quoted shapes that are not valid YAML: `""text""`, a double-quoted scalar with an unescaped inner quote (`"a "b" c"`), and a single-quoted scalar with an inner apostrophe (`'it's'`). The values are `"text"`, `a "b" c` and `it's`, as `readYAMLmodel` reads them. The repair runs when the strict parse fails, and it does not handle a comment after the closing quote.
 

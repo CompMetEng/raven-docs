@@ -28,7 +28,7 @@ newCommit(model);
 newRelease(model);
 ```
 
-`newRelease` also generates MAT and XLSX files and records the changes between versions in the history file. Commits and releases become public only when they are pushed to the online repository.
+`newRelease` also generates MAT and XLSX files and records the changes between versions in the history file. Commits and releases become public when they are pushed to the online repository.
 
 hanpo-GEM follows a standardised layout. `model/` holds the latest model in several formats, and `code/` and `data/` contain everything needed to regenerate the model and to run analyses.
 

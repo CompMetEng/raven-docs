@@ -4,7 +4,7 @@ The RAVEN Toolbox runs in MATLAB and works independently. It does not require th
 
 ## Requirements
 
-- MATLAB. No minimum release is stated, and the code has no check that rejects an older release. `readYAMLmodel` has a fallback for releases before R2020b, `parseTaskList` calls `readcell` (R2019a) for Excel task lists, and `addIdentifierPrefix` calls `regexpPattern` (R2020b). Continuous integration tests R2024b only, and older releases are not tested. No additional MathWorks toolboxes are required.
+- MATLAB. No minimum release is stated, and the code has no check that rejects an older release. `readYAMLmodel` has a fallback for releases before R2020b, `parseTaskList` calls `readcell` (R2019a) for Excel task lists, and `addIdentifierPrefix` calls `regexpPattern` (R2020b). Continuous integration tests R2024b, and older releases are not tested. No additional MathWorks toolboxes are required.
 - A linear-programming solver: [Gurobi](https://www.gurobi.com/) (free academic licence, recommended) or GLPK, which is bundled with RAVEN and needs no separate installation. See [Choosing and configuring a solver](#choosing-a-solver-matlab).
 - RAVEN bundles `libSBML` and the GLPK mex files for Windows, macOS and Linux. `BLAST+`, `DIAMOND` and `HMMER` are not bundled. RAVEN fetches the build for the platform on first use, so the reconstruction functions need internet access the first time they run. `downloadRavenBinaries` fetches them in advance. [Download data and binaries](data-and-binaries.md) lists the full set, the cache location and the preparation of an offline machine.
 
@@ -54,13 +54,13 @@ setRavenSolver('cobra');
 :::{admonition} Installing 3.0.0b1
 :class: warning
 
-This site documents RAVEN 3.0.0b1, a pre-release. The Add-Ons manager and the normal releases page of the release download offer only the latest stable release (RAVEN 2.x), so neither installs 3.0.0b1. The Clone with git tab or the archive link of the Release download tab installs it.
+This site documents RAVEN 3.0.0b1, a pre-release. The Add-Ons manager and the normal releases page of the release download offer the latest stable release (RAVEN 2.x), so neither installs 3.0.0b1. The Clone with git tab or the archive link of the Release download tab installs it.
 :::
 
 ::::{tab-set}
 :::{tab-item} {octicon}`plug;1em` Add-Ons manager
 
-The installation runs from within MATLAB and needs no separate download. The installed version is the latest stable release (RAVEN 2.x) and not 3.0.0b1, as the warning at the start of the [Installation](#installation) section states.
+The installation runs from within MATLAB and needs no separate download. The installed version is the latest stable release (RAVEN 2.x), which is older than 3.0.0b1, as the warning at the start of the [Installation](#installation) section states.
 
 1. Open the Home tab and select Add-Ons, then Get Add-Ons.
 2. Search for RAVEN Toolbox and select Add, then Add to MATLAB.
@@ -70,7 +70,7 @@ When MATLAB does not pick up the toolbox after step 2, `matlab.addons.enableAddo
 :::
 :::{tab-item} {octicon}`download;1em` Release download
 
-This method suits offline and managed environments. The [RAVEN releases page](https://github.com/CompMetEng/RAVEN/releases) lists stable releases only, and 3.0.0b1 is a git tag without a packaged release, so the archive is downloaded directly:
+This method suits offline and managed environments. The [RAVEN releases page](https://github.com/CompMetEng/RAVEN/releases) lists stable releases, and 3.0.0b1 is a git tag without a packaged release, so the archive is downloaded directly:
 
 1. Download [the 3.0.0b1 archive](https://github.com/CompMetEng/RAVEN/archive/refs/tags/3.0.0b1.zip), which works without git.
 2. Extract it to any location.
@@ -152,7 +152,7 @@ In MATLAB, open Help, then Check for Updates, select Update for RAVEN and run `c
 :::
 :::{tab-item} {octicon}`download;1em` Release download
 
-MATLAB is closed, the old RAVEN folder is deleted, the new release is downloaded and extracted, and `checkRaven` is run.
+MATLAB should be closed, the old RAVEN folder deleted, the new release downloaded and extracted, and `checkRaven` run.
 :::
 :::{tab-item} {octicon}`git-branch;1em` Clone with git
 
@@ -163,7 +163,7 @@ git checkout develop
 git pull origin develop
 ```
 
-`develop` can contain unreleased changes. `checkRaven` is run afterwards.
+`develop` can contain unreleased changes. `checkRaven` should be run afterwards.
 :::
 ::::
 

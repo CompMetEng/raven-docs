@@ -185,24 +185,24 @@ growth: good 0.1222, bad 0.0000
 :::
 ::::
 
-The errors in `smallYeastBad` change the prediction. On the same medium and with the same objective, the good model grows and the bad model does not grow at all, although a set-overlap score called them 94.5 % similar. A difference shows that the models differ, and only a simulation shows the effect of the difference on growth. MATLAB reports the zero as `-0.0000`, and the minus sign is a formatting artefact of a zero objective and not a negative growth rate.
+The errors in `smallYeastBad` change the prediction. On the same medium and with the same objective, the good model grows and the bad model does not grow at all, although a set-overlap score called them 94.5 % similar. A difference shows that the models differ, and a simulation shows the effect of the difference on growth. MATLAB reports the zero as `-0.0000`, and the minus sign is a formatting artefact of a zero objective.
 
-RAVEN can run this comparison as well. `compareMultipleModels` takes `funcCompare` and a `taskFile` and compares the models by the metabolic tasks that each passes, not by the reactions that each has. This is the shift from content to behaviour that the examples make by hand. The task file is described in [Metabolic tasks](tasks.md). `groupVector` labels the models, for example by tissue or by condition, and the similarity matrix is then reported per group.
+RAVEN can run this comparison as well. `compareMultipleModels` takes `funcCompare` and a `taskFile` and compares the models by the metabolic tasks that each passes. This is the shift from content to behaviour that the examples make by hand. The task file is described in [Metabolic tasks](tasks.md). `groupVector` labels the models, for example by tissue or by condition, and the similarity matrix is then reported per group.
 
-The two examples also show what `compareMultipleModels` and `compare_models` count differently. The matrix of RAVEN has one row per combination of models (in the first only, in the second only, in both) with `nElements` counting each. The matrix of raven-toolbox has one row per identifier and one column per model. Both answer the same question and are indexed in opposite directions.
+The two examples also show what `compareMultipleModels` and `compare_models` count differently. The matrix of RAVEN has one row per combination of models (in the first, in the second, in both) with `nElements` counting each. The matrix of raven-toolbox has one row per identifier and one column per model. Both answer the same question and are indexed in opposite directions.
 
 :::{admonition} Troubleshooting
 :class: warning
 
 - Models are compared by identifier alone. Both functions match by identifier. Two models from different databases share few identifiers and look unrelated although they describe the same metabolism. [Combining and simplifying models](combining.md) merges by name instead.
-- Similarity is read as quality. It measures overlap and not correctness.
-- One flux vector per model is compared. An FBA solution is one of many optima, so two models, or two solvers on one model, can return different vectors with the same growth. Both solves are checked for success, and growth is compared first, then ranges or tasks. `compareFluxes` and `compare_fluxes` compare two solutions of one model, so every reaction must be in both.
-- The medium is forgotten. A flux comparison compares conditions as much as models. The same bounds are set explicitly on both models before a conclusion is drawn.
+- Similarity is read as quality. It measures overlap.
+- One flux vector per model is compared. An FBA solution is one of many optima, so two models, or two solvers on one model, can return different vectors with the same growth. Both solves should be checked for success, and growth is compared first, then ranges or tasks. `compareFluxes` and `compare_fluxes` compare two solutions of one model, so every reaction must be in both.
+- The medium is forgotten. A flux comparison compares conditions as much as models. The same bounds should be set explicitly on both models before a conclusion is drawn.
 - A model is compared with a reloaded copy of itself. Writing and reading a model can change formatting, order and rounding, and differences after a round trip can come from the file format ([Reading and writing models](io.md)).
 :::
 
 ## See also
 
-- [Quality control](quality-control.md): checking one model and not a pair.
+- [Quality control](quality-control.md): checking one model.
 - [Combining and simplifying models](combining.md): putting models together and what must line up first.
 - [Simulating growth with FBA](fba.md): the simulation that a flux comparison depends on.

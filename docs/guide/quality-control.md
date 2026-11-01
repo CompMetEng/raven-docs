@@ -195,7 +195,7 @@ blocked: ['ACO', 'ACS', 'ADH1', 'ADH2', 'ALD6']
 :::
 ::::
 
-`smallYeastBad` has glucose and oxygen uptake open. The same test on `smallYeast` with that medium finds 52 of 53 reactions active, and the 52 blocked reactions here are blocked by the errors that the other checks find. The two reactions that carry flux, `SDH` and `FRDS2`, are the reverse of each other and only cycle ([Loops in flux ranges](fva.md#loops-in-flux-ranges)).
+`smallYeastBad` has glucose and oxygen uptake open. The same test on `smallYeast` with that medium finds 52 of 53 reactions active, and the 52 blocked reactions here are blocked by the errors that the other checks find. The two reactions that carry flux, `SDH` and `FRDS2`, are the reverse of each other and form a cycle ([Loops in flux ranges](fva.md#loops-in-flux-ranges)).
 
 ## Mass from nothing
 
@@ -225,7 +225,7 @@ closed model feasible: 1
 one leak: F6P_c
 ```
 
-`getExchangeRxns` returns every reaction with metabolites on one side only, so the sinks and demands are closed together with the exchange reactions. A model that is infeasible when closed, for instance because of a forced maintenance flux, cannot show a leak. The feasibility of the closed model is checked before the leak test. `canExchange` counts the leaks. `findLeakMetabolite` finds one leak with the smallest total flux, and `minNrFluxes` minimises the number of reactions instead. The leak is a starting point. Both take the direction as the second argument, and `'consume'` asks the reverse question: which metabolites the model can take up without limit.
+`getExchangeRxns` returns every reaction with metabolites on one side, so the sinks and demands are closed together with the exchange reactions. A model that is infeasible when closed, for instance because of a forced maintenance flux, cannot show a leak. The feasibility of the closed model should be checked before the leak test. `canExchange` counts the leaks. `findLeakMetabolite` finds one leak with the smallest total flux, and `minNrFluxes` minimises the number of reactions instead. The leak is a starting point. Both take the direction as the second argument, and `'consume'` asks the reverse question: which metabolites the model can take up without limit.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -250,11 +250,11 @@ closed model: optimal
 one leak: ['F6P_c', 'GP_c', 'PYR_c']
 ```
 
-`gap_report` closes every boundary reaction, adds an output reaction for every metabolite, and lists in `can_produce_without_input` the metabolites whose output can carry flux, as `canExchange` does. When the model is infeasible with its own bounds or with the closed boundary, the function stops with an error that names the reactions with a forced flux. ATP maintenance is set to zero before the call. `gapReport` behaves the same way.
+`gap_report` closes every boundary reaction, adds an output reaction for every metabolite, and lists in `can_produce_without_input` the metabolites whose output can carry flux, as `canExchange` does. When the model is infeasible with its own bounds or with the closed boundary, the function stops with an error that names the reactions with a forced flux. ATP maintenance should be set to zero before the call. `gapReport` behaves the same way.
 
-`find_leak_metabolite` is the port of `findLeakMetabolite` and closes nothing, so it receives the closed copy. It returns a list, and more than one identifier means that the metabolites can only be exchanged together. A manual closure closes `model.boundary`. `model.exchanges` omits sinks and demands, because cobrapy does not count them as exchanges, and an open sink is an input.
+`find_leak_metabolite` is the port of `findLeakMetabolite` and closes nothing, so it receives the closed copy. It returns a list, and more than one identifier means that the metabolites can be exchanged together. A manual closure closes `model.boundary`. `model.exchanges` omits sinks and demands, because cobrapy does not count them as exchanges, and an open sink is an input.
 
-`analyse_topology` answers the connectivity part of the question without solving a linear program, and it requires a `templates` argument. Without `seeds`, the seeds are the metabolites of every reaction that has only substrates and a negative lower bound or only products and a positive upper bound. Without `targets`, the targets are the metabolites of the first objective reaction. A model without an objective reaction and without `targets` raises `ValueError`.
+`analyse_topology` answers the connectivity part of the question without solving a linear program, and it requires a `templates` argument. Without `seeds`, the seeds are the metabolites of every reaction that has substrates alone and a negative lower bound or products alone and a positive upper bound. Without `targets`, the targets are the metabolites of the first objective reaction. A model without an objective reaction and without `targets` raises `ValueError`.
 :::
 ::::
 
@@ -317,9 +317,9 @@ Models differ (11 differences):
 :::{admonition} Troubleshooting
 :class: warning
 
-- A model is judged by whether it solves. An unbalanced reaction can improve the solve. The balance is checked first, and the growth rate is trusted afterwards.
+- A model is judged by whether it solves. An unbalanced reaction can improve the solve. The balance should be checked first, and the growth rate trusted afterwards.
 - Every unbalanced reaction is treated as an error. Exchange, demand, sink and biomass pseudoreactions are unbalanced by design.
-- The result is `unknown` and not `unbalanced`. A metabolite without a formula, or a polymer formula that cobrapy cannot parse, makes the balance undecidable and not wrong. The formula is added and the check repeated.
+- The result is `unknown`. A metabolite without a formula, or a polymer formula that cobrapy cannot parse, makes the balance undecidable. The formula should be added and the check repeated.
 :::
 
 ## See also

@@ -47,7 +47,7 @@ solB = solveLP(model);
 
 ### 4. Single gene deletions with FBA
 
-The model is set to anaerobic growth with biomass as the objective, and single gene deletions are scanned. After the scan, only the solutions that grow are kept, and the solution with the highest glycerol production is selected:
+The model is set to anaerobic growth with biomass as the objective, and single gene deletions are scanned. After the scan, the solutions that grow are kept, and the solution with the highest glycerol production is selected:
 
 ```matlab
 model = setParam(model, 'eq', {'o2IN'}, 0);

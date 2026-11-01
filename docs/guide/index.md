@@ -2,7 +2,7 @@
 
 Each page of the guide covers one task, with MATLAB and Python examples side by side. The pages can be read in the order below or one at a time; [Getting started](getting-started.md) is the first.
 
-The [reconstruction protocol](../protocol/index.md) for *H. polymorpha* and the [legacy tutorials](../tutorials/index.md) from the original RAVEN paper are separate from the task pages. Both are MATLAB only.
+The [reconstruction protocol](../protocol/index.md) for *H. polymorpha* and the [legacy tutorials](../tutorials/index.md) from the original RAVEN paper are separate from the task pages. Both use MATLAB.
 
 ## Functions from cobrapy
 
@@ -71,8 +71,8 @@ One page and part of another are not executed. [Reconstruction from KEGG](kegg.m
 
 | Resource | Content |
 |---|---|
-| [GEM reconstruction protocol, *H. polymorpha*](../protocol/index.md) | Homology-based reconstruction of `hanpo-GEM`, from the template models to a draft that grows on methanol. MATLAB only; not executed. |
-| [Legacy tutorials](../tutorials/index.md) | Five exercises from the original RAVEN paper (Agren et al., 2013), adapted to run with current RAVEN and otherwise unchanged. MATLAB only. |
+| [GEM reconstruction protocol, *H. polymorpha*](../protocol/index.md) | Homology-based reconstruction of `hanpo-GEM`, from the template models to a draft that grows on methanol. MATLAB; not executed. |
+| [Legacy tutorials](../tutorials/index.md) | Five exercises from the original RAVEN paper (Agren et al., 2013), adapted to run with current RAVEN and otherwise unchanged. MATLAB. |
 
 The task pages are for looking up a single task. The protocol follows one reconstruction in order.
 

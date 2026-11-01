@@ -135,7 +135,7 @@ Installation of RAVEN or raven-toolbox, and the choice of a solver.
 :link: raven3-vs-raven-toolbox
 :link-type: doc
 
-The features that exist in only one implementation, and the functions that return a different result in each.
+The features that exist in one implementation alone, and the functions that return a different result in each.
 :::
 
 ::::

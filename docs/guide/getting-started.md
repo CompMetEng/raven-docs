@@ -171,7 +171,7 @@ alpha-D-glucose 6-phosphate (C6H13O9P) in compartment c
 takes part in 4 reactions
 ```
 
-The number of reactions is the number of non-zero entries in the row of the metabolite in `model.S`. `model.metComps` holds an index into `model.comps`, not the compartment identifier, so the compartment takes two lookups.
+The number of reactions is the number of non-zero entries in the row of the metabolite in `model.S`. `model.metComps` holds an index into `model.comps`, so the compartment takes two lookups.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -209,7 +209,7 @@ fprintf('%s -> %s\n', model.geneShortNames{gi}, strjoin(rxnIds, ', '));
 PGI1 -> PGI
 ```
 
-`model.rxnGeneMat` is an incidence matrix of reactions by genes. A non-zero entry means that the gene appears in the rule of the reaction. The matrix does not record how the genes combine; only `model.grRules` records that, as `and` and `or` in text.
+`model.rxnGeneMat` is an incidence matrix of reactions by genes. A non-zero entry means that the gene appears in the rule of the reaction. The matrix does not record how the genes combine; `model.grRules` is the sole field that records that, as `and` and `or` in text.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -264,7 +264,7 @@ An empty dictionary means that the reaction balances. Each entry maps an element
 :::{admonition} Troubleshooting
 :class: warning
 
-- A lookup fails. Identifiers are case-sensitive and carry the compartment suffix (`G6P_c`, not `G6P`). Neither toolbox returns a placeholder for an identifier that is absent: `getIndexes` raises the error `Could not find object 'X' in the model`, and `get_by_id` raises `KeyError`.
+- A lookup fails. Identifiers are case-sensitive and carry the compartment suffix (`G6P_c`). Neither toolbox returns a placeholder for an identifier that is absent: `getIndexes` raises the error `Could not find object 'X' in the model`, and `get_by_id` raises `KeyError`.
 - The model loads and does not grow. In `smallYeast.yml` every uptake reaction is closed (`glcIN` has bounds `[0 0]`). [Growth media and conditions](media.md) opens a medium.
 - Gene identifiers differ between the model and a FASTA file. RAVEN stores the systematic name (`YBR196C`) as the identifier and the standard name (`PGI1`) as the gene name, and the two are not interchangeable.
 :::

@@ -48,7 +48,7 @@ model.metNames(metabolite)
 printFluxes(model, fluxes, false, [], [],'%rxnID (%rxnName):\n\t%eqn: %flux\n')
 ```
 
-The model could produce H₂O, and the output contains more fluxes than can be read at once. Excluding the elementally balanced reactions shortens the list. Water was produced, so only the reactions that are unbalanced for oxygen (column 6 of the elemental balance) are of interest.
+The model could produce H₂O, and the output contains more fluxes than can be read at once. Excluding the elementally balanced reactions shortens the list. Water was produced, so the reactions that are unbalanced for oxygen (column 6 of the elemental balance) are of interest.
 
 ```matlab
 balanceStructure=getElementalBalance(model);
@@ -56,7 +56,7 @@ goodOnes=balanceStructure.leftComp(:,6)==balanceStructure.rightComp(:,6);
 printFluxes(removeReactions(model,goodOnes), fluxes(~goodOnes), false, [], [],'%rxnID (%rxnName):\n\t%eqn: %flux\n');
 ```
 
-Many reactions remain. Only the reactions that involve amylose or starch are kept, as one of the problematic reactions from step 2 involves them.
+Many reactions remain. The reactions that involve amylose or starch are kept, as one of the problematic reactions from step 2 involves them.
 
 ```matlab
 printFluxes(model, fluxes, false, [], [],'%rxnID (%rxnName):\n\t%eqn: %flux\n',{'Amylose';'Starch'});
@@ -103,7 +103,7 @@ keggModel=rmfield(keggModel,'genes');
 keggModel=rmfield(keggModel,'rxnGeneMat');
 ```
 
-Some reactions in KEGG are known to be unbalanced, and only the balanced reactions are used for gap-filling.
+Some reactions in KEGG are known to be unbalanced, and the balanced reactions are used for gap-filling.
 
 ```matlab
 balanceStructure=getElementalBalance(keggModel);

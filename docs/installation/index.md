@@ -28,7 +28,7 @@ Both versions need a linear-programming solver:
 |---|---|---|
 | Gurobi | Free academic | Genome-scale models, ftINIT, gap-filling, and in MATLAB the legacy tINIT method (recommended) |
 | GLPK   | Open source   | Small and medium models, and getting started |
-| SCIP   | Open source   | MILP problems (MATLAB); `setRavenSolver('scip')` downloads the binary on Windows only |
+| SCIP   | Open source   | MILP problems (MATLAB); `setRavenSolver('scip')` downloads the binary on Windows |
 
 In MATLAB, `setRavenSolver('gurobi')` selects the active solver. In raven-toolbox, the solver is configured through cobrapy (`cobra.Configuration`).
 

@@ -1,6 +1,6 @@
 # Metabolic tasks
 
-A metabolic task states something the model must be able to do: "given glucose and oxygen, produce biomass", "make ATP", or "do not produce something from nothing". Tasks test a reconstruction against biology and not against the reconstruction itself. ftINIT repairs against them after it reduces a model.
+A metabolic task states something the model must be able to do: "given glucose and oxygen, produce biomass", "make ATP", or "do not produce something from nothing". Tasks test a reconstruction against biology. ftINIT repairs against them after it reduces a model.
 
 ## Functions
 
@@ -26,11 +26,11 @@ A task list is a tab-separated table with one row per task. The columns hold the
 Two requirements of the format apply to MATLAB:
 
 - The header row starts with an empty cell. `parseTaskList` treats the leading rows whose first cell is not empty as comments and takes the first row with an empty first cell as the header, so a file without the leading tab has no header row.
-- The header row has a column named `ID`, which is the only required column. A file without a row that starts with an empty cell raises `RAVEN:badInput` with the message that the TASKS sheet must have a column named ID.
+- The header row has a column named `ID`, which is the sole required column. A file without a row that starts with an empty cell raises `RAVEN:badInput` with the message that the TASKS sheet must have a column named ID.
 
-`parse_task_list` of raven-toolbox accepts the file with or without the leading empty cell, so a missing cell is noticed only when the MATLAB example runs. `tasks.txt` has the full set of columns, and the columns after `OUT UB` are blank.
+`parse_task_list` of raven-toolbox accepts the file with or without the leading empty cell, so a missing cell is noticed when the MATLAB example runs. `tasks.txt` has the full set of columns, and the columns after `OUT UB` are blank.
 
-Metabolites are given as `name[compartment]` with the metabolite name and not the identifier. Several metabolites go in one cell, separated by `;`, and the bound columns apply to all of them. A metabolite with its own bounds goes on a continuation row, which is a row without an `ID` that adds its inputs and outputs to the task above it. `GROWTH` uses this to require at least 0.01 units of biomass while CO₂ and acetate are unrestricted. With a lower bound of 0 on biomass, the zero flux would pass the task. The value 0.01 is illustrative, and any positive lower bound has the same effect.
+Metabolites are given as `name[compartment]` with the metabolite name. Several metabolites go in one cell, separated by `;`, and the bound columns apply to all of them. A metabolite with its own bounds goes on a continuation row, which is a row without an `ID` that adds its inputs and outputs to the task above it. `GROWTH` uses this to require at least 0.01 units of biomass while CO₂ and acetate are unrestricted. With a lower bound of 0 on biomass, the zero flux would pass the task. The value 0.01 is illustrative, and any positive lower bound has the same effect.
 
 `SHOULD FAIL` marks a task that the model must fail. The second task asks for biomass with nothing supplied, which a correct model cannot do, so failing it is a pass.
 
@@ -95,7 +95,7 @@ for result in check_tasks(model, tasks, close_boundaries=True):   # see Task-def
 
 ## Task-defined medium
 
-By default, neither `checkTasks` nor `check_tasks` closes the exchange reactions of the model, and the inputs and outputs of a task are added to what the model allows. The task becomes the whole boundary when the model is closed first, with `closeModel` in RAVEN (which ftINIT does before it collects the task-essential reactions) or with `close_boundaries=True` in raven-toolbox. The inputs and outputs of the task are then the only way for anything to enter or leave. A task list is then portable between models, and an incomplete task looks like a broken model.
+By default, neither `checkTasks` nor `check_tasks` closes the exchange reactions of the model, and the inputs and outputs of a task are added to what the model allows. The task becomes the whole boundary when the model is closed first, with `closeModel` in RAVEN (which ftINIT does before it collects the task-essential reactions) or with `close_boundaries=True` in raven-toolbox. The inputs and outputs of the task are then the sole way for anything to enter or leave. A task list is then portable between models, and an incomplete task looks like a broken model.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -157,11 +157,11 @@ for close in (False, True):
 :::
 ::::
 
-The tasks differ only in the CO₂ output. With the exchange reactions of the model open, both are feasible, because the carbon leaves through `co2OUT` of the model whatever the task says. With them closed, the task without CO₂ is infeasible. A task list written for one reading gives different answers under the other, so the boundary that the list was curated against is checked.
+The tasks differ in the CO₂ output. With the exchange reactions of the model open, both are feasible, because the carbon leaves through `co2OUT` of the model whatever the task says. With them closed, the task without CO₂ is infeasible. A task list written for one reading gives different answers under the other, so the boundary that the list was curated against is checked.
 
 ## Task-essential reactions
 
-Essentiality here refers to a task and not to the objective. Each candidate reaction is removed, and the task is tested again. ftINIT uses the result to decide which reactions must remain in an extraction regardless of their expression score.
+Essentiality here refers to a task. Each candidate reaction is removed, and the task is tested again. ftINIT uses the result to decide which reactions must remain in an extraction regardless of their expression score.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -177,7 +177,7 @@ fprintf('%d reactions essential for the task\n', sum(essentialRxns));
 28 reactions essential for the task
 ```
 
-`checkTasks` with its `getEssential` flag returns the task-essential reactions as a logical matrix of reactions by tasks and not as a list. Failed tasks and `SHOULD FAIL` tasks are left out, because a task that does not pass has no reactions that it depends on. `getEssentialRxns` answers for the objective of the model and takes no task.
+`checkTasks` with its `getEssential` flag returns the task-essential reactions as a logical matrix of reactions by tasks. Failed tasks and `SHOULD FAIL` tasks are left out, because a task that does not pass has no reactions that it depends on. `getEssentialRxns` answers for the objective of the model and takes no task.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
