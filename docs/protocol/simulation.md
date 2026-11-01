@@ -2,7 +2,7 @@
 
 ## Saving to GitHub
 
-The model is tracked and distributed through a GitHub repository. Metadata are added to the model structure before it is saved:
+The model is tracked and distributed through a GitHub repository. Add metadata to the model structure before saving it:
 
 ```matlab
 model.annotation.defaultLB    = -1000;
@@ -34,7 +34,7 @@ hanpo-GEM follows a standardised layout. `model/` holds the latest model in seve
 
 ## Performing simulations
 
-After gap-filling, the draft model can simulate biomass production. Biomass formation is set as the objective, FBA runs with `solveLP`, and `printFluxes` shows the active fluxes:
+After gap-filling, the draft model can simulate biomass production. Set biomass formation as the objective, run FBA with `solveLP` and show the active fluxes with `printFluxes`:
 
 ```matlab
 model = setParam(model, 'obj', 'r_4041', 1);
@@ -42,6 +42,6 @@ sol = solveLP(model, 1);
 printFluxes(model, sol.x, false);
 ```
 
-Measured uptake or excretion rates constrain the model when they are available, by setting the bounds of the relevant exchange reactions. The model can then be evaluated against experimental data from the literature, and the result shows where further development is needed.
+Constrain the model with measured uptake or excretion rates when they are available, by setting the bounds of the relevant exchange reactions. The model can then be evaluated against experimental data from the literature, and the result shows where further development is needed.
 
 The next page is [Manual curation](manual-curation.md).

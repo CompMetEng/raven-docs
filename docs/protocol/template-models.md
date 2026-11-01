@@ -27,7 +27,7 @@ exportToExcelFormat(modelSce, 'modelSce.xlsx');
 
 Reconstruction often writes files that are not meant to be tracked in git. The hanpo-GEM repository keeps them in a `scrap/` folder that is excluded from version control.
 
-Changes are made in MATLAB, and the model is exported to SBML when needed:
+Make changes in MATLAB, and export the model to SBML when needed:
 
 ```matlab
 exportModel(modelSce, 'modelSce.xml');
@@ -42,7 +42,7 @@ modelRhto = importModel('rhto.xml', true);
 modelRhto.id = 'rhto';
 ```
 
-Intermediate states of the MATLAB workspace can be stored to resume later:
+Store intermediate states of the MATLAB workspace to resume later:
 
 ```matlab
 save('scrap/importModels.mat')

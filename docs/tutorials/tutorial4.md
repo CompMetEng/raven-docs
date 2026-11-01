@@ -12,7 +12,7 @@ The changes are made in code, which avoids several model files. Tutorials 2 and 
 
 ### 1. Detecting production from nothing
 
-The broken model is imported, all uptake is closed, and the sum of the producing exchange reactions is maximised. Any non-zero solution is a problem.
+Import the broken model, close all uptake and maximise the sum of the producing exchange reactions. Any non-zero solution is a problem.
 
 ```matlab
 model = readYAMLmodel('smallYeastBad.yml');
@@ -24,7 +24,7 @@ printFluxes(model, sol.x, true); %Nothing produced, good
 
 ### 2. Provoking hidden errors
 
-An error can be masked because it costs energy or redox power. Temporary "free" cofactor reactions (ATP ⇌ ADP + Pᵢ, and similar reactions for NADH and NADPH) are added to provoke the model, and the sum of fluxes is minimised for an interpretable solution:
+An error can be masked because it costs energy or redox power. Add temporary "free" cofactor reactions (ATP ⇌ ADP + Pᵢ, and similar reactions for NADH and NADPH) to provoke the model, and minimise the sum of fluxes for an interpretable solution:
 
 ```matlab
 rxns.rxns = {'FREE_ATP'; 'FREE_NADH'; 'FREE_NADPH'};
@@ -35,12 +35,12 @@ printFluxes(model, sol.x, false, [], [], '%rxnID (%rxnName):%flux\n\t%eqn\n');
 ```
 
 :::{dropdown} Answer to step 2: production of ethanol from nothing
-A large amount of ethanol is produced. `ADH1` should produce one unit of ethanol. Its equation is changed with `model = changeRxns(model, 'ADH1', 'acetaldehyde[c] + NADH[c] => ethanol[c] + NAD(+)[c]', 3);`
+A large amount of ethanol is produced. `ADH1` should produce one unit of ethanol. Change its equation with `model = changeRxns(model, 'ADH1', 'acetaldehyde[c] + NADH[c] => ethanol[c] + NAD(+)[c]', 3);`
 :::
 
 ### 3. Allowing every metabolite to be excreted
 
-A second column is added to `model.b`, and RAVEN then treats the columns as lower and upper bounds on the equality constraints and any metabolite can be excreted. This exposes errors that need a partner metabolite to be dumped.
+Add a second column to `model.b`, and RAVEN then treats the columns as lower and upper bounds on the equality constraints and any metabolite can be excreted. This exposes errors that need a partner metabolite to be dumped.
 
 ```matlab
 model.b = [model.b inf(numel(model.b), 1)];
@@ -51,15 +51,15 @@ printFluxes(model, sol.x, false, 10^-5, [], '%rxnID (%rxnName):\n\t%eqn\n\t%flux
 :::{dropdown} Answer to step 3: two unbalanced reactions
 The unbalanced reactions in the flux list show that two reactions should each give one unit of product:
 
-- `FBP` should give one unit of F6P. Its equation is changed to `beta-D-fructofuranose 1,6-bisphosphate[c] => beta-D-fructofuranose 6-phosphate[c] + phosphate[c]`.
-- `PFK` should give one unit of F16P. Its equation is changed to `ATP[c] + beta-D-fructofuranose 6-phosphate[c] => ADP[c] + beta-D-fructofuranose 1,6-bisphosphate[c]`.
+- `FBP` should give one unit of F6P. Change its equation to `beta-D-fructofuranose 1,6-bisphosphate[c] => beta-D-fructofuranose 6-phosphate[c] + phosphate[c]`.
+- `PFK` should give one unit of F16P. Change its equation to `ATP[c] + beta-D-fructofuranose 6-phosphate[c] => ADP[c] + beta-D-fructofuranose 1,6-bisphosphate[c]`.
 
-Each is applied with `changeRxns(model, …, 3)`.
+Apply each with `changeRxns(model, …, 3)`.
 :::
 
 ### 4. `canExchange`
 
-All uptake and production is set to 0, the excretion column is dropped again, and the metabolites that can be consumed without any production are determined:
+Set all uptake and production to 0, drop the excretion column and determine the metabolites that can be consumed without any production:
 
 ```matlab
 model = setParam(model, 'eq', getExchangeRxns(model), 0);
@@ -68,7 +68,7 @@ I = canExchange(model, 'consume');
 disp(model.mets(I)); %These 12 metabolites can be consumed without any production
 ```
 
-`canExchange` with `'consume'` reports the metabolites that the model can consume when no production is allowed, and `'produce'` asks the opposite. All uptake is allowed again, the uptake of one of the metabolites (here CO2) is forced, and the fluxes are studied (a negative output means input):
+`canExchange` with `'consume'` reports the metabolites that the model can consume when no production is allowed, and `'produce'` asks the opposite. Allow all uptake, force the uptake of one of the metabolites (here CO2) and study the fluxes (a negative output means input):
 
 ```matlab
 model.b = [ones(numel(model.b), 1) * -1000 model.b];
@@ -78,7 +78,7 @@ printFluxes(model, sol.x, false, 10^-5, [], '%rxnID (%rxnName):\n\t%eqn\n\t%flux
 ```
 
 :::{dropdown} Answer to step 4: `PDC` lacks a product
-`PDC` converts pyruvate (3 carbons) to acetaldehyde (2 carbons) without another product, and CO2 is missing. `changeRxns` makes the change. As an exercise, the coefficient of cytosolic CO2 is added directly to the stoichiometric matrix:
+`PDC` converts pyruvate (3 carbons) to acetaldehyde (2 carbons) without another product, and CO2 is missing. `changeRxns` makes the change. As an exercise, add the coefficient of cytosolic CO2 directly to the stoichiometric matrix:
 
 ```matlab
 Irxn = ismember(model.rxns, 'PDC');

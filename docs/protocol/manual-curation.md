@@ -4,7 +4,7 @@ A draft GEM needs manual curation to become a high-quality model. Curation corre
 
 ## Replacing template genes with target homologs
 
-Gap-filling adds reactions from the templates without a homology search for the associated genes, so the draft contains *S. cerevisiae* and *R. toruloides* genes that should be replaced by *H. polymorpha* homologs. The reactions that carry an *R. toruloides* gene are listed:
+Gap-filling adds reactions from the templates without a homology search for the associated genes, so the draft contains *S. cerevisiae* and *R. toruloides* genes that should be replaced by *H. polymorpha* homologs. List the reactions that carry an *R. toruloides* gene:
 
 ```matlab
 rhtoRxns = find(contains(model.grRules, 'RHTO'));
@@ -12,7 +12,7 @@ model.rxnNames(rhtoRxns);
 model.grRules(rhtoRxns);
 ```
 
-BLAST identified that gene `RHTO_03911` (oleoyl-CoA desaturase, reaction `y300009`) has the homolog `Hanpo2_15704`. The gene association is curated:
+BLAST identified that gene `RHTO_03911` (oleoyl-CoA desaturase, reaction `y300009`) has the homolog `Hanpo2_15704`. Curate the gene association:
 
 ```matlab
 model = changeGrRules(model, 'y300009', 'Hanpo2_15704', true);
@@ -52,7 +52,7 @@ model = addTransport(model, 'c', 'p', {'D-xylulose 5-phosphate' 'methanol' ...
 
 ## Confirming growth on methanol
 
-The other carbon sources are blocked, methanol uptake is allowed, and growth is verified:
+Block the other carbon sources, allow methanol uptake and verify growth:
 
 ```matlab
 model = setParam(model, 'eq', {'r_1808', 'r_1714'}, 0);   % no glycerol/glucose

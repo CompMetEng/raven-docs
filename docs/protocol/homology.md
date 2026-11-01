@@ -30,7 +30,7 @@ The cut-offs select the BLAST hits that count as homology. The maximum E-value i
 
 ## Adding exchange reactions for the growth medium
 
-The homology approach adds reactions that have gene annotations, and no others. Exchange reactions simulate the flow of metabolites in and out of the system and have no gene association, so they are added explicitly. The exchanges of the growth-medium components are added:
+The homology approach adds reactions that have gene annotations, and no others. Exchange reactions simulate the flow of metabolites in and out of the system and have no gene association, so they are added explicitly. Add the exchanges of the growth-medium components:
 
 ```matlab
 mediumComps = {'r_1654', 'r_1672', 'r_1808', 'r_1832', 'r_1861', ...
@@ -38,7 +38,7 @@ mediumComps = {'r_1654', 'r_1672', 'r_1808', 'r_1832', 'r_1861', ...
 model = addRxnsGenesMets(model, modelSce, mediumComps);
 ```
 
-They represent ammonium, CO₂, glycerol, H⁺, iron, O₂, phosphate, sulfate, water and biomass, which are everything that must enter or leave the system to support growth. The first draft is inspected:
+They represent ammonium, CO₂, glycerol, H⁺, iron, O₂, phosphate, sulfate, water and biomass, which are everything that must enter or leave the system to support growth. Inspect the first draft:
 
 ```matlab
 exportToExcelFormat(model, 'scrap/hanpo_step3.3.xlsx');

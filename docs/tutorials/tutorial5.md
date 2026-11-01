@@ -29,14 +29,14 @@ A first control is that the model cannot produce any metabolite without the upta
 [newModel, removedRxns]=removeBadRxns(model);
 ```
 
-The output reports that H⁺ can be made even when no reaction was unbalanced. Protons are problematic because the pH at which the formulas are written is arbitrary. For this analysis the protons can be ignored and corrected later, so the call is repeated with the production of H⁺ allowed.
+The output reports that H⁺ can be made even when no reaction was unbalanced. Protons are problematic because the pH at which the formulas are written is arbitrary. For this analysis the protons can be ignored and corrected later, so repeat the call with the production of H⁺ allowed.
 
 ```matlab
 [newModel, removedRxns]=removeBadRxns(model,1,{'H+'},true);
 disp(removedRxns);
 ```
 
-One reaction was removed because it enabled the model to produce something from nothing. As it is a single reaction, it is examined in more detail.
+One reaction was removed because it enabled the model to produce something from nothing. As it is a single reaction, examine it in more detail.
 
 ### 3. Investigating the problematic reaction
 
@@ -77,7 +77,7 @@ After the removal of `R02110`, the model cannot make something from nothing. The
 model.metNames(metabolite)
 ```
 
-Nothing is consumed without output. Some uptakes are added, and the products of the model are checked.
+Nothing is consumed without output. Add some uptakes and check the products of the model.
 
 ```matlab
 [~, J]=ismember({'D-Glucose';'H2O';'Orthophosphate';'Oxygen';'NH3';'Sulfate'},model.metNames);
@@ -135,14 +135,14 @@ The connectivity of the model is improved further by identifying metabolites tha
 
 ### 7. Adding minimal-media uptakes and iterating
 
-The list shows that yeast cannot grow on the substrates defined so far and requires other precursors for cofactor synthesis. Uptake reactions are added for the minimal-medium constituents that yeast needs to grow.
+The list shows that yeast cannot grow on the substrates defined so far and requires other precursors for cofactor synthesis. Add uptake reactions for the minimal-medium constituents that yeast needs to grow.
 
 ```matlab
 [~, J]=ismember({'4-Aminobenzoate';'Riboflavin';'Thiamine';'Biotin';'Folate';'Nicotinate';'Zymosterol';'Choline'},newModel.metNames);
 [newModel, addedRxns]=addExchangeRxns(newModel,'in',J);
 ```
 
-`gapReport` is run again, and its output directs the gap-filling. `gapReport` prints part of the information, and the output structures hold the rest. The work is iterated until the model has sufficient quality.
+Run `gapReport` again, and use its output to direct the gap-filling. `gapReport` prints part of the information, and the output structures hold the rest. Repeat these steps until the model meets the quality criteria of the project, for example a fraction of synthesisable metabolites.
 
 ## Full script
 

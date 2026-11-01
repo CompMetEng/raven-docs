@@ -16,7 +16,7 @@ sol = solveLP(smallModel);
 printFluxes(smallModel, sol.x, true);
 ```
 
-The import of the incomplete model gives a RAVEN warning that some internal metabolites are used in one reaction, so the sole feasible solution is zero flux. When `sol.f` equals zero, the problem cannot be solved, and the uptake and excretion of all necessary metabolites are added to the model before `solveLP` is run again.
+The import of the incomplete model gives a RAVEN warning that some internal metabolites are used in one reaction, so the sole feasible solution is zero flux. When `sol.f` equals zero, the problem cannot be solved, and the uptake and excretion of all necessary metabolites must be added to the model before `solveLP` is run a second time.
 
 ### 2. Internal and external metabolites
 
@@ -24,22 +24,22 @@ Under the steady-state assumption, the production rate of each internal metaboli
 
 ### 3. Adding the glycolysis reactions and exchanges
 
-The remaining reactions of glycolysis are added. Exchange and transport reactions are then added, and the cell can take up sucrose and excrete pyruvate and water.
+Add the remaining reactions of glycolysis. Then add exchange and transport reactions, so that the cell can take up sucrose and excrete pyruvate and water.
 
-`importModel` is run again to check the structure during the build.
+Run `importModel` on the file again to check the structure during the build.
 
 ### 4. Handling cofactors and defining the objective
 
 Two problems remain:
 
-- NAD⁺ must be regenerated from NADH. The model is extended, for example with ethanol production through pyruvate decarboxylase and alcohol dehydrogenase, or exchange reactions for NAD⁺ and NADH are added as an approximation.
-- The ATP yield must be measured. A "fake" ATP hydrolysis reaction is added and its flux is maximised. Production must match consumption, so the flux reports how much ATP the network can make. The direction is checked, because a wrong direction allows free ATP synthesis.
+- NAD⁺ must be regenerated from NADH. Extend the model, for example with ethanol production through pyruvate decarboxylase and alcohol dehydrogenase, or add exchange reactions for NAD⁺ and NADH as an approximation.
+- The ATP yield must be measured. Add a "fake" ATP hydrolysis reaction and maximise its flux. Production must match consumption, so the flux reports how much ATP the network can make. Check the direction, because a wrong direction allows free ATP synthesis.
 
-The sucrose uptake is limited to one unit, and the ATP-hydrolysis reaction is set as the objective to maximise.
+Limit the sucrose uptake to one unit, and set the ATP-hydrolysis reaction as the objective to maximise.
 
 ### 5. Solving
 
-When the model is complete, the linear programming problem is solved and the fluxes are printed. The completed model is `small.yml`, which the solutions script reads directly:
+When the model is complete, solve the linear programming problem and print the fluxes. The completed model is `small.yml`, which the solutions script reads directly:
 
 ```matlab
 smallModel = readYAMLmodel('small.yml');

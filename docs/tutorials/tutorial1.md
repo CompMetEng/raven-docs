@@ -21,7 +21,7 @@ The model contains 1632 reactions, 1395 metabolites and 1006 genes.
 
 ### 2. Simplifying the model
 
-Mass balancing is done around the internal metabolites. The unconstrained (boundary) metabolites that let the system take up or excrete compounds are removed before simulation. `simplifyModel` makes models smaller, for example by grouping linear reactions and by deleting reactions that cannot carry flux. The call below deletes the unconstrained metabolites, the reactions constrained to zero flux (mainly the uptake of non-standard carbon sources) and the dead-end reactions, and leaves linear reactions ungrouped.
+Mass balancing is done around the internal metabolites. Remove the unconstrained (boundary) metabolites that let the system take up or excrete compounds before simulation. `simplifyModel` makes models smaller, for example by grouping linear reactions and by deleting reactions that cannot carry flux. The call below deletes the unconstrained metabolites, the reactions constrained to zero flux (mainly the uptake of non-standard carbon sources) and the dead-end reactions, and leaves linear reactions ungrouped.
 
 ```matlab
 model = simplifyModel(model, true, false, true, true);
@@ -56,7 +56,7 @@ The solution that minimises the sum of fluxes has far fewer active reactions tha
 
 ### 5. Optimising for growth and comparing carbon sources
 
-For growth, the objective is changed to biomass production (`bmOUT`). The growth rate on glucose is 0.084/h, and the system also requires sulfate, phosphate, NH3, thiamin and pimelate. Growth on ethanol is compared with a molar flux three times as large, because ethanol has 2 carbons and glucose has 6. The `eq` flag sets the lower and the upper bound to the same value.
+For growth, change the objective to biomass production (`bmOUT`). The growth rate on glucose is 0.084/h, and the system also requires sulfate, phosphate, NH3, thiamin and pimelate. Compare with growth on ethanol at a molar flux three times as large, because ethanol has 2 carbons and glucose has 6. The `eq` flag sets the lower and the upper bound to the same value.
 
 ```matlab
 model = setParam(model, 'obj', {'bmOUT'}, 1);

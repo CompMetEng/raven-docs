@@ -6,7 +6,7 @@ Homology-based draft models tend to have many gaps, which are missing reactions 
 
 ## Forcing biomass production
 
-Gap-filling is set up for growth on glycerol as the carbon source with biomass production as the objective. The model is forced to carry a small non-zero biomass flux, and the glycerol uptake is raised so that the fluxes stay above the tolerance of the MILP solver:
+Gap-filling is set up for growth on glycerol as the carbon source with biomass production as the objective. Force the model to carry a small non-zero biomass flux, and raise the glycerol uptake so that the fluxes stay above the tolerance of the MILP solver:
 
 ```matlab
 model = setParam(model, 'obj', 'r_4041', 1);
@@ -31,7 +31,7 @@ modelRhto2 = removeReactions(modelRhto2, rxns);
 [~, ~, addedRxns, model] = fillGaps(model, {modelSce2, modelRhto2}, false, true);
 ```
 
-`allowNetProduction` set to `false` prevents additional exchange reactions, and `useModelConstraints` set to `true` ensures that the flux from glycerol to biomass is gap-filled. The growth of the model is verified, then the lipids are scaled and the bounds of the carbon uptake are restored:
+`allowNetProduction` set to `false` prevents additional exchange reactions, and `useModelConstraints` set to `true` ensures that the flux from glycerol to biomass is gap-filled. Verify that the model grows, then scale the lipids and restore the bounds of the carbon uptake:
 
 ```matlab
 sol = solveLP(model, 1);

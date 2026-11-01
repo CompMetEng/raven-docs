@@ -33,7 +33,7 @@ The full script reads three template files (`lipidTemplates.txt`, `lipidTranspor
 
 ## Scaling the acyl chains
 
-After gap-filling, the provided levels of acyl chains and lipid classes turn out to be incompatible, and one of the two must be scaled for a functional model. The protocol assumes that the lipid-class measurements are technically more reliable, and it scales the acyl-chain data:
+After gap-filling, the provided levels of acyl chains and lipid classes turn out to be incompatible, and one of the two must be scaled for a functional model. The protocol assumes that the lipid-class measurements are technically more reliable. Scale the acyl-chain data:
 
 ```matlab
 model = scaleLipids(model, 'tails');
