@@ -210,7 +210,7 @@ print(f"ethanol: free {result.samples['ethOUT'].mean():.2f}, "
 ```
 
 ```text
-ethanol: free 0.72, growth >= 90% 0.04
+ethanol: free 0.73, growth >= 90% 0.03
 ```
 :::
 ::::
