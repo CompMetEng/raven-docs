@@ -1,21 +1,21 @@
 # Solvers and configuration
 
-Most simulations on this site solve a linear program (LP); gap-filling, minimum-component media, `solveLP` with `minFlux` 3 and ftINIT solve mixed-integer linear programs (MILPs), and the quadratic MOMA in [Deletions and essentiality](deletions.md) solves a quadratic program (QP). Each of them needs a solver, and which solver can do which depends on the solver and the toolbox.
+Most simulations on this site solve a linear program (LP). Gap-filling, minimal media with a minimum number of components, `solveLP` with `minFlux` set to 3, and ftINIT solve mixed-integer linear programs (MILPs). The quadratic MOMA in [Deletions and essentiality](deletions.md) solves a quadratic program (QP). The solvers that can handle each problem type depend on the solver and on the toolbox.
 
 ## Functions
 
 | MATLAB | Python | Purpose |
 |---|---|---|
-| `setRavenSolver` | `Configuration` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | choose the solver |
-| `checkRaven` | `Configuration` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | check the solver works |
-| `solveLP` | `Model.optimize` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | solve, and get a solution object |
-| `optimizeProb` | `Model.solver` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | solve a problem the toolbox built |
+| `setRavenSolver` | `Configuration` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | select the solver |
+| `checkRaven` | no equivalent | test the solver |
+| `solveLP` | `Model.optimize` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | solve and return a solution object |
+| `optimizeProb` | `Model.solver` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | solve a problem that the toolbox built |
 
 ## Setup
 
-`smallYeast.yml` from [`docs/data/`](../data/README.md), with glucose and oxygen opened so there is something to solve.
+The model is `smallYeast.yml` from [`docs/data/`](../data/README.md), with glucose and oxygen opened so that there is a problem to solve.
 
-In this model the uptake reactions are written as `=> metabolite` and supplied closed at `[0 0]`, so uptake is a positive flux and opening one means raising its upper bound. Lowering the lower bound instead gives a model that solves, reports success, and grows at exactly zero.
+In this model, the uptake reactions are written as `=> metabolite` and are closed at `[0 0]`. Uptake is a positive flux, and an uptake reaction is opened by raising its upper bound. Lowering the lower bound instead gives a model that solves, reports success and grows at zero.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -39,7 +39,7 @@ model.reactions.get_by_id("o2IN").upper_bound = 1000.0
 :::
 ::::
 
-The sign convention here is the opposite of yeast-GEM's, where uptake is a negative flux through an exchange reaction. Neither is more correct; a model carries whichever its author chose, and the direction the equation is written in decides which bound opens it. [Growth media and conditions](media.md) works through the other convention.
+The sign convention is the opposite of the one in yeast-GEM, where uptake is a negative flux through an exchange reaction. A model carries the convention of its author, and the direction in which the equation is written decides which bound opens the reaction. [Growth media and conditions](media.md) works with the other convention.
 
 ## Solver in use
 
@@ -55,7 +55,7 @@ fprintf('RAVEN solver preference: %s\n', getpref('RAVEN', 'solver'));
 RAVEN solver preference: ...
 ```
 
-RAVEN keeps the choice in MATLAB's preferences, so it survives restarts, and the answer is whatever this installation was last set to, so the output is elided. The preference is global to the installation, not a property of the model, so a script that changes it changes it for everything that follows. `checkRaven` prints it along with a test solve.
+RAVEN stores the choice in the MATLAB preferences, so it persists across sessions. The answer is the last setting of the installation, and the output is therefore elided. The preference belongs to the installation, so a script that changes it changes it for everything that runs afterwards. `checkRaven` prints the solver together with a test solve.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -72,13 +72,13 @@ default: optlang.glpk_interface
 this model: optlang.glpk_interface
 ```
 
-cobrapy has two levels: `Configuration()` is the default applied to models created from then on, and `model.solver` is the interface this model is using. Because the choice is stored on the model, two models in one session can use different solvers.
+cobrapy has two levels. `Configuration()` holds the default for models created afterwards, and `model.solver` is the interface that a model uses. The choice is stored on the model, so two models in one session can use different solvers.
 :::
 ::::
 
 ## Changing the solver
 
-Both toolboxes ship with GLPK, which solves LPs and MILPs, so it runs every example on this site except the quadratic MOMA. RAVEN prints a warning when it sends a MILP to GLPK, recommending Gurobi: GLPK handles problems the size of these examples, but on a genome-scale model gap-filling and ftINIT can take far longer than with Gurobi, which is free for academic use. A QP needs a QP-capable solver, such as Gurobi or CPLEX; RAVEN has no functions that solve one.
+Both toolboxes ship with GLPK, which solves LPs and MILPs and therefore runs every example on this site except the quadratic MOMA. RAVEN warns when it sends a MILP to GLPK and recommends Gurobi. GLPK handles problems of the size of these examples, but gap-filling and ftINIT on a genome-scale model take much longer than with Gurobi, which is free for academic use. A QP needs a solver that supports QPs, such as Gurobi or CPLEX. RAVEN has no function that solves a QP.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -88,7 +88,7 @@ Both toolboxes ship with GLPK, which solves LPs and MILPs, so it runs every exam
 setRavenSolver('glpk');     % 'gurobi', 'scip', or 'cobra' to hand over to the COBRA Toolbox
 ```
 
-The accepted values are `'glpk'`, `'gurobi'`, `'scip'` and `'cobra'`. `'glpk'` uses the binaries RAVEN ships, so it works with no further installation. `'gurobi'` needs Gurobi on the MATLAB path, and `'scip'` the SCIP MATLAB interface. `'cobra'` translates the problem into COBRA Toolbox form and uses whatever `changeCobraSolver` last selected, which requires the COBRA Toolbox to be initialised first; `setRavenSolver` checks that and errors without storing a preference that cannot work.
+The accepted values are `'glpk'`, `'gurobi'`, `'scip'` and `'cobra'`. `'glpk'` uses the binaries that ship with RAVEN and needs no further installation. `'gurobi'` needs Gurobi on the MATLAB path, and `'scip'` needs the SCIP MATLAB interface. `'cobra'` translates the problem to the format of the COBRA Toolbox and uses the solver last selected with `changeCobraSolver`. It requires an initialised COBRA Toolbox, which `setRavenSolver` checks, and it raises an error without storing a preference that cannot work.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -100,7 +100,7 @@ from cobra import Configuration
 Configuration().solver = "glpk"     # the default for models loaded later
 ```
 
-Assigning to `model.solver` rebuilds this model's problem; assigning to `Configuration().solver` changes the default for models created afterwards and leaves existing ones alone. The available names are whichever optlang interfaces are installed.
+Assigning to `model.solver` rebuilds the problem of this model. Assigning to `Configuration().solver` changes the default for models created afterwards and leaves existing models unchanged. The available names are the optlang interfaces that are installed.
 :::
 ::::
 
@@ -110,15 +110,15 @@ The two solution objects carry the same information under different names.
 
 | MATLAB `solveLP` | cobrapy `Solution` | Meaning |
 |---|---|---|
-| `sol.f` | `solution.objective_value` | objective value, same sign in both |
-| `sol.x` | `solution.fluxes` | fluxes: a vector in `model.rxns` order, or a Series by id |
+| `sol.f` | `solution.objective_value` | objective value, with the same sign in both |
+| `sol.x` | `solution.fluxes` | fluxes: a vector in the order of `model.rxns`, or a Series by identifier |
 | `sol.stat` | `solution.status` | how the solve ended |
-| `sol.msg` | `solution.status` | what the solver said |
-| `sol.sPrice`, `sol.rCost` | `solution.shadow_prices`, `solution.reduced_costs` | duals |
+| `sol.msg` | `solution.status` | message of the solver |
+| `sol.sPrice`, `sol.rCost` | `solution.shadow_prices`, `solution.reduced_costs` | dual values |
 
-`sol.stat` takes four values: `1` solved to optimality, `0` feasible but not proven optimal, `-1` infeasible, and `-2` solved but with the flux minimisation (`minFlux`) failing afterwards. Only `1` means the fluxes are the answer to the question that was asked.
+`sol.stat` takes four values: `1` for solved to optimality, `0` for feasible without a proof of optimality, `-1` for infeasible, and `-2` for solved with a failure of the flux minimisation (`minFlux`) afterwards. Only `1` means that the fluxes answer the question.
 
-The duals are the exception to the correspondence: RAVEN reports `sPrice` and `rCost` only when `solveLP` runs without flux minimisation, because the second optimisation replaces the problem whose duals they describe.
+The dual values do not correspond in all cases. RAVEN reports `sPrice` and `rCost` when `solveLP` runs without flux minimisation, because the second optimisation replaces the problem that the duals describe.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -136,7 +136,7 @@ stat 1: Optimal solution found
 growth 0.1222 /h
 ```
 
-`solveLP` builds a COBRA-style problem struct and hands it to `optimizeProb`, which is where the selected solver is called. Calling `optimizeProb` directly is the way to solve a problem the toolbox built, such as the MILPs inside gap-filling. It takes two name-value arguments: `'params'`, a struct forwarded to the solver, and `'verbose'`, which shows MILP progress. One field of `params` is handled by RAVEN and not passed on: `maxRatio`, which, for LPs only, splits badly-scaled columns through auxiliary metabolites before solving and leaves the feasible region unchanged.
+`solveLP` builds a problem struct in the COBRA format and passes it to `optimizeProb`, which calls the selected solver. `optimizeProb` is called directly to solve a problem that the toolbox built, such as the MILPs inside gap-filling. It takes two name-value arguments: `'params'`, a struct that is passed to the solver, and `'verbose'`, which shows the progress of a MILP. RAVEN handles one field of `params` itself and does not pass it on. `maxRatio` applies to LPs, splits badly scaled columns through auxiliary metabolites before solving and leaves the feasible region unchanged.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -153,13 +153,13 @@ status optimal
 growth 0.1222 /h
 ```
 
-`model.solver` is the optlang problem itself, so the underlying solver is reachable for anything cobrapy does not expose: `model.solver.problem` is the native object, and `model.solver.configuration` carries tolerances, time limits and thread counts.
+`model.solver` is the optlang problem itself, so the underlying solver is accessible for anything that cobrapy does not expose. `model.solver.problem` is the native object, and `model.solver.configuration` holds tolerances, time limits and the number of threads.
 :::
 ::::
 
 ## Failed solves
 
-An infeasible problem is the most common outcome of a bad edit, and the two toolboxes report it differently: RAVEN sets `sol.stat` to `-1` and returns an empty flux vector, while cobrapy raises nothing; `optimize` returns a solution with status `infeasible`, and `slim_optimize` returns `nan`.
+An infeasible problem is the usual result of a bad edit, and the toolboxes report it differently. RAVEN sets `sol.stat` to `-1` and returns an empty flux vector. cobrapy raises no error: `optimize` returns a solution with the status `infeasible`, and `slim_optimize` returns `nan`.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -176,7 +176,7 @@ fprintf('stat %d: %s\n', sol.stat, sol.msg);
 stat -1: The problem is infeasible
 ```
 
-`sol.f` and `sol.x` are empty here, not zero, so arithmetic on them produces an empty result and no error. An unchecked infeasible solve therefore turns into a blank in a report.
+`sol.f` and `sol.x` are empty, so arithmetic on them returns an empty result without an error. An infeasible solve that is not checked appears as a blank in a report.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -194,23 +194,23 @@ status: infeasible
 slim_optimize: nan
 ```
 
-Check the status before using a number. `slim_optimize` skips building a full solution, so it is the fast option inside a loop, but it returns `nan` and gives no reason.
+The status should be checked before a number is used. `slim_optimize` does not build a full solution, which makes it fast inside a loop, and it returns `nan` without a reason.
 :::
 ::::
 
-An infeasible model is over-constrained: the constraints as written have no solution. That is different from a feasible model whose optimum is zero, which is a statement about biology, not about the constraints.
+An infeasible model is over-constrained, and no solution satisfies the constraints as written. A feasible model with an optimum of zero is a different case, and it describes the biology.
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- A solver that is set but not installed. `setRavenSolver('gurobi')` stores the preference whether or not Gurobi is there; the failure appears at the next solve. `checkRaven` tests it directly.
-- A large MILP on GLPK. Both toolboxes send MILPs to GLPK, and RAVEN warns when it does. On a genome-scale model, gap-filling and ftINIT can run for hours on GLPK where Gurobi takes minutes; use Gurobi for those.
-- Reading fluxes after a non-optimal solve. `sol.stat` of `0` means a feasible point was found but not proven optimal, and `-2` means the parsimonious step failed after an optimal first solve. Both return numbers.
-- Tiny differences between solvers. Alternative optima mean two solvers can return different flux distributions for the same objective value. Pin one solver for anything that is to be compared.
+- A solver is set and missing. `setRavenSolver('gurobi')` stores the preference whether or not Gurobi is present, and the failure appears at the next solve. `checkRaven` tests the solver directly.
+- A large MILP runs on GLPK. Both toolboxes send MILPs to GLPK, and RAVEN warns when it does. Gap-filling and ftINIT on a genome-scale model run for hours on GLPK where Gurobi takes minutes.
+- Fluxes are read after a solve that is not optimal. `sol.stat` of `0` means that a feasible point was found without a proof of optimality, and `-2` means that the parsimonious step failed after an optimal first solve. Both return numbers.
+- Solvers give slightly different results. Alternative optima allow two solvers to return different flux distributions with the same objective value. Fix one solver for any comparison.
 :::
 
 ## See also
 
-- [Simulating growth with FBA](fba.md), the solve itself.
-- [Growth media and conditions](media.md), the constraints that decide whether a problem is feasible.
-- [Installation](../installation/index.md), installing and testing a solver.
+- [Simulating growth with FBA](fba.md): the solve.
+- [Growth media and conditions](media.md): the constraints that decide whether a problem is feasible.
+- [Installation](../installation/index.md): installation and test of a solver.

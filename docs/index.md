@@ -9,7 +9,7 @@
   <p class="site-tagline">A toolkit for building, curating, and simulating genome-scale metabolic models, available as a MATLAB toolbox and a Python package built on cobrapy.</p>
 </div>
 
-## Install
+## Installation
 
 ::::{tab-set}
 :::{tab-item} Python (pip)
@@ -17,12 +17,6 @@
 ```bash
 pip install --pre raven-toolbox
 ```
-:::
-:::{tab-item} MATLAB (Add-Ons)
-
-Home → Add-Ons → Get Add-Ons → search "RAVEN Toolbox".
-
-Then run `checkRaven` to verify.
 :::
 :::{tab-item} Python (git)
 
@@ -37,7 +31,11 @@ pip install -e raven-toolbox/
 git clone --depth=1 https://github.com/CompMetEng/RAVEN.git
 ```
 
-Add the folder to the MATLAB path, then run `checkRaven` to verify.
+Add the folder to the MATLAB path and run `checkRaven`, which reports whether the installation and the solver work.
+:::
+:::{tab-item} MATLAB (Add-Ons)
+
+The Add-Ons manager installs the latest stable release, RAVEN 2.x. RAVEN 3.0.0b1, which this site documents, is installed from git or from a source archive; see [RAVEN (MATLAB)](installation/raven.md).
 :::
 ::::
 
@@ -46,32 +44,34 @@ Add the folder to the MATLAB path, then run `checkRaven` to verify.
 ::::{grid} 1 2 3 3
 
 :::{grid-item-card} Homology reconstruction
-Build draft models by transferring reactions from template models using BLAST+, DIAMOND, or HMMER.
+Transfers reactions from template models to a new genome, using BLAST+, DIAMOND or HMMER to find the homologous genes.
 :::
 
 :::{grid-item-card} KEGG-based reconstruction
-Reconstruct metabolic networks from KEGG organism annotations and pathway databases.
+Builds a draft network from the KEGG annotation of an organism or from KEGG pathway and reaction entries.
 :::
 
 :::{grid-item-card} Flux analysis
-FBA, FVA, gene knockouts, and flux sampling with Gurobi or GLPK solvers.
+Runs flux balance analysis (FBA), flux variability analysis (FVA), gene and reaction deletions and flux sampling. The MATLAB toolbox solves with GLPK, Gurobi, SCIP or a COBRA Toolbox solver; raven-toolbox uses the solvers of cobrapy.
 :::
 
 :::{grid-item-card} ftINIT
-Fast task-and-data-driven INIT for extracting context-specific models from transcriptomics data.
+Extracts a context-specific model from gene expression data. ftINIT is the successor of the legacy tINIT method.
 :::
 
 :::{grid-item-card} Gap-filling
-Identify and fill stoichiometric gaps by LP to restore connectivity or enable predicted growth.
+Adds reactions from a template model so that blocked reactions carry flux, a metabolic task passes or the model grows.
 :::
 
 :::{grid-item-card} Model curation
-Check mass and charge balance, dead-end metabolites, and metabolic task fulfilment.
+Checks the structure, the mass and charge balance, the connectivity and the metabolic tasks of a model.
 :::
 
 ::::
 
 ## Quick start
+
+The example loads yeast-GEM, sets growth as the objective, limits glucose uptake to 1 mmol/gDW/h and runs FBA.
 
 ::::{tab-set}
 :::{tab-item} 🐍 Python
@@ -80,16 +80,13 @@ Check mass and charge balance, dead-end metabolites, and metabolic task fulfilme
 ```python
 from raven_toolbox.io import read_yaml_model
 
-# load yeast-GEM from RAVEN YAML -- returns a plain cobra.Model
+# read_yaml_model returns a cobra.Model
 model = read_yaml_model("yeast-GEM.yml")
 
-# set growth as the objective
 model.objective = "r_2111"
-
-# constrain glucose uptake to 1 mmol/gDW/h
 model.reactions.get_by_id("r_1714").lower_bound = -1.0
 
-# run FBA -- simulation comes from cobrapy, unchanged
+# optimize is the cobrapy method
 sol = model.optimize()
 print(f"Growth rate: {sol.objective_value:.4f} h⁻¹")
 ```
@@ -98,16 +95,11 @@ print(f"Growth rate: {sol.objective_value:.4f} h⁻¹")
 :sync: matlab
 
 ```matlab
-% load yeast-GEM from RAVEN YAML
 model = readYAMLmodel('yeast-GEM.yml');
 
-% set growth as the objective
 model = setParam(model, 'obj', 'r_2111', 1);
-
-% constrain glucose uptake to 1 mmol/gDW/h
 model = setParam(model, 'lb', 'r_1714', -1);
 
-% run FBA
 sol = solveLP(model);
 fprintf('Growth rate: %.4f h-1\n', sol.f);
 ```
@@ -122,28 +114,28 @@ fprintf('Growth rate: %.4f h-1\n', sol.f);
 :link: guide/index
 :link-type: doc
 
-Twenty-two task-focused pages, MATLAB and Python side by side, with the examples executed and their output checked.
+One page per task, with MATLAB and Python examples side by side. Most examples are executed, and their output is checked against the text.
 :::
 
 :::{grid-item-card} API reference
 :link: api/index
 :link-type: doc
 
-Function reference for both MATLAB and Python.
+Reference of the MATLAB functions and the Python functions.
 :::
 
 :::{grid-item-card} Installation
 :link: installation/index
 :link-type: doc
 
-Set up RAVEN in MATLAB or raven-toolbox in Python with a solver.
+Installation of RAVEN or raven-toolbox, and the choice of a solver.
 :::
 
 :::{grid-item-card} Comparison of RAVEN and raven-toolbox
 :link: raven3-vs-raven-toolbox
 :link-type: doc
 
-Use of each implementation, features present in only one of them, and where the same function gives a different answer.
+The features that exist in one implementation alone, and the functions that return a different result in each.
 :::
 
 ::::
@@ -158,15 +150,15 @@ Cite the following publication when using RAVEN in research:
 > coelicolor*.** PLoS Computational Biology 14(10): e1006541.
 > <https://doi.org/10.1371/journal.pcbi.1006541>
 
-[Citations](references.md) holds the full list, including the first RAVEN paper (2013) and the GEM reconstruction protocol.
+[Citations](references.md) lists further publications, among them the first RAVEN paper (2013) and the protocol for genome-scale model reconstruction.
 
 ## Source code
 
-RAVEN is publicly available under the GPLv3 licence at [CompMetEng/RAVEN](https://github.com/CompMetEng/RAVEN){.github}, archived at [https://doi.org/10.5281/zenodo.3689518](https://doi.org/10.5281/zenodo.3689518). raven-toolbox, the Python port, is under the MIT licence at [CompMetEng/raven-toolbox](https://github.com/CompMetEng/raven-toolbox){.github}.
+RAVEN is released under the GPLv3 licence at [CompMetEng/RAVEN](https://github.com/CompMetEng/RAVEN){.github}, archived at [https://doi.org/10.5281/zenodo.3689518](https://doi.org/10.5281/zenodo.3689518). raven-toolbox, the Python port, is released under the MIT licence at [CompMetEng/raven-toolbox](https://github.com/CompMetEng/raven-toolbox){.github}.
 
 ## Issues and discussions
 
-Bug reports and feature requests go to the tracker of the toolbox concerned: [RAVEN issues](https://github.com/CompMetEng/RAVEN/issues){.github} for the MATLAB toolbox, [raven-toolbox issues](https://github.com/CompMetEng/raven-toolbox/issues){.github} for the Python package. Questions and general discussion go to [RAVEN discussions](https://github.com/CompMetEng/RAVEN/discussions){.github} or [raven-toolbox discussions](https://github.com/CompMetEng/raven-toolbox/discussions){.github}.
+Bug reports and feature requests go to the issue tracker of the toolbox concerned: [RAVEN issues](https://github.com/CompMetEng/RAVEN/issues){.github} for the MATLAB toolbox, [raven-toolbox issues](https://github.com/CompMetEng/raven-toolbox/issues){.github} for the Python package. Questions go to [RAVEN discussions](https://github.com/CompMetEng/RAVEN/discussions){.github} or [raven-toolbox discussions](https://github.com/CompMetEng/raven-toolbox/discussions){.github}.
 
 ```{toctree}
 :hidden:

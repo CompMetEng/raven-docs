@@ -1,22 +1,25 @@
 # Deletions and essentiality
 
-Gene deletion analysis tests which genes can be deleted while the organism grows: each gene is knocked out, the model is solved again and the result is compared with the wild type. The same machinery answers which reactions are essential, what happens if two things are deleted at once, and what flux distribution a knockout has right after the gene is removed.
+A gene deletion analysis finds the genes that can be deleted while the organism grows. Each gene is knocked out, the model is solved again, and the result is compared with the wild type. The same procedure identifies essential reactions, the effect of two simultaneous deletions, and the flux distribution of a knockout directly after the gene is lost.
 
 ## Functions
 
 | MATLAB | Python | Purpose |
 |---|---|---|
-| `findGeneDeletions` | `single_gene_deletion` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | knock out every gene in turn |
-| `findGeneDeletions` (`'sgd'`/`'dgd'`) | `double_gene_deletion` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | pairs of genes |
-| `getEssentialRxns` | `find_task_essential_reactions` | reactions a task requires |
-| `removeGenes` | `remove_genes` | remove genes, not knock them out |
-| no equivalent | `moma` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | fluxes of a knockout, kept near the wild type |
+| `findGeneDeletions` | `single_gene_deletion` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | knock out each gene in turn |
+| `findGeneDeletions` (`'sgd'`/`'dgd'`) | `double_gene_deletion` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | knock out pairs of genes |
+| `getEssentialRxns` | `single_reaction_deletion` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | reactions that the model requires (feasibility in MATLAB, growth in Python) |
+| `checkTasks` (`getEssential`) | `find_task_essential_reactions` | reactions that a task requires |
+| `removeGenes` | `remove_genes` | remove genes from the model, which differs from a knockout |
+| no equivalent | `moma` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | fluxes of a knockout, kept close to the wild type |
 
-`removeGenes` and `remove_genes` rewrite each affected GPR without the removed gene. A reaction left without a catalyst stays in the model with its rule dropped and its bounds set to `(0, 0)` (the default of `remove_genes`, and of `removeGenes` with `removeBlockedRxns` false), which is the bound state `knock_out_model_genes` leaves a blocked reaction in, so the flux consequence of the default equals that of a knockout. `removeGenes` and `remove_genes` also remove the gene and its occurrences in the reaction rules from the model, which a knockout does not; with `blocked_reactions="keep"` the blocked reactions stay at their bounds, and `removeBlockedRxns` true and `blocked_reactions="remove"` delete them. When at least one requested gene is in the model, genes that no remaining reaction used are removed as well, also when they were not requested; when none is in the model, no gene is removed (with `standardizeRules` true, RAVEN standardises the rules in that case too).
+`removeGenes` and `remove_genes` rewrite each affected gene rule without the removed gene. A reaction that has no catalyst left stays in the model with its rule dropped and its bounds set to `(0, 0)`. This is the default of `remove_genes`, the behaviour of `removeGenes` with `removeBlockedRxns` false, and the bound state in which `knock_out_model_genes` leaves a blocked reaction, so the flux consequence of the default equals that of a knockout. Removal also takes the gene and its occurrences in the reaction rules out of the model, which a knockout does not. With `blocked_reactions="keep"` the blocked reactions keep their bounds, and `removeBlockedRxns` true or `blocked_reactions="remove"` deletes them.
+
+When at least one requested gene is in the model, the genes that no remaining reaction used before the removal are removed as well, including genes that were not requested. When no requested gene is in the model, no gene is removed, and RAVEN standardises the rules in this case too when `standardizeRules` is true.
 
 ## Setup
 
-`smallYeast.yml` is used with glucose and oxygen open, so the model grows. Uptake in this model is a positive flux through a `=> metabolite` reaction, so the upper bound opens it.
+The model is `smallYeast.yml` with glucose and oxygen open, and the model grows. Uptake in this model is a positive flux through a `=> metabolite` reaction, and the upper bound opens it.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -55,7 +58,7 @@ wild type: 0.1222 /h
 
 ## Single gene knockout
 
-Every deletion study asks whether the model reaches its objective with a given gene deleted. A gene knockout is not a reaction knockout. The GPR decides how a gene knockout affects the reactions. Removing one of two isozymes changes nothing; removing a subunit of a complex blocks the reaction.
+Every deletion study asks whether the model reaches its objective with a given gene deleted. A gene knockout differs from a reaction knockout, and the gene rule determines how the knockout affects the reactions. Removing one of two isozymes changes nothing, and removing a subunit of a complex blocks the reaction.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -89,7 +92,7 @@ PGI1 knockout: 0.0000 /h
 wild type again: 0.1222 /h
 ```
 
-`knock_out_model_genes` sets the bounds of every reaction whose GPR cannot be satisfied to zero and leaves the others unchanged. Inside `with model:` the change is undone when the block exits, so the knockout does not persist beyond the block.
+`knock_out_model_genes` sets the bounds of every reaction whose gene rule cannot be satisfied to zero and leaves the other reactions unchanged. Inside `with model:` the change is undone when the block ends.
 :::
 ::::
 
@@ -109,7 +112,13 @@ fprintf('%d genes tested, %d essential\n', numel(genes), sum(growth < 1e-6));
 61 genes tested, 9 essential
 ```
 
-`fluxes` is sparse and has one column per deletion, so the growth row is selected by the objective's position (`fluxes(logical(model.c), :)`). `findGeneDeletions` also returns a `details` vector saying what happened to each gene: 1 when the deletion was solved, 2 when the problem had no optimal solution (infeasible or failed, with fluxes reported as zero), and 4 when the gene was skipped because it only appears on dead-end reactions and deleting it could not change the answer. A gene whose deletion solves to zero growth gets 1, not 2, so lethality is read from the growth row.
+`fluxes` is sparse and has one column per deletion, so the growth row is selected by the position of the objective (`fluxes(logical(model.c), :)`). `findGeneDeletions` also returns the vector `details`, which states what happened to each gene:
+
+- `1`: the deletion was solved.
+- `2`: the problem had no optimal solution (infeasible or failed), and the fluxes are reported as zero.
+- `4`: the gene was skipped because all its reactions are dead ends, so deleting it cannot change the result.
+
+A deletion that is solved with zero growth gets `1`, so lethality is read from the growth row.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -128,13 +137,13 @@ print(sorted(next(iter(ids)) for ids in essential.ids)[:5])
 ['YBR196C', 'YCR012W', 'YDL066W', 'YDR050C', 'YKL060C']
 ```
 
-`single_gene_deletion` returns a DataFrame with one row per deletion: `ids` (the set of deleted gene ids, a set so that the double-deletion case has the same shape), `growth` and `status`. A gene is looked up with `results.knockout["YBR196C"]`. A knockout that makes the problem infeasible gets `growth` NaN and `status` `'infeasible'`, and `growth < 1e-6` does not select it. To count those as lethal, use `results[(results.growth < 1e-6) | (results.status != "optimal")]`; the MATLAB filter does this, since `findGeneDeletions` reports zero fluxes for them. Here every solve is optimal, so both filters find the same 9.
+`single_gene_deletion` returns a DataFrame with one row per deletion and the columns `ids`, `growth` and `status`. `ids` is the set of deleted gene identifiers, a set so that the double deletion has the same shape. A gene is looked up with `results.knockout["YBR196C"]`. A knockout that makes the problem infeasible gets `growth` NaN and `status` `'infeasible'`, and the filter `growth < 1e-6` does not select it. The selection `results[(results.growth < 1e-6) | (results.status != "optimal")]` counts these knockouts as lethal, as the MATLAB filter does, because `findGeneDeletions` reports zero fluxes for them. Every solve here is optimal, so both filters find the same 9 genes.
 :::
 ::::
 
 ## Essential reactions
 
-Reaction essentiality asks the same question for reactions. `getEssentialRxns` and `single_reaction_deletion` ask different questions, so their answers differ by 24.
+Reaction essentiality asks the same question for reactions. `getEssentialRxns` and `single_reaction_deletion` answer different questions, and their answers differ by 24 reactions.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -149,7 +158,7 @@ fprintf('%d essential reactions\n', numel(essential));
 0 essential reactions
 ```
 
-`getEssentialRxns` zeroes the objective before it starts and calls a reaction essential when constraining it to zero makes the problem infeasible. It determines what the model needs to have any solution at all, with no requirement to grow. With the medium open, nothing in `smallYeast.yml` is required for feasibility, so the answer is zero. `ignoreRxns` excludes reactions from the search.
+`getEssentialRxns` sets the objective to zero before it starts, and it calls a reaction essential when constraining the reaction to zero makes the problem infeasible. The function determines what the model needs to have any solution, with no requirement to grow. With the medium open, nothing in `smallYeast.yml` is needed for feasibility, so the result is zero. `ignoreRxns` excludes reactions from the search.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -166,15 +175,15 @@ print(f"{len(essential)} essential reactions")
 24 essential reactions
 ```
 
-`single_reaction_deletion` keeps the objective and counts the reactions whose removal drops growth below the threshold applied afterwards, `1e-6` here. That is essentiality with respect to growth, which is the question most deletion studies mean, so this function returns 24 where the MATLAB tab returns none.
+`single_reaction_deletion` keeps the objective and counts the reactions whose removal lowers the growth below the threshold that is applied afterwards, `1e-6` here. This is essentiality with respect to growth, which is the question of most deletion studies, and the function returns 24 reactions where the MATLAB example returns none.
 
-For essentiality with respect to a task, not the objective, raven-toolbox has `find_task_essential_reactions`; see [Metabolic tasks](tasks.md).
+`find_task_essential_reactions` in raven-toolbox gives essentiality with respect to a task ([Metabolic tasks](tasks.md)).
 :::
 ::::
 
 ## Double deletions
 
-Double deletions find the redundancy that single deletions miss: two genes that each look dispensable but cannot both be deleted. The number of pairs to test is quadratic in the number of genes, so run time grows sharply with model size.
+Double deletions find redundancy that single deletions miss, as two genes can each be dispensable and still not be deletable together. The number of pairs grows with the square of the number of genes, so the run time increases sharply with the size of the model.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -210,15 +219,15 @@ lowest growth: 0.0000 /h
 
 ## Fluxes of a knockout
 
-FBA assumes that the knockout re-optimises perfectly, which a cell directly after losing a gene does not do. MOMA (minimisation of metabolic adjustment) looks for the flux distribution closest to a wild-type reference that the mutant can achieve. It models the state right after the knockout, before the cell adapts, and gives a different answer from FBA.
+FBA assumes that the knockout re-optimises perfectly, which a cell directly after the loss of a gene does not do. MOMA (minimisation of metabolic adjustment) finds the flux distribution that the mutant can achieve and that is closest to a wild-type reference. It models the state directly after the knockout, before the cell adapts, and gives a different answer from FBA.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
 :sync: matlab
 
-RAVEN has no MOMA. RAVEN 3 removed `qMOMA`, which solved the quadratic problem with `quadprog` from MATLAB's Optimization Toolbox, as the last function that depended on a paid MATLAB toolbox. Nothing in RAVEN replaces it, so a MOMA prediction has to come from Python or from the COBRA Toolbox, which has its own.
+RAVEN has no MOMA. RAVEN 3 removed `qMOMA`, which solved the quadratic problem with `quadprog` from the Optimization Toolbox of MATLAB, as the last function that depended on a paid MATLAB toolbox. No function of RAVEN replaces it, and a MOMA prediction comes from Python or from the COBRA Toolbox, which has its own.
 
-The FBA half of the comparison runs in RAVEN:
+The FBA part of the comparison runs in RAVEN:
 
 ```matlab
 modelKO = removeGenes(model, {'YER178W'}, 'removeBlockedRxns', true);   % PDA1
@@ -230,7 +239,7 @@ fprintf('FBA growth:  %.4f /h\n', solKO.f);
 FBA growth:  0.1053 /h
 ```
 
-For the same question, what changed in the mutant and not only how much growth fell, RAVEN has `compareFluxes`, which compares two flux vectors from the same model; see [Comparing models](comparing.md).
+`compareFluxes` compares two flux vectors of the same model and shows what changed in the mutant, beyond how much the growth fell ([Comparing models](comparing.md)).
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -252,24 +261,24 @@ FBA growth:  0.1053 /h
 MOMA growth: 0.0869 /h
 ```
 
-The reference has to be computed before the knockout. Without `solution=`, cobrapy takes pFBA of the model it is given, which inside the `with` block is the mutant, and MOMA returns the FBA answer. `PDA1` is used as a test because it is not lethal: the PDH bypass (`PDC`, `ALD6`, `ACS`) keeps the mutant growing, so FBA and MOMA can differ.
+The reference is computed before the knockout. Without `solution=`, cobrapy takes the pFBA solution of the model it receives, which inside the `with` block is the mutant, and MOMA returns the FBA answer. `PDA1` is the test gene because it is not lethal: the PDH bypass (`PDC`, `ALD6`, `ACS`) keeps the mutant growing, so FBA and MOMA can differ.
 
-`linear=False` is the quadratic MOMA of Segrè et al. (2002): it minimises the squared distance to the reference, a quadratic program (QP). GLPK cannot solve QPs, so cobrapy switches to a QP-capable solver for the call (Gurobi or CPLEX) and raises `SolverNotFound` when none is installed. `pip install gurobipy` installs a size-limited Gurobi licence that is enough for a model this small. `linear=True` minimises the summed absolute distance, an LP; it is a different method with different answers. MOMA's prediction depends on the reference flux vector, which pFBA picks from many alternative optima.
+`linear=False` is the quadratic MOMA of Segrè et al. (2002), which minimises the squared distance to the reference as a quadratic program (QP). GLPK cannot solve QPs, so cobrapy switches to a solver that supports QPs (Gurobi or CPLEX) for the call and raises `SolverNotFound` when none is installed. `pip install gurobipy` installs a Gurobi licence with a size limit that suffices for a model of this size. `linear=True` minimises the summed absolute distance as a linear program, which is a different method with different answers. The MOMA prediction depends on the reference flux vector, which pFBA selects from many alternative optima.
 :::
 ::::
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- Confusing gene and reaction knockouts. Deleting a gene silences a reaction only when the GPR says so. Isozymes mask single knockouts, which is what the double deletions test.
-- Comparing essentiality numbers from the two toolboxes. `getEssentialRxns` measures feasibility and `single_reaction_deletion` measures growth; they are different questions.
-- A knockout that looks lethal because the medium is wrong. Essentiality is relative to the medium and the objective. State both when reporting it; see [Growth media and conditions](media.md).
-- Reading essentiality off a threshold. `growth < 1e-6` is a numerical cut-off, not a biological one. A mutant at 1 % of wild-type growth is not dead.
-- Double deletions on a genome-scale model. The run time is quadratic in the gene count; restrict the lists, or accept the wait.
+- Gene and reaction knockouts are confused. Deleting a gene silences a reaction when the gene rule says so. Isozymes mask single knockouts, which the double deletions test.
+- The essentiality numbers of the two toolboxes are compared. `getEssentialRxns` measures feasibility and `single_reaction_deletion` measures growth, which are different questions.
+- A knockout looks lethal because the medium is wrong. Essentiality is relative to the medium and the objective, and both are stated with the result ([Growth media and conditions](media.md)).
+- Essentiality is read from a threshold. `growth < 1e-6` is a numerical limit. A mutant at 1 % of the wild-type growth is not dead.
+- A double deletion runs on a genome-scale model. The run time grows with the square of the number of genes, so restrict the lists or accept the wait.
 :::
 
 ## See also
 
-- [Simulating growth with FBA](fba.md), the solve underneath all of this.
-- [Metabolic tasks](tasks.md), essentiality with respect to a task.
-- [Quality control](quality-control.md), before trusting any of it.
+- [Simulating growth with FBA](fba.md): the solve that underlies all of this.
+- [Metabolic tasks](tasks.md): essentiality with respect to a task.
+- [Quality control](quality-control.md): the checks before any of this.

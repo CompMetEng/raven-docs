@@ -1,21 +1,21 @@
 # Quality control
 
-A model that loads and solves can be wrong. The checks that apply before a result can be trusted are: whether the structure is sound, whether the reactions balance, whether anything is disconnected, and whether the model can make something out of nothing.
+A model that loads and solves can be wrong. Four checks come before a result is trusted: the structure is sound, the reactions balance, no part of the network is disconnected, and the model cannot make mass from nothing.
 
 ## Functions
 
 | MATLAB | Python | Purpose |
 |---|---|---|
 | `checkModelStruct` | `check_model` | structural problems |
-| `getElementalBalance` | `get_elemental_balance` | mass balance, reaction by reaction |
+| `getElementalBalance` | `get_elemental_balance` | mass balance of each reaction |
 | `haveFlux` | `find_blocked_reactions` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | reactions that cannot carry flux under the current bounds |
-| `canExchange` | `analyse_topology` | which metabolites the model can make, or consume, given its medium |
-| `findLeakMetabolite` | `find_leak_metabolite`, `gap_report` | can the model make something from nothing |
-| `gapReport` | `check_model` + `analyse_topology` | one summary of the gaps |
+| `canExchange` | `gap_report` | metabolites that the model can make or consume with its medium |
+| `findLeakMetabolite` | `find_leak_metabolite`, `gap_report` | mass produced from nothing |
+| `gapReport` | `gap_report` | one summary of the gaps |
 
 ## Setup
 
-`smallYeastBad.yml` is the small yeast model used throughout this guide, with deliberate errors, which are what these checks detect.
+`smallYeastBad.yml` is the small yeast model of this guide with deliberate errors, which the checks detect.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -50,7 +50,7 @@ print(len(model.reactions), "reactions,", len(model.metabolites), "metabolites")
 
 ## Structural soundness
 
-The first pass checks the model as a data structure: metabolites that no reaction uses, reactions with no metabolites, genes that nothing refers to and a missing objective. The two validators do not check the same list, so their counts differ; [Model structure and identifiers](model-structure.md) sets out what each one covers.
+The first pass checks the model as a data structure: metabolites that no reaction uses, reactions without metabolites, genes that nothing refers to and a missing objective. The two validators check different lists, so their counts differ. [Model structure and identifiers](model-structure.md) describes what each covers.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -65,7 +65,7 @@ fprintf('%d issue(s)\n', numel(issues));
 2 issue(s)
 ```
 
-The two are a missing objective, reported as `invalid_id` because an objective-less model cannot be written as FBC v2 SBML, and a `cross_reference` finding: one InChI string matches two different metabolite names. The second finding is a consequence of the corrupted formula on `F6P_c` that [Comparison with a trusted model](#comparison-with-a-trusted-model) finds by comparison, as it appears in the annotations.
+The two findings are a missing objective, reported as `invalid_id` because a model without an objective cannot be written as FBC version 2 SBML, and a `cross_reference` finding: one InChI string matches two metabolite names. The second finding follows from the corrupted formula of `F6P_c`, which [Comparison with a trusted model](#comparison-with-a-trusted-model) finds by comparison, and which appears in the annotations.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -88,7 +88,7 @@ for issue in issues[:5]:
 
 ## Reaction balance
 
-An unbalanced reaction can create matter, and one that creates ATP or a redox carrier inflates every prediction the model makes.
+An unbalanced reaction can create matter. A reaction that creates ATP or a redox carrier inflates every prediction of the model.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -151,17 +151,17 @@ for balance in balances:
   ATPX: {'H': 2.0, 'O': 1.0}
 ```
 
-Exchange reactions read as unbalanced by design: they are where mass enters and leaves, so filter them out before judging the number.
+Exchange reactions are unbalanced by design, because they are where mass enters and leaves. They are filtered out before the number is judged.
 
-`getElementalBalance` returns a struct and prints nothing by default. Its `printUnbalanced` and `printUnparsable` options add warnings for the two failure kinds separately, which distinguishes a reaction that is wrong from one that is undecidable. `rxns` restricts the check to a subset.
+`getElementalBalance` returns a struct and prints nothing by default. `printUnbalanced` and `printUnparsable` add warnings for the two failure kinds separately, which separates a wrong reaction from an undecidable one. `rxns` restricts the check to a subset.
 :::
 ::::
 
 ## Reactions that cannot carry flux
 
-A reaction that cannot carry flux under the model's current bounds is either a gap, a mistake, or waiting for a medium that is not open. Both functions test the bounds as they are; neither explores other media. It is also the cheapest of these checks to run.
+A reaction that cannot carry flux under the current bounds is a gap, an error, or a reaction that waits for a medium that is not open. Both functions test the bounds as they are and do not explore other media. This is the cheapest of the checks.
 
-`haveFlux` counts a reaction as active when it carries more than its `cutOff`, `1e-6` by default, which keeps solver noise from reading as flux. It shuffles the order in which reactions are tested, and takes a `seed` so that order is reproducible.
+`haveFlux` counts a reaction as active when its flux exceeds `cutOff`, which is `1e-6` by default and keeps solver noise from counting as flux. It tests the reactions in shuffled order, and `seed` makes the order reproducible.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -195,11 +195,11 @@ blocked: ['ACO', 'ACS', 'ADH1', 'ADH2', 'ALD6']
 :::
 ::::
 
-`smallYeastBad` has glucose and oxygen uptake open, and the same test on `smallYeast` with that medium finds 52 of 53 reactions active: the 52 blocked here are blocked by the errors that the other checks find. The two that do carry flux, `SDH` and `FRDS2`, are each other's reverse and only cycle (see [Loops in flux ranges](fva.md#loops-in-flux-ranges)).
+`smallYeastBad` has glucose and oxygen uptake open. The same test on `smallYeast` with that medium finds 52 of 53 reactions active, and the 52 blocked reactions here are blocked by the errors that the other checks find. The two reactions that carry flux, `SDH` and `FRDS2`, are the reverse of each other and form a cycle ([Loops in flux ranges](fva.md#loops-in-flux-ranges)).
 
-## Making something from nothing
+## Mass from nothing
 
-With every uptake closed, a correct model can produce nothing at all. If it makes a metabolite, some reaction is unbalanced or a loop is creating mass: the most damaging class of error, because such a model grows without a carbon source.
+A correct model with every uptake closed produces nothing. When it makes a metabolite, a reaction is unbalanced or a loop creates mass. This is the most damaging class of error, because such a model grows without a carbon source.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -225,7 +225,7 @@ closed model feasible: 1
 one leak: F6P_c
 ```
 
-`getExchangeRxns` returns every reaction with metabolites on one side only, so sinks and demands are closed along with the exchanges. A model that is infeasible once closed, for instance because of a forced maintenance flux, cannot show a leak, so check that first. `canExchange` counts the leaks; `findLeakMetabolite` finds one, using as few reactions as possible, which gives a starting point. Both take the direction as their second argument, and `'consume'` asks the mirror-image question: what this model can take up without limit.
+`getExchangeRxns` returns every reaction with metabolites on one side, so the sinks and demands are closed together with the exchange reactions. A model that is infeasible when closed, for instance because of a forced maintenance flux, cannot show a leak. The feasibility of the closed model should be checked before the leak test. `canExchange` counts the leaks. `findLeakMetabolite` finds one leak with the smallest total flux, and `minNrFluxes` minimises the number of reactions instead. The leak is a starting point. Both take the direction as the second argument, and `'consume'` asks the reverse question: which metabolites the model can take up without limit.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -250,19 +250,23 @@ closed model: optimal
 one leak: ['F6P_c', 'GP_c', 'PYR_c']
 ```
 
-`gap_report` closes every boundary reaction itself, adds an output for every metabolite, and lists in `can_produce_without_input` the ones whose output can carry flux, as `canExchange` does. If the model is infeasible under its own bounds, or once its boundary is closed, it stops with an error that names the reactions with a forced flux; set ATP maintenance to zero first. `gapReport` does the same. `find_leak_metabolite` is the port of `findLeakMetabolite` and does not close anything, so give it the closed copy. It returns a list: more than one id means those metabolites could only be exchanged together. For a manual closure, close `model.boundary`; `model.exchanges` omits sinks and demands because cobrapy does not count them as exchanges, and an open sink is an input. `analyse_topology` answers the connectivity half of the same question without solving an LP. Without `seeds` it takes as seeds the metabolites of every reaction with only substrates and a negative lower bound or only products and a positive upper bound, and without `targets` the metabolites of the first objective reaction; a model with no objective reaction and no `targets` raises `ValueError`.
+`gap_report` closes every boundary reaction, adds an output reaction for every metabolite, and lists in `can_produce_without_input` the metabolites whose output can carry flux, as `canExchange` does. When the model is infeasible with its own bounds or with the closed boundary, the function stops with an error that names the reactions with a forced flux. ATP maintenance should be set to zero before the call. `gapReport` behaves the same way.
+
+`find_leak_metabolite` is the port of `findLeakMetabolite` and closes nothing, so it receives the closed copy. It returns a list, and more than one identifier means that the metabolites can be exchanged together. A manual closure closes `model.boundary`. `model.exchanges` omits sinks and demands, because cobrapy does not count them as exchanges, and an open sink is an input.
+
+`analyse_topology` answers the connectivity part of the question without solving a linear program, and it requires a `templates` argument. Without `seeds`, the seeds are the metabolites of every reaction that has substrates alone and a negative lower bound or products alone and a positive upper bound. Without `targets`, the targets are the metabolites of the first objective reaction. A model without an objective reaction and without `targets` raises `ValueError`.
 :::
 ::::
 
 :::{admonition} Outlets for by-products in leak tests
 :class: note
 
-The leak-test functions assume every metabolite can be excreted while the test runs: `canExchange` and `gap_report` add an output reaction for each metabolite they check, and `findLeakMetabolite` and `find_leak_metabolite` take `allowExcretion` (`allow_excretion` in Python) as true by default. A hand-written loop has to add the outlets explicitly. Testing one demand reaction at a time, with no outlet for the by-products, reports zero leaks in this model instead of 33, because a leaking reaction is then blocked by its own stoichiometry.
+The leak-test functions assume that every metabolite can be excreted during the test. `canExchange` and `gap_report` add an output reaction for each metabolite that they check, and `findLeakMetabolite` and `find_leak_metabolite` take `allowExcretion` (`allow_excretion` in Python), which is true by default. A hand-written loop adds the outlets explicitly. Testing one demand reaction at a time without outlets for the by-products reports zero leaks in this model where 33 are present, because the stoichiometry of a leaking reaction blocks it.
 :::
 
 ## Comparison with a trusted model
 
-When a check reports something, comparing against the last version that passed shows whether the finding is new.
+When a check reports a finding, a comparison with the last version that passed shows whether the finding is new.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -308,18 +312,18 @@ Models differ (11 differences):
 :::
 ::::
 
-`diffModels` compares two models entry by entry: which reactions are unique to each, and where a shared reaction differs in stoichiometry, bounds, objective coefficient, gene rule or metabolite properties. [Comparing models](comparing.md) uses the same function, here applied to a model and its last good version.
+`diffModels` compares two models entry by entry. It reports the reactions that are unique to each model and the shared reactions that differ in stoichiometry, bounds, objective coefficient, gene rule or metabolite properties. [Comparing models](comparing.md) uses the same function, and here it compares a model with its last good version.
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- Judging a model by whether it solves. An unbalanced reaction makes it solve better. Balance first, then believe the growth rate.
-- Treating every unbalanced reaction as a bug. Exchange, demand, sink and biomass pseudo-reactions are unbalanced on purpose.
-- `unknown` instead of `unbalanced`. A metabolite with no formula, or a polymer formula cobrapy cannot parse, makes the balance undecidable, not wrong. Fill in the formula and check again.
+- A model is judged by whether it solves. An unbalanced reaction can improve the solve. Check the balance first, and trust the growth rate afterwards.
+- Every unbalanced reaction is treated as an error. Exchange, demand, sink and biomass pseudoreactions are unbalanced by design.
+- The result is `unknown`. A metabolite without a formula, or a polymer formula that cobrapy cannot parse, makes the balance undecidable. Add the formula and repeat the check.
 :::
 
 ## See also
 
-- [Editing an existing model](editing.md), fixing what these checks find.
-- [Model structure and identifiers](model-structure.md), what the structural checks are checking.
-- [Growth media and conditions](media.md), closing the medium, as in [Making something from nothing](#making-something-from-nothing).
+- [Editing an existing model](editing.md): fixing what the checks find.
+- [Model structure and identifiers](model-structure.md): what the structural checks cover.
+- [Growth media and conditions](media.md): closing the medium, as in [Mass from nothing](#mass-from-nothing).

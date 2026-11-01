@@ -1,6 +1,6 @@
 # Metabolic tasks
 
-A metabolic task is a statement of something the model must be able to do: "given glucose and oxygen, produce biomass", "make ATP", "do not produce something from nothing". Tasks test a reconstruction against biology and not against the reconstruction itself, and ftINIT repairs against them after cutting a model down.
+A metabolic task states something the model must be able to do: "given glucose and oxygen, produce biomass", "make ATP", or "do not produce something from nothing". Tasks test a reconstruction against biology. ftINIT repairs against them after it reduces a model.
 
 ## Functions
 
@@ -8,12 +8,12 @@ A metabolic task is a statement of something the model must be able to do: "give
 |---|---|---|
 | `parseTaskList` | `parse_task_list` | read a task-list file |
 | `checkTasks` | `check_tasks` | run the tasks against a model |
-| `checkTasks` (`getEssential`) | `find_task_essential_reactions` | reactions a task requires |
+| `checkTasks` (`getEssential`) | `find_task_essential_reactions` | reactions that a task requires |
 | `fitTasks` | `fill_tasks` | add reactions until the tasks pass |
 
 ## The file format
 
-A task list is a tab-separated table, one row per task, with columns for the inputs, the outputs, any equations that must carry flux, and the bounds on each. [`tasks.txt`](../data/tasks.txt) holds two tasks for `smallYeast.yml`:
+A task list is a tab-separated table with one row per task. The columns hold the inputs, the outputs, the equations that must carry flux, and the bounds of each. [`tasks.txt`](../data/tasks.txt) holds two tasks for `smallYeast.yml`:
 
 ```text title="tasks.txt, abridged; the real file keeps every column"
 	ID	DESCRIPTION	SHOULD FAIL	IN	IN LB	IN UB	OUT	OUT LB	OUT UB	…
@@ -23,18 +23,18 @@ A task list is a tab-separated table, one row per task, with columns for the inp
 	LEAK	Biomass from nothing	1				biomass[c]	0.01	1000	…
 ```
 
-Two things about the format have to be right the first time, because both fail in MATLAB with the same error `Index in position 2 is invalid`:
+Two requirements of the format apply to MATLAB:
 
-- Every row starts with an empty cell: `parseTaskList` discards any row whose first cell is non-empty (that is how it skips comments and section headers), so in a file without the leading tab every row is discarded.
-- Keep the full column set, even where the columns are empty: `parseTaskList` matches all seventeen known headers and then indexes the numeric ones positionally, so omitting `EQU LB` or `CHANGED LB` leaves an index of zero.
+- The header row starts with an empty cell. `parseTaskList` treats the leading rows whose first cell is not empty as comments and takes the first row with an empty first cell as the header, so a file without the leading tab has no header row.
+- The header row has a column named `ID`, which is the sole required column. A file without a row that starts with an empty cell raises `RAVEN:badInput` with the message that the TASKS sheet must have a column named ID.
 
-raven-toolbox's `parse_task_list` accepts the file with or without either, so both are easy to miss until the MATLAB tab runs. The file `tasks.txt` has the full set; the columns after `OUT UB` are blank.
+`parse_task_list` of raven-toolbox accepts the file with or without the leading empty cell, so a missing cell is noticed when the MATLAB example runs. `tasks.txt` has the full set of columns, and the columns after `OUT UB` are blank.
 
-Metabolites are named `name[compartment]`, matching the metabolite names and not the identifiers. Several go in one cell, separated by `;`, and the bounds columns apply to all of them. To give a metabolite bounds of its own, put it on a continuation row: a row with no `ID` adds its inputs and outputs to the task above it. `GROWTH` uses that to ask for at least 0.01 units of biomass while leaving CO₂ and acetate free; with a lower bound of 0 on biomass, the all-zero flux would pass the task. The 0.01 is illustrative; any positive floor has the same effect.
+Metabolites are given as `name[compartment]` with the metabolite name. Several metabolites go in one cell, separated by `;`, and the bound columns apply to all of them. A metabolite with its own bounds goes on a continuation row, which is a row without an `ID` that adds its inputs and outputs to the task above it. `GROWTH` uses this to require at least 0.01 units of biomass while CO₂ and acetate are unrestricted. With a lower bound of 0 on biomass, the zero flux would pass the task. The value 0.01 is illustrative, and any positive lower bound has the same effect.
 
-`SHOULD FAIL` marks a task the model must fail: the second asks for biomass with nothing supplied, which a correct model cannot do, so failing it is a pass.
+`SHOULD FAIL` marks a task that the model must fail. The second task asks for biomass with nothing supplied, which a correct model cannot do, so failing it is a pass.
 
-Once the model's own exchanges are closed (see [Task-defined medium](#task-defined-medium)), `GROWTH` has to list glucose and oxygen as inputs, and biomass, CO₂ and acetate as outputs, because growth has to release its carbon: as CO₂ and, in this small model, some acetate. A task without CO₂ is infeasible, which looks like a broken model and is a broken task.
+When the exchange reactions of the model are closed ([Task-defined medium](#task-defined-medium)), `GROWTH` lists glucose and oxygen as inputs and biomass, CO₂ and acetate as outputs. Growth must release its carbon, as CO₂ and, in this small model, as acetate. A task without CO₂ is infeasible, which looks like a broken model and is a broken task.
 
 ## Reading and running tasks
 
@@ -61,11 +61,11 @@ end
   LEAK     pass
 ```
 
-`report.ok` is true for both, and for opposite reasons: `GROWTH` was required to pass and did, `LEAK` was required to fail and did.
+`report.ok` is true for both tasks, for opposite reasons: `GROWTH` had to pass and did, and `LEAK` had to fail and did.
 
-`checkTasks` prints its own verdicts unless `printOutput` is off, as here, and `printOnlyFailed` narrows that to the failures. Reading the verdicts from `report` gives a structure to test against, not text to read.
+`checkTasks` prints its verdicts unless `printOutput` is off, as here, and `printOnlyFailed` limits the print-out to the failures. The verdicts in `report` form a structure that a test can use.
 
-Passing the parsed tasks as `taskStructure` makes the second argument, the task file, redundant. `runParallel` evaluates the tasks in parallel workers, and defaults to `false`, because starting a pool takes longer than the time it saves on a short task list; on a genome-scale list it is the setting that matters.
+The parsed tasks passed as `taskStructure` make the second argument, the task file, unnecessary. `runParallel` evaluates the tasks in parallel workers. It defaults to `false`, because starting a pool takes longer than a short task list saves, and it matters for a genome-scale list.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -89,13 +89,13 @@ for result in check_tasks(model, tasks, close_boundaries=True):   # see Task-def
   LEAK     pass  (feasible: False)
 ```
 
-`close_boundaries=True` closes the model's own exchange, sink and demand reactions first, so the inputs and outputs are what the task says they are. A task list is therefore portable between models, which a script full of `setParam` calls is not.
+`close_boundaries=True` first closes the exchange, sink and demand reactions of the model, so the inputs and outputs are those that the task defines. A task list is therefore portable between models, which a script of `setParam` calls is not.
 :::
 ::::
 
 ## Task-defined medium
 
-By default neither `checkTasks` nor `check_tasks` closes the model's own exchange reactions: a task's inputs and outputs are added to whatever the model allows. To make the task the whole boundary, close the model first: `closeModel` in RAVEN (what ftINIT does before collecting task-essential reactions), `close_boundaries=True` in raven-toolbox. The task's inputs and outputs are then the only way anything enters or leaves, which makes a task list portable between models and makes an incomplete task look like a broken model.
+By default, neither `checkTasks` nor `check_tasks` closes the exchange reactions of the model, and the inputs and outputs of a task are added to what the model allows. The task becomes the whole boundary when the model is closed first, with `closeModel` in RAVEN (which ftINIT does before it collects the task-essential reactions) or with `close_boundaries=True` in raven-toolbox. The inputs and outputs of the task are then the sole way for anything to enter or leave. A task list is then portable between models, and an incomplete task looks like a broken model.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -157,11 +157,11 @@ for close in (False, True):
 :::
 ::::
 
-The only difference between the two tasks is the CO₂ output. With the model's own exchanges open, both are feasible: the carbon leaves through the model's `co2OUT`, whatever the task says. With them closed, the task without CO₂ is infeasible. A task list written for one reading gives different answers under the other, so check which one it was curated against.
+The tasks differ in the CO₂ output. With the exchange reactions of the model open, both are feasible, because the carbon leaves through `co2OUT` of the model whatever the task says. With them closed, the task without CO₂ is infeasible. A task list written for one reading gives different answers under the other, so the boundary that the list was curated against is checked.
 
 ## Task-essential reactions
 
-Essentiality here is defined with respect to a task, not to the objective: remove each candidate reaction and see whether the task passes. ftINIT uses it to decide which reactions must survive an extraction regardless of their expression score.
+Essentiality here refers to a task. Each candidate reaction is removed, and the task is tested again. ftINIT uses the result to decide which reactions must remain in an extraction regardless of their expression score.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -177,7 +177,7 @@ fprintf('%d reactions essential for the task\n', sum(essentialRxns));
 28 reactions essential for the task
 ```
 
-Task-essential reactions come from `checkTasks` with its `getEssential` flag, returned as a reactions-by-tasks logical matrix and not as a list. Failed tasks and `SHOULD FAIL` tasks are left out of it, since a task that does not pass has no reactions it depends on. `getEssentialRxns` answers for the model's own objective and takes no task.
+`checkTasks` with its `getEssential` flag returns the task-essential reactions as a logical matrix of reactions by tasks. Failed tasks and `SHOULD FAIL` tasks are left out, because a task that does not pass has no reactions that it depends on. `getEssentialRxns` answers for the objective of the model and takes no task.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -199,7 +199,7 @@ print(sorted(result.reactions)[:5])
 
 ## Failing tasks
 
-A failing task is a gap: something the model should be able to do and cannot. Both toolboxes can add reactions from a template until the task passes, which is [Gap-filling](gap-filling.md) applied to tasks.
+A failing task is a gap, something that the model should be able to do and cannot. Both toolboxes add reactions from a template until the task passes, which is [Gap-filling](gap-filling.md) applied to tasks.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -219,20 +219,20 @@ template = readYAMLmodel('smallYeast.yml');   % where the reactions come from
 from raven_toolbox.init import fill_tasks
 ```
 
-`fill_tasks` is the same operation inside the ftINIT pipeline: given the tasks and a source of reactions, it adds back the minimum needed to make every task feasible again.
+`fill_tasks` is the same operation inside the ftINIT pipeline. Given the tasks and a source of reactions, it adds the reactions of lowest cost that make each task feasible again.
 :::
 ::::
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- A metabolite given by its identifier: task files address metabolites by name, not by identifier, as `name[compartment]`. A task that matches nothing without an error is a task that passes for the wrong reason.
-- Missing `SHOULD FAIL` tasks: the tasks that matter most are often the ones the model must not satisfy; without them, a leaking model passes everything.
-- The boundary a task ran against is unknown: with the model closed, a task defines its own inputs and does not inherit the model's medium, so a task passing says nothing about whether the model grows on the medium it has. Left open (the default in both toolboxes), the model's own exchanges take part, and a task can pass because of an uptake or secretion it never lists.
+- A metabolite is given by its identifier. Task files address metabolites by name, as `name[compartment]`. A task that matches nothing and raises no error passes for the wrong reason.
+- `SHOULD FAIL` tasks are missing. The tasks that matter most are often those that the model must not satisfy, and a leaking model passes every other task.
+- The boundary of a task run is unknown. With the model closed, a task defines its own inputs and does not inherit the medium of the model, so a passed task does not show that the model grows on its medium. With the model open, which is the default in both toolboxes, the exchange reactions of the model take part, and a task can pass because of an uptake or secretion that it does not list.
 :::
 
 ## See also
 
-- [Gap-filling](gap-filling.md), which makes a failing task pass.
-- [Context-specific models](init.md), tasks that an extraction must preserve.
-- [Quality control](quality-control.md), the checks that do not need a task list.
+- [Gap-filling](gap-filling.md): making a failing task pass.
+- [Context-specific models](init.md): the tasks that an extraction must preserve.
+- [Quality control](quality-control.md): the checks that need no task list.

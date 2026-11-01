@@ -1,17 +1,17 @@
 # Engineering targets
 
-Two questions underlie most strain-design work: which reactions would have to change for the cell to make more of something, and which metabolites are most affected by a transcriptional response. FSEOF (flux scanning based on enforced objective flux) answers the first from stoichiometry alone; reporter metabolites answer the second from expression data.
+Two questions underlie most strain design: which reactions have to change for the cell to make more of a product, and which metabolites are most affected by a transcriptional response. FSEOF (flux scanning based on enforced objective flux) answers the first from the stoichiometry alone. Reporter metabolites answer the second from expression data.
 
 ## Functions
 
 | MATLAB | Python | Purpose |
 |---|---|---|
-| `FSEOF` | `fseof` | reactions whose flux tracks enforced product formation |
-| `reporterMetabolites` | `reporter_metabolites` | metabolites surrounded by transcriptional change |
+| `FSEOF` | `fseof` | reactions whose flux follows an enforced product formation |
+| `reporterMetabolites` | `reporter_metabolites` | metabolites around which transcription changes |
 
 ## Setup
 
-`smallYeast.yml` is used with glucose and oxygen open, so the model grows. Uptake in this model is a positive flux through a `=> metabolite` reaction, so the upper bound opens it.
+The model is `smallYeast.yml` with glucose and oxygen open, and the model grows. Uptake in this model is a positive flux through a `=> metabolite` reaction, and the upper bound opens it.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -48,9 +48,9 @@ growth 0.1222 /h
 :::
 ::::
 
-## Reactions that track the product
+## Reactions that follow the product
 
-FSEOF forces the product exchange to carry progressively more flux, maximising growth at each step, and records what every other reaction does. A reaction whose flux rises with the enforced product is an amplification candidate; one that falls is a knockdown candidate. Ethanol, `ethOUT`, is the product here.
+FSEOF forces the product exchange to carry more flux in each step, maximises growth at each step, and records the flux of every other reaction. A reaction whose flux rises with the enforced product is a candidate for amplification, and a reaction whose flux falls is a candidate for knockdown. The product here is ethanol, `ethOUT`.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -66,9 +66,9 @@ fprintf('%d amplification target(s) of %d reactions\n', ...
 14 amplification target(s) of 53 reactions
 ```
 
-The scan runs `iterations` steps, ten by default, up to `coefficient` times the theoretical maximum product flux, `0.9` by default. Writing to `outputFile` keeps the per-reaction table out of the command window; without `outputFile` the table prints to the command window.
+The scan runs for `iterations` steps, ten by default, up to `coefficient` times the theoretical maximum product flux, `0.9` by default. `outputFile` keeps the per-reaction table out of the command window, and the table is printed there without it.
 
-`corrThreshold` is the filter that decides what counts as a target: a reaction is kept only if the absolute Pearson correlation between its flux and the enforced product flux is at least this value, `0.9` by default. Alternative optima make individual fluxes change erratically between steps, and requiring a nearly linear response keeps that noise out of the target list.
+`corrThreshold` decides what counts as a target. A reaction is kept when the absolute Pearson correlation between its flux and the enforced product flux is at least this value, `0.9` by default. Alternative optima make individual fluxes change erratically between steps, and the requirement of a nearly linear response keeps this noise out of the target list.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -89,19 +89,19 @@ print(f"enforced flux from {result.enforced[0]:.3f} to {result.enforced[-1]:.3f}
 enforced flux from 0.180 to 1.800
 ```
 
-The two examples count different things. `targets.logical` in MATLAB flags amplification targets only (as `targets.amplify` does; `targets.knockdown` and `targets.knockout` hold the others), while `result.targets` holds every classified reaction, with a `target_type` column of `amplify`, `knockdown` or `knockout`; `result.amplification` selects the amplification targets. Both scans use the same defaults: ten steps, the top of the scan at 0.9 (`coefficient` in MATLAB, `max_fraction` in Python) of the target flux in the pFBA solution that maximises the target, correlation at least 0.9. Both impose the enforced flux as a lower bound on the target reaction by default; `equality=True` in Python fixes the flux at each level instead, as the GECKO function `ecFSEOF` does. In Python, targets of equal score are listed in model order.
+The two examples count different things. `targets.logical` in MATLAB flags the amplification targets, as does `targets.amplify`, and `targets.knockdown` and `targets.knockout` hold the others. `result.targets` holds every classified reaction, with a `target_type` column of `amplify`, `knockdown` or `knockout`, and `result.amplification` selects the amplification targets. Both scans use the same defaults: ten steps, a top of the scan at 0.9 of the target flux in the pFBA solution that maximises the target (`coefficient` in MATLAB, `max_fraction` in Python), and a correlation of at least 0.9. Both impose the enforced flux as a lower bound on the target reaction by default. `equality=True` in Python fixes the flux at each level instead, as the GECKO function `ecFSEOF` does. In Python, targets of equal score are listed in model order.
 
-Both tabs find 14 amplification targets here. `fseof` classifies the fluxes of a reaction by the same fixed thresholds as `FSEOF` (`1e-10` for a track above zero, `1e-8` for a final flux of zero).
+Both examples find 14 amplification targets. `fseof` classifies the fluxes of a reaction with the same fixed thresholds as `FSEOF`: `1e-10` for a track above zero and `1e-8` for a final flux of zero.
 
-`fseof` returns the whole scan rather than only its conclusion. `scan` is the reactions by enforced-flux-level matrix of fluxes, `enforced` the levels themselves, and `targets` the classified per-reaction table sorted by score. `gene_targets` aggregates the same result to genes, which is the form a strain-design list usually takes.
+`fseof` returns the whole scan in addition to its conclusion. `scan` is the matrix of fluxes by reaction and enforced flux level, `enforced` holds the levels, and `targets` is the classified table per reaction, sorted by score. `gene_targets` aggregates the result to genes, which is the usual form of a strain-design list.
 
-`correlation_threshold` matches MATLAB's `corrThreshold`, and `flux_eps` is the tolerance of the check against the theoretical maximum flux (on iJO1366 with target `EX_succ_e` the counts are the same at `1e-8`, `1e-7` and `1e-6`, see [Benchmarks of `fseof`, `remove_genes` and other defaults](../parameter-tuning/benchmarks.md)). `min_target` sets the floor of the enforced range, by default one step (the top of the scan divided by `n_steps`); passing the target reaction's flux at the growth optimum starts the scan at the level the cell already has.
+`correlation_threshold` corresponds to `corrThreshold` of MATLAB. `flux_eps` is the tolerance for the check against the theoretical maximum flux. On iJO1366 with the target `EX_succ_e`, the counts are the same at `1e-8`, `1e-7` and `1e-6` ([Benchmarks of `fseof`, `remove_genes` and other defaults](../parameter-tuning/benchmarks.md)). `min_target` sets the lower end of the enforced range, by default one step (the top of the scan divided by `n_steps`). Passing the flux of the target reaction at the growth optimum as `min_target` starts the scan at the level that the cell already has.
 :::
 ::::
 
 ## Reading the scan
 
-A target's reliability depends on the trend behind it. The scan matrix distinguishes a reaction that rises steadily from one that changes once and then stops changing.
+The reliability of a target depends on the trend behind it. The scan matrix separates a reaction that rises steadily from a reaction that changes once and then stops changing.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -142,13 +142,13 @@ print(result.targets.head(5).to_string())
 :::
 ::::
 
-The slope is the change in a reaction's flux per unit of enforced product. Its sign gives the direction of the change to apply, and its magnitude the strength. Neither shows that the change is achievable: FSEOF works on the stoichiometry and the bounds, and contains no information on regulation, enzyme capacity or toxicity.
+The slope is the change of the flux of a reaction per unit of enforced product. Its sign gives the direction of the change to apply, and its magnitude gives the strength. Neither shows that the change is achievable. FSEOF works on the stoichiometry and the bounds and has no information on regulation, enzyme capacity or toxicity.
 
 ## Reporter metabolites
 
-Reporter metabolites start from expression data. Given a differential-expression result, the analysis identifies the metabolites with the most transcriptionally responsive neighbourhood. The algorithm scores each metabolite from the p-values of the genes catalysing the reactions it takes part in, and corrects for how many genes that is, so a metabolite in a large subsystem does not rank high by size alone.
+Reporter metabolites start from expression data. Given the result of a differential-expression analysis, the reporter-metabolite method identifies the metabolites whose neighbourhood responds most strongly at the transcript level. The algorithm scores each metabolite from the p-values of the genes that catalyse its reactions and corrects for the number of these genes. A metabolite in a large subsystem does not rank high by size alone.
 
-Real p-values come from a differential-expression analysis. The p-values in the examples are derived from the gene identifiers to keep the results reproducible, so both tabs compute the same input.
+Real p-values come from a differential-expression analysis. The p-values in the examples are derived from the gene identifiers so that the results are reproducible, and both examples compute the same input.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -176,7 +176,7 @@ end
   F16P_c   z  1.126  p 0.1301  genes 4
 ```
 
-`printResults` prints the top 20, and `outputFile` writes them. Supplying `geneFoldChanges` adds two further results alongside the full test, one for the up-regulated genes and one for the down-regulated, so a metabolite that is only interesting in one direction can be told apart from one that responds either way.
+`printResults` prints the top 20, and `outputFile` writes them. `geneFoldChanges` adds two results next to the full test, one for the up-regulated genes and one for the down-regulated genes. A metabolite of interest in a single direction can then be told apart from a metabolite that responds in either direction.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -202,26 +202,26 @@ metabolite                                   name  z_score  p_value  n_genes   m
     F16P_c beta-D-fructofuranose 1,6-bisphosphate 1.126055 0.130071        4 0.089746 0.020478
 ```
 
-`reporter_metabolites` returns one result per gene set. Without fold changes that is a single `"all"` result; with `gene_fold_changes` it is three, adding `"up"` and `"down"` for the two subsets. Each carries a `table` with the z-score, p-value and the number of genes behind each metabolite.
+`reporter_metabolites` returns one result per gene set. Without fold changes there is one result, `"all"`, and with `gene_fold_changes` there are three, with `"up"` and `"down"` for the two subsets. Each result has a `table` with the z-score, the p-value and the number of genes behind each metabolite.
 
-Genes the model does not have and missing (NaN) p-values are dropped; a p-value outside `[0, 1]` raises an error, because one invalid value would otherwise turn the whole result into `NaN`.
+Genes that the model does not have and missing (NaN) p-values are dropped. A p-value outside `[0, 1]` raises an error, because one invalid value would turn the whole result into `NaN`.
 :::
 ::::
 
-Both toolboxes compute the background correction in closed form and report the same z-scores and one-sided p-values, sorted by z-score. RAVEN returns them as parallel arrays in a struct, raven-toolbox as one table per gene set.
+Both toolboxes compute the background correction in closed form and report the same z-scores and one-sided p-values, sorted by z-score. RAVEN returns them as parallel arrays in a struct, and raven-toolbox returns one table per gene set.
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- Reading FSEOF as a prediction. It reports what the stoichiometry allows when product formation is forced, which is a hypothesis to test, not an expected yield.
-- A target list full of noise. With a lowered correlation threshold, alternative optima appear as targets. If a reaction's flux is not close to linear in the enforced product, its slope is not meaningful.
-- Forcing a product the model cannot make. If the target exchange cannot carry flux, every step of the scan is infeasible and there is nothing to correlate. Check it with a single solve first.
-- Reporter metabolites on an unfiltered gene list. The correction handles neighbourhood size, not a p-value distribution that is uniform because nothing is differentially expressed. Look at the input distribution before trusting the ranking.
-- Currency metabolites at the top. ATP, NADH and water take part in a large share of all reactions, so they tend to appear at the top. Excluding them, or reading past them, is usually necessary.
+- FSEOF is read as a prediction. It reports what the stoichiometry allows when product formation is forced, which is a hypothesis to test.
+- The target list contains noise. With a lowered correlation threshold, alternative optima appear as targets. When the flux of a reaction is not close to linear in the enforced product, its slope has no meaning.
+- A product that the model cannot make is forced. When the target exchange cannot carry flux, every step of the scan is infeasible and there is nothing to correlate. A single solve checks this first.
+- Reporter metabolites are computed on an unfiltered gene list. The correction handles the size of the neighbourhood and does not handle a uniform p-value distribution that arises because nothing is differentially expressed. Inspect the distribution of the input before trusting the ranking.
+- Currency metabolites rank at the top. ATP, NADH and water take part in many reactions and therefore tend to rank at the top. Exclude them, or read the ranking beyond them.
 :::
 
 ## See also
 
-- [Simulating growth with FBA](fba.md), the solve that each FSEOF step performs.
-- [Random sampling](sampling.md), the other way to ask what a network can do, not what one optimum says.
-- [Deletions and essentiality](deletions.md), which covers knockouts, not amplification.
+- [Simulating growth with FBA](fba.md): the solve that each FSEOF step performs.
+- [Random sampling](sampling.md): the other way to ask what a network can do, which a single optimum does not show.
+- [Deletions and essentiality](deletions.md): knockouts.

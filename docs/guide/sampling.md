@@ -1,6 +1,6 @@
 # Random sampling
 
-Flux variability gives the extremes a reaction can reach. Sampling draws many flux vectors from the feasible space and gives the **distribution** in between: how the vectors are spread. A range of 0–10 does not say whether the flux is usually 0, usually 10 or evenly spread; a sample does.
+Flux variability gives the extremes that a reaction can reach. Sampling draws many flux vectors from the feasible space and gives the distribution between the extremes, which is how the vectors are spread. A range of 0 to 10 does not show whether the flux is mostly 0, mostly 10 or evenly spread, and a sample does.
 
 ## Functions
 
@@ -10,11 +10,11 @@ Flux variability gives the extremes a reaction can reach. Sampling draws many fl
 | `sampleACHR` | `random_sampling` (`method='achr'`) | hit-and-run Markov chain Monte Carlo (MCMC), the default |
 | `sampleCHRR` | `random_sampling` (`method='chrr'`) | hit-and-run with rounding, for thin polytopes |
 | no equivalent | `find_good_reactions` | reactions usable as random objectives |
-| `getAllowedBounds` | `flux_variability_analysis` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | the ranges sampling fills in |
+| `getAllowedBounds` | `flux_variability_analysis` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | the ranges that sampling fills in |
 
 ## Setup
 
-The model is the glucose-limited `smallYeast.yml` of [Flux variability](fva.md), so the two pages can be read against each other.
+The model is the glucose-limited `smallYeast.yml` of [Flux variability](fva.md), so the two pages can be compared.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -51,9 +51,9 @@ model.objective = "biomassOUT"
 
 ## First sample
 
-Both toolboxes take a `seed`. A seed should always be set: without it a chain differs in every run and no reported result can be reproduced.
+Both toolboxes take a `seed`. A seed is set in every run, because a chain without a seed differs in every run and a result cannot be reproduced.
 
-A seed does not guarantee identical numbers. The default `achr` sampler starts from warmup points, and those come from LPs: two per reaction. A different solver, solver version or platform, and with GLPK even a solve of the same model before the sampling (which leaves a different starting basis), returns different warmup vertices, so the same seed explores the same distribution along a different chain. With seed 1, MATLAB gives `FRDS2`'s sampled minimum as 18.8 with GLPK and as 4.5 with Gurobi. The sampled values in the examples are printed to few decimals, because the distribution is the result and the individual draws are not.
+A seed does not guarantee identical numbers. The default `achr` sampler starts from warmup points that come from LPs, two per reaction. A different solver, solver version or platform returns different warmup vertices, and so does a solve of the same model before the sampling when GLPK is used, because it leaves a different starting basis. The same seed then explores the same distribution along a different chain. With seed 1, MATLAB gives a sampled minimum of `FRDS2` of 18.8 with GLPK and of 4.5 with Gurobi. The sampled values in the examples are printed with few decimals, because the distribution is the result and the single draws are not.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -89,12 +89,12 @@ method: achr
 :::{admonition} Transposed layouts
 :class: warning
 
-RAVEN returns reactions × samples; raven-toolbox returns a DataFrame of samples × reactions, the `cobra.sampling` layout. Every mean, histogram and correlation has to use the right axis, and a wrong axis gives no error, only numbers other than the intended ones.
+RAVEN returns reactions by samples. raven-toolbox returns a DataFrame of samples by reactions, which is the layout of `cobra.sampling`. Every mean, histogram and correlation must use the correct axis, because a wrong axis raises no error and gives other numbers than intended.
 :::
 
 ## Distribution and range
 
-[Flux variability](fva.md) found that `FRDS2` and `SDH` have the widest range in this model, 1000 units, and that all of it is a thermodynamically infeasible cycle. Sampling does not remove the cycle; it shows the share of the space that the cycle occupies.
+[Flux variability](fva.md) showed that `FRDS2` and `SDH` have the widest range in this model, 1000 units, and that all of it comes from a thermodynamically infeasible cycle. Sampling does not remove the cycle and shows the share of the space that it occupies.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -131,15 +131,15 @@ growth sampled 0.01 to 0.09, mean 0.05
 :::
 ::::
 
-The two tabs are separate implementations with separate random number generators, so their numbers are not expected to match draw for draw. They describe the same distribution, and the agreement of the distributions is the check to make.
+The two implementations are separate and use separate random number generators, so their numbers do not match draw by draw. They describe the same distribution, and the agreement of the distributions is the check.
 
-`FRDS2` is sampled across nearly its whole 1000-unit range, so the loop is most of the space, and most of the draws fall in it. Growth is the opposite. Its range runs from 0 to 0.1222, while the samples fall between about 0.01 and 0.1 and average about 0.05, because near-uniform sampling almost never reaches a vertex and the optimum is a corner with no volume around it.
+`FRDS2` is sampled across nearly its whole range of 1000 units, so the loop forms most of the space and most draws fall in it. Growth shows the opposite. Its range runs from 0 to 0.1222, and the samples fall between about 0.01 and 0.1 with a mean of about 0.05. Near-uniform sampling almost never reaches a vertex, and the optimum is a corner without volume around it.
 
-A sampled mean describes the shape of the feasible space and is no prediction: the mean sampled growth of this model is less than half its optimum, and biology does not cause the difference.
+A sampled mean describes the shape of the feasible space and does not predict anything. The mean sampled growth of this model is less than half of its optimum, and biology does not cause the difference.
 
 ## Choosing a method
 
-`achr` and `chrr` both draw the near-uniform interior distribution. `randomObjective` (`random_objective` in Python) maximises a small random objective each time, so it returns vertices; the samples of `achr` and `chrr` are interior points. Vertices are what FBA gives, which makes that method a way to survey alternative optima, not to describe the space.
+`achr` and `chrr` both draw the near-uniform interior distribution. `randomObjective` (`random_objective` in Python) maximises a small random objective each time, so it returns vertices, while the samples of `achr` and `chrr` are interior points. FBA also gives vertices, so this method surveys alternative optima and does not describe the space.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -173,13 +173,13 @@ chrr: 9 dimensions, MVE converged: False, 1 fixed
 :::
 ::::
 
-The dimension is a property of the polytope, not of the sampler: it is how many degrees of freedom the network has once the implicitly determined reactions are eliminated. A model with 53 reactions has far fewer than 53, and the two toolboxes, which implement CHRR separately, both compute 9.
+The dimension is a property of the polytope. It is the number of degrees of freedom of the network after the implicitly determined reactions are eliminated. A model with 53 reactions has far fewer than 53, and the two toolboxes, which implement CHRR separately, both compute 9.
 
-`MVE converged: False` is a warning, not a failure. MVE is the maximum-volume ellipsoid used for rounding. The rounding step stopped before reaching its tolerance, so the last ellipsoid is a valid rounding and the samples are usable, but on a polytope this elongated mixing is slower than the defaults assume, and more thinning helps if the distribution is uneven.
+`MVE converged: False` is a warning. MVE is the maximum-volume ellipsoid that is used for the rounding. The rounding stopped before it reached its tolerance. The last ellipsoid is a valid rounding and the samples are usable. On a polytope this elongated, mixing is slower than the defaults assume, and more thinning helps when the distribution is uneven.
 
 ## Sampling a constrained state
 
-Sampling an unconstrained model answers "what could this network do?", which is rarely the question of interest. Constrain first (hold growth near its optimum, fix a measured flux) and sample the space that is left.
+Sampling an unconstrained model answers what the network could do, which is rarely the question. The model should be constrained first, by holding growth near its optimum or by fixing a measured flux, and the remaining space is sampled.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -217,7 +217,7 @@ ethanol: free 0.73, growth >= 90% 0.03
 
 ## Reactions to sample over
 
-The `randomObjective` method needs reactions that can carry flux outside loops to use as objectives. Reactions that carry flux only through a loop are of no use as objectives, and the two toolboxes screen them out differently. raven-toolbox runs a loopless FVA, the test that [Flux variability](fva.md) applied manually. RAVEN runs a plain FVA (`getAllowedBounds`) and drops the reactions that reach 0.999 of the model's largest bound, which is where loop flux ends up. Here both keep the same 50.
+The `randomObjective` method needs reactions that carry flux outside loops, as objectives. Reactions that carry flux through a loop alone are unsuitable, and the two toolboxes screen them out differently. raven-toolbox runs a loopless FVA, the test that [Flux variability](fva.md) applied by hand. RAVEN runs a plain FVA (`getAllowedBounds`) and drops the reactions that reach 0.999 times the upper bound of the loop (1000 in this model), which is where loop flux ends up. Both keep the same 50 reactions here.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -246,23 +246,23 @@ print(f"{len(good)} of {len(model.reactions)} reactions usable as objectives")
 50 of 53 reactions usable as objectives
 ```
 
-Passing the list back as `good_reactions=` on a later call skips the FVA, the expensive part of the run on a genome-scale model.
+The list passed back as `good_reactions=` on a later call skips the FVA, which is the expensive part of the run on a genome-scale model.
 :::
 ::::
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- No seed. The numbers change in every run. Set one, and report it with the solver: the warmup points come from LPs, so another solver (or, with GLPK, a solve of the same model before the sampling) gives another chain (see [First sample](#first-sample)). Report the distribution, not the draws.
-- Too little thinning. Consecutive MCMC steps are correlated, so only every 100th is recorded. That is enough for this model, not for a genome-scale one: on yeast-GEM, samples 100 steps apart are 0.93 correlated and independent chains disagree on most reactions (see [Flux sampling convergence and settings](../parameter-tuning/studies/sampling-convergence-calibration.md)). For results that are reported, run chains with different seeds and check that they agree.
-- Reading a mean as a prediction. The mean of a sample describes the feasible space and the sampler, not the cell. It is a feasible state, but it is located where most of the volume is: in [Distribution and range](#distribution-and-range) that puts mean growth below half the optimum. With `randomObjective` the samples are vertices, so a reaction can average 5 while every sample has it at 0 or 10.
-- Sampling a model that is wide open. With an unconstrained medium the space is enormous and the distribution says nothing. Constrain first.
-- Loops. They inflate the space being sampled, and every sample drawn inside a cycle is wasted. See [Flux variability](fva.md).
-- Genome-scale runtime. `achr` starts with two LPs per reaction for its warmup points and `chrr` with an FVA and a rounding step; the sampling steps after that solve no LP. `randomObjective` solves one LP per sample. Start with a few hundred samples to see the shape, not tens of thousands.
+- No seed is set. The numbers change in every run. Set a seed and report it together with the solver, because the warmup points come from LPs and another solver gives another chain, as does a solve of the same model before the sampling with GLPK ([First sample](#first-sample)). The distribution is reported.
+- Thinning is too small. Consecutive MCMC steps are correlated, so every 100th step is recorded. This suffices for this model and falls short for a genome-scale model. On yeast-GEM, samples 100 steps apart have a correlation of 0.93, and independent chains disagree on most reactions ([Flux sampling convergence and settings](../parameter-tuning/studies/sampling-convergence-calibration.md)). Reported results need chains with different seeds that agree.
+- A mean is read as a prediction. The mean of a sample describes the feasible space and the sampler. It is a feasible state located where most of the volume is, which puts the mean growth below half of the optimum in [Distribution and range](#distribution-and-range). With `randomObjective` the samples are vertices, and a reaction can average 5 while every sample has it at 0 or 10.
+- A model with a wide-open medium is sampled. With an unconstrained medium the space is enormous and the distribution says nothing, so constrain the model first.
+- Loops are present. They inflate the sampled space, and every sample drawn inside a cycle is wasted ([Flux variability](fva.md)).
+- The runtime on a genome-scale model is long. `achr` starts with two LPs per reaction for its warmup points, and `chrr` starts with an FVA and a rounding step. The sampling steps after that solve no LP. `randomObjective` solves one LP per sample. A few hundred samples show the shape, and tens of thousands are not needed for that.
 :::
 
 ## See also
 
-- [Flux variability](fva.md), the ranges that sampling fills in.
-- [Simulating growth with FBA](fba.md), the single point that sampling surrounds.
-- [Deletions and essentiality](deletions.md), the other way to ask what the model depends on.
+- [Flux variability](fva.md): the ranges that sampling fills in.
+- [Simulating growth with FBA](fba.md): the single point that sampling surrounds.
+- [Deletions and essentiality](deletions.md): the other way to ask what the model depends on.
