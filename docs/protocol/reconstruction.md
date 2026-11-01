@@ -6,7 +6,7 @@ The protocol is a complete, worked example of the reconstruction of a genome-sca
 
 All scripts and data are in the [hanpo-GEM](https://github.com/SysBioChalmers/hanpo-GEM) repository, where `hanpo-GEM` is the short name of the model. [`code/reconstructionProtocol.m`](https://github.com/SysBioChalmers/hanpo-GEM/blob/main/code/reconstructionProtocol.m) holds the complete, runnable version of every command on these pages. Its sections 3.1 to 3.9 correspond to the pages in the order of the stages below, and sections 3.7 and 3.8 correspond to the page Saving to GitHub and simulating. The commands on these pages are in places more concise than in the script, mainly in the file locations.
 
-The published protocol was written for RAVEN 2. This site applies minor modifications to the commands, and the protocol also works with RAVEN 3.
+The published protocol was written for RAVEN 2. The commands on these pages differ in minor details from the published version, to match RAVEN 3. The documentation build does not run them.
 
 ## Genome-scale metabolic models
 

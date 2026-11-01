@@ -17,7 +17,7 @@ The page covers loading a model, reporting its size and inspecting one reaction,
 
 The examples use `smallYeast.yml`, a model of the central carbon metabolism of yeast that ships with RAVEN. The file is [`docs/data/smallYeast.yml`](../data/smallYeast.yml), and the examples run in the directory that contains it.
 
-One of the toolboxes must be installed first ([Installation](../installation/index.md)). The Setup section of every page names the files that the page needs. All of them are in [`docs/data/`](../data/README.md), which is also the working directory when the `raven-docs` repository is cloned. The blocks of a page build on each other and run in order in one MATLAB or Python session.
+One of the toolboxes must be installed first ([Installation](../installation/index.md)). The Setup section of most pages names the files that the page needs. All of them are in [`docs/data/`](../data/README.md), which is also the working directory when the `raven-docs` repository is cloned. The blocks of a page build on each other and run in order in one MATLAB or Python session.
 
 ## Loading the model
 
@@ -244,7 +244,7 @@ fprintf('elemental %d, charge %d\n', balance.balanceStatus, balance.chargeStatus
 elemental 1, charge -1
 ```
 
-The element balance and the charge balance are reported separately, each as `1` (balanced), `0` (unbalanced) or `-1` (undecidable). `PGI` is balanced elementally, and its charge balance is undecidable because the metabolites of this model have formulas but no charges, so there is nothing to sum. An undecidable balance means that the check could not run, and a failed charge balance means that the charges differ.
+The element balance and the charge balance are reported separately, each as `1` (balanced), `0` (unbalanced), `-1` (undecidable) or `-2` (formula that cannot be parsed). `PGI` is balanced elementally, and its charge balance is undecidable because the metabolites of this model have formulas but no charges, so there is nothing to sum. An undecidable balance means that the check could not run, and a failed charge balance means that the charges differ.
 :::
 :::{tab-item} 🐍 Python
 :sync: python

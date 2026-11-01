@@ -24,7 +24,7 @@ Columns are found by their header, so the order does not matter and the optional
 
 ## Setup
 
-The files are `smallYeast.yml` and [`curation-mets.tsv`](../data/curation-mets.tsv) from [`docs/data/`](../data/README.md). The model has formulas and no charges, which leaves the charge balance undecidable in [Getting started](getting-started.md). The table supplies four charges, together with formulas of the charged species, because a formula and a charge must describe the same species for the charge balance to work. The other metabolites of `smallYeast` keep their neutral formulas, so the reactions of these four metabolites balance again only after their partners are curated in the same way. [Quality control](quality-control.md) finds them.
+The files are `smallYeast.yml` and [`curation-mets.tsv`](../data/curation-mets.tsv) from [`docs/data/`](../data/README.md). The model has formulas and no charges, which leaves the charge balance undecidable in [Getting started](getting-started.md). The table supplies four charges, together with formulas of the charged species, because a formula and a charge must describe the same species for the charge balance to work. The other metabolites of `smallYeast` keep their neutral formulas, so the reactions of these four metabolites balance after their partners are curated in the same way. [Quality control](quality-control.md) finds them.
 
 ```text title="curation-mets.tsv"
 metNames	comps	formula	charge	metNotes
@@ -98,11 +98,11 @@ updated: ['MAL_m', 'AKG_m', 'P2G_c', 'P3G_c']
 
 A row whose name matches nothing in the model adds a new entity. The identifier is generated and not taken from the file. Both toolboxes find the largest zero-padded number that carries the prefix and continue from it, so the new identifiers continue the scheme of the model.
 
-The prefixes are arguments: `metPrefix` and `rxnPrefix` in MATLAB, `met_id_prefix` and `rxn_id_prefix` in Python. The defaults are `M_` and `R_`, the convention of cobrapy and BiGG. A model derived from yeast-GEM uses `s_` and `r_`, and other prefixes give a model with two identifier schemes.
+The prefixes are arguments: `metPrefix` and `rxnPrefix` in MATLAB, `met_id_prefix` and `rxn_id_prefix` in Python. The defaults are `M_` and `R_`, the BiGG convention. A model derived from yeast-GEM uses `s_` and `r_`, and other prefixes give a model with two identifier schemes.
 
 Adding a reaction needs both reaction tables. The row in the reactions table holds the bounds, the gene rule and the annotation. The rows in the coefficients table hold the stoichiometry, one row per metabolite, negative for substrates and positive for products, linked by `rxnIdx`. A metabolite named there that the model lacks is created, so the metabolite table is usually applied in the same pass.
 
-:::{admonition} Blank cells overwrite values
+:::{admonition} Blank cells
 :class: warning
 
 An empty cell is an instruction and not an omission. By default, it overwrites the existing value of the model, so a table written to correct one charge erases the text annotations in every column that is present and blank in that row. `overwriteWithEmpty` set to false, or `overwrite_with_empty=False` in Python, keeps the existing values.

@@ -203,7 +203,7 @@ The three results are three different states. `nan` means that the LP had no sol
 
 An anaerobic yeast-GEM needs more than a closed oxygen exchange. Without oxygen the model cannot make sterols and unsaturated fatty acids, so they are supplied. Heme a leaves the cofactor pseudoreaction, the biomass gains an FADH2 term, and two reactions that glucose represses are blocked. These edits belong together, and both toolboxes read them from one YAML file, a condition, which is reviewed as data and not buried in a script.
 
-[`anaerobic.yml`](../data/anaerobic.yml) is that file, transcribed from `anaerobicModel.m` of yeast-GEM:
+[`anaerobic.yml`](../data/anaerobic.yml) is that file, transcribed from `anaerobicModel.m` of yeast-GEM, without its step for the amino-acid ratios:
 
 ```yaml title="anaerobic.yml (abridged)"
 cofactor_pseudoreaction:
@@ -227,7 +227,7 @@ bounds:
   - { rxn: r_0714, lb: 0, ub: 0 }  # MDH2, repressed on glucose
 ```
 
-The schema has five parts: an optional `prelude` that resets the exchange reactions, an optional edit of the cofactor pseudoreaction, an optional change of the biomass stoichiometry, a list of `bounds` per reaction and an `expected_uptake_count`, which triggers a warning when the condition does not match the model.
+The schema has five parts: an optional `prelude` that resets the exchange reactions, an optional edit of the cofactor pseudoreaction, an optional change of the biomass stoichiometry, a list of `bounds` per reaction and an `expected_uptake_count`, which triggers a warning when it differs from the number of `bounds` entries with a lower bound of -1000.
 
 Removing a metabolite from the cofactor pseudoreaction leaves its charge unbalanced, and `charge_balance_met` names the metabolite whose coefficient absorbs the difference. Both toolboxes recompute the coefficient and do not store it, so the file states the intent.
 
@@ -349,7 +349,7 @@ The values are uptake rates and not bounds. A zero is a component that the solut
 
 - The model is infeasible after setting a medium. An essential nutrient is closed. The components are reopened one at a time, or `minimal_medium` is run on the working model and compared.
 - The signs of two conventions are mixed. For an exchange written `metabolite <=>`, as in yeast-GEM, uptake is a negative flux, and `model.medium` takes positive numbers. Both are correct, and mixing them gives wrong bounds.
-- The model grows without a carbon source. A reaction usually produces carbon from nothing. [Quality control](quality-control.md) describes the diagnosis with `canExchange` and `analyse_topology`.
+- The model grows without a carbon source. A reaction usually produces carbon from nothing. [Quality control](quality-control.md) describes the diagnosis with `canExchange` and `gap_report`.
 - A result cannot be reproduced. A medium defined inside a script differs between users who edit the script. A condition file is data, and a text difference shows its changes.
 :::
 

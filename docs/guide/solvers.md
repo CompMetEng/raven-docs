@@ -7,7 +7,7 @@ Most simulations on this site solve a linear program (LP). Gap-filling, minimal 
 | MATLAB | Python | Purpose |
 |---|---|---|
 | `setRavenSolver` | `Configuration` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | select the solver |
-| `checkRaven` | `Configuration` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | test the solver |
+| `checkRaven` | no equivalent | test the solver |
 | `solveLP` | `Model.optimize` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | solve and return a solution object |
 | `optimizeProb` | `Model.solver` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | solve a problem that the toolbox built |
 

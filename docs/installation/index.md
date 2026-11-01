@@ -1,6 +1,6 @@
 # Installation
 
-RAVEN is available as a MATLAB toolbox and as the Python package raven-toolbox. Both build the same models with the same algorithms, and the workflow decides which to use.
+RAVEN is available as a MATLAB toolbox and as the Python package raven-toolbox. Both build models for the same workflows, some algorithms differ between them ([Tuned parameter defaults](../tuned-parameters.md)), and the workflow decides which to use.
 
 ::::{grid} 1 2 2 2
 
@@ -22,11 +22,11 @@ Installation of the MATLAB toolbox with the Add-Ons manager, a release download 
 
 ## Choosing a solver
 
-Both versions need a linear-programming solver. The options are the same for either language:
+Both versions need a linear-programming solver:
 
 | Solver | Licence | Suited to |
 |---|---|---|
-| Gurobi | Free academic | Genome-scale models, ftINIT, the legacy tINIT method and gap-filling (recommended) |
+| Gurobi | Free academic | Genome-scale models, ftINIT, gap-filling, and in MATLAB the legacy tINIT method (recommended) |
 | GLPK   | Open source   | Small and medium models, and getting started |
 | SCIP   | Open source   | MILP problems (MATLAB); `setRavenSolver('scip')` downloads the binary on Windows only |
 

@@ -5,7 +5,7 @@ After the biomass composition is adjusted, the reactions that are known to diffe
 :::{admonition} Order of curation and gap-filling
 :class: note
 
-The curation can also follow gap-filling. It can influence the gap-filling result, so the protocol does it first.
+Curation can also follow gap-filling. Curated lipid reactions change the gap-filling result, so the protocol curates first.
 :::
 
 ## The SLIME formalism
@@ -33,7 +33,7 @@ The full script reads three template files (`lipidTemplates.txt`, `lipidTranspor
 
 ## Scaling the acyl chains
 
-After gap-filling, the provided levels of acyl chains and lipid classes turn out to be incompatible, and one of the two must be scaled for a functional model. The lipid-class measurements are assumed to be technically more reliable, and the acyl-chain data are scaled:
+After gap-filling, the provided levels of acyl chains and lipid classes turn out to be incompatible, and one of the two must be scaled for a functional model. The protocol assumes that the lipid-class measurements are technically more reliable, and it scales the acyl-chain data:
 
 ```matlab
 model = scaleLipids(model, 'tails');

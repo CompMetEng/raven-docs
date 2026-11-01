@@ -149,7 +149,7 @@ for name, value in fractions.items():
 :::
 ::::
 
-The total is the value to check. One unit of flux through the biomass pseudoreaction consumes one gram of cell, which gives the growth rate the unit `/h`, so the fractions sum to about 1 g/gDW. A total that deviates from 1 means that a component was edited without rebalancing, and every growth rate of the model is off by the same factor.
+The total is the value to check. One unit of flux through the biomass pseudoreaction consumes one gram of cell, which gives the growth rate the unit `/h`, so the fractions sum to about 1 g/gDW. A total far from 1 points to a component that was edited without rebalancing or to a wrong mass strategy, and every growth rate of the model is off by the same factor. The unedited yeast-GEM total is 0.9954.
 
 The lipid chain pseudoreaction is not in the configuration. yeast-GEM represents lipids with a backbone and a chain, which are two views of the same mass, and counting both would double it. The step [lipid curation](../protocol/lipid-curation.md) of the protocol explains the representation.
 

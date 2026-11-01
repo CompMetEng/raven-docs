@@ -9,9 +9,9 @@ A model that loads and solves can be wrong. Four checks come before a result is 
 | `checkModelStruct` | `check_model` | structural problems |
 | `getElementalBalance` | `get_elemental_balance` | mass balance of each reaction |
 | `haveFlux` | `find_blocked_reactions` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | reactions that cannot carry flux under the current bounds |
-| `canExchange` | `analyse_topology` | metabolites that the model can make or consume with its medium |
+| `canExchange` | `gap_report` | metabolites that the model can make or consume with its medium |
 | `findLeakMetabolite` | `find_leak_metabolite`, `gap_report` | mass produced from nothing |
-| `gapReport` | `check_model` + `analyse_topology` | one summary of the gaps |
+| `gapReport` | `gap_report` | one summary of the gaps |
 
 ## Setup
 
@@ -225,7 +225,7 @@ closed model feasible: 1
 one leak: F6P_c
 ```
 
-`getExchangeRxns` returns every reaction with metabolites on one side only, so the sinks and demands are closed together with the exchange reactions. A model that is infeasible when closed, for instance because of a forced maintenance flux, cannot show a leak. The feasibility of the closed model is checked before the leak test. `canExchange` counts the leaks. `findLeakMetabolite` finds one with as few reactions as possible, which gives a starting point. Both take the direction as the second argument, and `'consume'` asks the reverse question: which metabolites the model can take up without limit.
+`getExchangeRxns` returns every reaction with metabolites on one side only, so the sinks and demands are closed together with the exchange reactions. A model that is infeasible when closed, for instance because of a forced maintenance flux, cannot show a leak. The feasibility of the closed model is checked before the leak test. `canExchange` counts the leaks. `findLeakMetabolite` finds one leak with the smallest total flux, and `minNrFluxes` minimises the number of reactions instead. The leak is a starting point. Both take the direction as the second argument, and `'consume'` asks the reverse question: which metabolites the model can take up without limit.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -254,7 +254,7 @@ one leak: ['F6P_c', 'GP_c', 'PYR_c']
 
 `find_leak_metabolite` is the port of `findLeakMetabolite` and closes nothing, so it receives the closed copy. It returns a list, and more than one identifier means that the metabolites can only be exchanged together. A manual closure closes `model.boundary`. `model.exchanges` omits sinks and demands, because cobrapy does not count them as exchanges, and an open sink is an input.
 
-`analyse_topology` answers the connectivity part of the question without solving a linear program. Without `seeds`, the seeds are the metabolites of every reaction that has only substrates and a negative lower bound or only products and a positive upper bound. Without `targets`, the targets are the metabolites of the first objective reaction. A model without an objective reaction and without `targets` raises `ValueError`.
+`analyse_topology` answers the connectivity part of the question without solving a linear program, and it requires a `templates` argument. Without `seeds`, the seeds are the metabolites of every reaction that has only substrates and a negative lower bound or only products and a positive upper bound. Without `targets`, the targets are the metabolites of the first objective reaction. A model without an objective reaction and without `targets` raises `ValueError`.
 :::
 ::::
 

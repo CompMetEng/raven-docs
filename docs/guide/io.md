@@ -13,7 +13,7 @@ The page covers reading and writing of SBML, RAVEN YAML and Excel files, and wri
 | `exportToExcelFormat` | `export_to_excel` | write the RAVEN Excel format |
 | `exportForGit` | `export_for_git` | write a Standard-GEM repository layout |
 
-The function is chosen by the file format. All readers produce the same in-memory model, and no format is canonical. The formats differ in what survives a round trip and in how readable the file is, as [Identifier mangling](#identifier-mangling) and [Spreadsheets](#spreadsheets) show.
+The function is chosen by the file format. All readers produce the same content in memory, and no format is canonical. The formats differ in what survives a round trip and in how readable the file is, as [Identifier mangling](#identifier-mangling) and [Spreadsheets](#spreadsheets) show.
 
 ## Setup
 
@@ -72,7 +72,7 @@ The yeast-GEM identifier in this output differs from the one in the MATLAB outpu
 
 ## Identifier mangling
 
-SBML identifiers are XML names and cannot contain a dot. When a file is written, the dots in model, reaction and metabolite identifiers are encoded as the ASCII code of the character between double underscores: `.` becomes `__46__`. The code is stored in the file, and the toolboxes differ in whether they decode it on reading.
+SBML identifiers are XML names and cannot contain a dot. When a file is written, every character in the identifiers other than a letter, digit or underscore is encoded as its ASCII code between double underscores, and a dot becomes `__46__`. The code is stored in the file, and the toolboxes differ in whether they decode it on reading.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -114,7 +114,7 @@ cobrapy decodes the identifiers of reactions, metabolites and genes and leaves t
 
 ## Read time by format
 
-Each toolbox reads one format quickly and the other slowly, and the ranking is reversed between them. Reading yeast-GEM takes about 17 s from SBML and 73 s from YAML in Python, and about 78 s from SBML and 17 s from YAML in MATLAB. RAVEN parses YAML itself and reads SBML through libSBML, and cobrapy has the opposite balance. The format follows from what the file is needed for: a readable difference between versions, or the RAVEN-specific fields that YAML preserves. A script that spends most of its time reading the file runs faster with the format that its toolbox reads quickly.
+Each toolbox reads one format quickly and the other slowly, and the ranking is reversed between them. Reading yeast-GEM takes about 17 s from SBML and 73 s from YAML in Python, and about 78 s from SBML and 17 s from YAML in MATLAB. The format follows from what the file is needed for: a readable difference between versions, or the RAVEN-specific fields that YAML preserves. A script that spends most of its time reading the file runs faster with the format that its toolbox reads quickly.
 
 ## Writing a model
 

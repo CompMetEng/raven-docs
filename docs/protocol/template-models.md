@@ -10,7 +10,7 @@ RAVEN creates a draft GEM with models of phylogenetically related organisms as t
 modelSce = importModel('yeastGEM.xml');
 ```
 
-The COBRA Toolbox wrote yeast-GEM and appends the compartment to each metabolite identifier. RAVEN keeps the compartment in a separate field (`.metComps`), so the redundant suffix is removed. The model receives the identifier `sce`, which `getModelFromHomology` later uses to match the model with its protein FASTA file:
+yeast-GEM was exported with the compartment appended to each metabolite identifier. RAVEN keeps the compartment in a separate field (`.metComps`), so the redundant suffix is removed. The model receives the identifier `sce`, which `getModelFromHomology` later uses to match the model with its protein FASTA file:
 
 ```matlab
 modelSce.mets = regexprep(modelSce.mets, '\[[a-z]+\]$', '');

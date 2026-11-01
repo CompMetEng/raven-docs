@@ -17,7 +17,7 @@ The documentation build does not run these examples. A KEGG reconstruction downl
 
 ## Organisms in KEGG
 
-When KEGG has the species (`sce` for *S. cerevisiae*), the assignments of genes to KOs exist and no sequence search is needed. This method is faster and is preferred when the organism is in KEGG.
+When KEGG has the species (`sce` for *S. cerevisiae*), the assignments of genes to KOs exist and no sequence search is needed. This method is faster, and it applies when the organism is in KEGG.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -49,7 +49,7 @@ print(f"{len(model.reactions)} rxns, {len(model.metabolites)} mets, "
 1357 rxns, 1502 mets, 838 genes
 ```
 
-The artefacts (a reference model and three tables, about 49 MB) are fetched from the `kegg118` raven-data release on first use and cached. [Download data and binaries](../installation/data-and-binaries.md) gives the location and describes how to fetch them before a batch run. The first run takes a few minutes, and later runs take about as long, because assembling the draft from the tables is slow and the download is not.
+The artefacts (a reference model and three tables, about 49 MB) are fetched from the `kegg118` release of `toolbox-assets` on first use and cached. [Download data and binaries](../installation/data-and-binaries.md) gives the location and describes how to fetch them before a batch run. The first run takes a few minutes, and later runs take about as long, because assembling the draft from the tables is slow and the download is not.
 :::
 ::::
 
@@ -129,5 +129,5 @@ This removes nine reactions from this organism, and the effect differs between o
 ## See also
 
 - [Reconstruction from homology](homology.md): the same goal with a template model in place of an orthology database.
-- [Gap-filling](gap-filling.md): the step for the 1357 reactions that cannot carry flux until the draft has exchange reactions.
+- [Gap-filling](gap-filling.md): the step for the 1357 reactions of a draft without exchange reactions, none of which can carry flux.
 - [Legacy tutorial 5](../tutorials/tutorial5.md): the original KEGG reconstruction exercise from the RAVEN paper.

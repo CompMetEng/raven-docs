@@ -6,7 +6,7 @@ Three tools produce and read the YAML format:
 - raven-toolbox (`raven_toolbox.io.yaml.{read,write}_yaml_model`, [API](api/index.md))
 - RAVEN MATLAB (`readYAMLmodel.m` and `writeYAMLmodel.m` in [`src/io`](https://github.com/CompMetEng/RAVEN/tree/develop/src/io) of the RAVEN repository)
 
-The same file can be round-tripped through any of the three. cobrapy defines the core shape. raven-toolbox and RAVEN MATLAB add namespaced extensions that leave the shape known to cobra intact: RAVEN curation fields, MIRIAM cross-references that the `annotation` of cobrapy already covers, and the GECKO `ec-*` sections.
+The same file can be read by any of the three, and a round trip through raven-toolbox or RAVEN MATLAB preserves all content. cobrapy defines the core shape. raven-toolbox and RAVEN MATLAB add namespaced extensions that leave the shape known to cobra intact: RAVEN curation fields, MIRIAM cross-references that the `annotation` of cobrapy already covers, and the GECKO `ec-*` sections.
 
 ---
 
@@ -302,8 +302,8 @@ The reader of raven-toolbox repairs three quoted shapes that are not valid YAML:
 
 | File written by (rows) and reader (columns) | cobrapy | raven-toolbox | RAVEN MATLAB |
 |---|---|---|---|
-| cobrapy (`save_yaml_model`) | full | full, with extras in `notes` through attribute fall-through | full, including root-level `id`, `name` and `version` |
-| raven-toolbox (`write_yaml_model`) | core (no `metaData`-derived `id`); RAVEN extras are unknown top-level keys that do not break parsing | full | full |
+| cobrapy (`save_yaml_model`) | full | full, with the extras in `notes` | full, including root-level `id`, `name` and `version` |
+| raven-toolbox (`write_yaml_model`) | core (no `metaData`-derived `id`); RAVEN extras are unknown keys inside the entries, and they do not break parsing | full | full |
 | RAVEN MATLAB (`writeYAMLmodel`) | core (no `metaData`-derived `id`); RAVEN extras through attribute fall-through | full | full |
 
 "Full" means that every field is read back into its canonical position on the model object. "Core" means that the fields known to cobrapy are read, and the RAVEN extensions are ignored or kept on the object as attributes (for example `reaction.eccodes`, which is not written again on saving). A round trip through cobrapy is therefore lossy for the RAVEN extensions: only the core fields survive `cobrapy.load` followed by `cobrapy.save`. Round trips through raven-toolbox or RAVEN MATLAB are lossless.
@@ -314,7 +314,7 @@ Neither writer reproduces the default layout of `ruamel` in cobrapy byte for byt
 
 ## Round-trip content counts
 
-`yeast-GEM.yml` (2748 metabolites, 4102 reactions, 1143 genes) is loaded and written again through any of the three tools. Every documented piece of content is preserved:
+`yeast-GEM.yml` (2748 metabolites, 4102 reactions, 1143 genes) is loaded and written again through raven-toolbox or RAVEN MATLAB. Every documented piece of content is preserved:
 
 | Count | After round trip |
 |---|---|

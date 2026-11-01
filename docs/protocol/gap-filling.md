@@ -43,7 +43,7 @@ model = setParam(model, 'lb', 'r_4041', 0);
 model = deleteUnusedGenes(model);
 ```
 
-After gap-filling, the model produces all macromolecules of the *H. polymorpha* biomass.
+The `solveLP` call verifies that the model grows after gap-filling.
 
 ## Semi-automatic gap analysis
 

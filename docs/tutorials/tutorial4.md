@@ -2,11 +2,11 @@
 
 A GEM covers metabolism at a large scale, and the size makes errors almost inevitable, in a self-built model and in a model from another source. The exercise is a systematic round of quality control on a deliberately broken version of the small yeast model, `smallYeastBad.yml`.
 
-Model validation is iterative, as some errors appear only after others are fixed. The RAVEN approach is to try to make a model do something that it should not do, for example create mass from nothing, and finds errors that a check of the intended behaviour misses.
+Model validation is iterative, as some errors appear only after others are fixed. In the RAVEN approach, the user tries to make a model do something that it should not do, for example create mass from nothing. This finds errors that a check of the intended behaviour misses.
 
 `tutorial4.m` leaves several gaps to fill, and the completed version is `tutorial4_solutions.m`. The `gapReport` function wraps many of these checks, and doing them step by step shows how they work.
 
-The changes are made in code, which avoids several model files. Tutorials 2 and 3 are completed first, and linear programming is assumed to be familiar.
+The changes are made in code, which avoids several model files. Tutorials 2 and 3 must be completed first, and the exercise assumes familiarity with linear programming.
 
 ## Step by step
 
@@ -34,7 +34,7 @@ sol = solveLP(model, 1);
 printFluxes(model, sol.x, false, [], [], '%rxnID (%rxnName):%flux\n\t%eqn\n');
 ```
 
-:::{dropdown} Answer to Question 2: production of ethanol from nothing
+:::{dropdown} Answer to step 2: production of ethanol from nothing
 A large amount of ethanol is produced. `ADH1` should produce one unit of ethanol only. Its equation is changed with `model = changeRxns(model, 'ADH1', 'acetaldehyde[c] + NADH[c] => ethanol[c] + NAD(+)[c]', 3);`
 :::
 
@@ -48,7 +48,7 @@ sol = solveLP(model, 1);
 printFluxes(model, sol.x, false, 10^-5, [], '%rxnID (%rxnName):\n\t%eqn\n\t%flux\n');
 ```
 
-:::{dropdown} Answer to Question 3: two unbalanced reactions
+:::{dropdown} Answer to step 3: two unbalanced reactions
 The unbalanced reactions in the flux list show that two reactions should each give one unit of product:
 
 - `FBP` should give one unit of F6P. Its equation is changed to `beta-D-fructofuranose 1,6-bisphosphate[c] => beta-D-fructofuranose 6-phosphate[c] + phosphate[c]`.
@@ -77,7 +77,7 @@ sol = solveLP(model);
 printFluxes(model, sol.x, false, 10^-5, [], '%rxnID (%rxnName):\n\t%eqn\n\t%flux\n'); %Now it works
 ```
 
-:::{dropdown} Answer to Question 4: `PDC` lacks a product
+:::{dropdown} Answer to step 4: `PDC` lacks a product
 `PDC` converts pyruvate (3 carbons) to acetaldehyde (2 carbons) without another product, and CO2 is missing. `changeRxns` makes the change. As an exercise, the coefficient of cytosolic CO2 is added directly to the stoichiometric matrix:
 
 ```matlab

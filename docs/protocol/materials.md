@@ -48,7 +48,7 @@ Known metabolic behaviour of the target organism improves the quality of the mod
 
 ## Installing RAVEN
 
-After the software and files are obtained, RAVEN is installed ([Installing RAVEN](../installation/raven.md)). `pathtool` adds the RAVEN, libSBML and Gurobi subfolders to the MATLAB path, and the installation is verified with:
+After the software and files are obtained, RAVEN is installed ([Installing RAVEN](../installation/raven.md)). `pathtool` adds the RAVEN folder to the MATLAB path, and RAVEN bundles libSBML. Gurobi is added to the path by its own MATLAB integration ([RAVEN (MATLAB)](../installation/raven.md#choosing-a-solver-matlab)), and the installation is verified with:
 
 ```matlab
 checkRaven
@@ -60,6 +60,6 @@ checkRaven
 :class: warning
 
 - Problem: `checkRaven` reports Fail for Export Excel format.
-- Possible reason: The protocol script reports that the Text Analytics Toolbox of MATLAB can conflict with reading Excel files.
+- Possible reason: The Text Analytics Toolbox of MATLAB can conflict with Excel files.
 - Solution: Uninstall the Text Analytics Toolbox. Support is available through the [RAVEN issues](https://github.com/CompMetEng/RAVEN/issues) page.
 :::

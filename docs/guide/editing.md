@@ -205,7 +205,7 @@ fprintf('%d -> %d reactions, %d -> %d genes\n', before, numel(reduced.rxns), ...
 53 -> 52 reactions, 61 -> 60 genes
 ```
 
-Both flags default to `false`, so `removeReactions` without flags leaves metabolites and genes that nothing refers to, and they appear later as gaps. `removeUnusedComps` does the same for compartments, and `deleteUnusedGenes` performs the gene part alone.
+Both flags default to `false`, so `removeReactions` without flags leaves metabolites and genes that nothing refers to, and they appear later as gaps. `removeUnusedComps` does the same for compartments when `removeUnusedMets` is true, and `deleteUnusedGenes` performs the gene part alone.
 :::
 :::{tab-item} 🐍 Python
 :sync: python

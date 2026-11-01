@@ -217,7 +217,7 @@ ethanol: free 0.73, growth >= 90% 0.03
 
 ## Reactions to sample over
 
-The `randomObjective` method needs reactions that carry flux outside loops, to serve as objectives. Reactions that carry flux only through a loop are unsuitable, and the two toolboxes screen them out differently. raven-toolbox runs a loopless FVA, the test that [Flux variability](fva.md) applied by hand. RAVEN runs a plain FVA (`getAllowedBounds`) and drops the reactions that reach 0.999 of the largest bound of the model, which is where loop flux ends up. Both keep the same 50 reactions here.
+The `randomObjective` method needs reactions that carry flux outside loops, to serve as objectives. Reactions that carry flux only through a loop are unsuitable, and the two toolboxes screen them out differently. raven-toolbox runs a loopless FVA, the test that [Flux variability](fva.md) applied by hand. RAVEN runs a plain FVA (`getAllowedBounds`) and drops the reactions that reach 0.999 times the upper bound of the loop (1000 in this model), which is where loop flux ends up. Both keep the same 50 reactions here.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB

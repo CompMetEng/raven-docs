@@ -114,7 +114,7 @@ fprintf('Growth rate: %.4f h-1\n', sol.f);
 :link: guide/index
 :link-type: doc
 
-One page per task, with MATLAB and Python examples side by side. The examples are executed and their output is checked against the text.
+One page per task, with MATLAB and Python examples side by side. Most examples are executed, and their output is checked against the text.
 :::
 
 :::{grid-item-card} API reference

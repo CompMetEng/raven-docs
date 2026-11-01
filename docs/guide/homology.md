@@ -106,7 +106,7 @@ Both call the same BLAST+ executables with the same parameters, so the hit count
 
 Without `threads`, `run_blast`, `run_diamond` and `run_supporth` use every CPU that the process can run on. In MATLAB, `getBlast`, `getDiamond` and `runSuppOrth` use the cores that are assigned to MATLAB (`feature('numcores')`), and only `runSuppOrth` has a `threads` option.
 
-`getDiamond` and `run_diamond` are alternatives that search with DIAMOND. With `--more-sensitive`, the default of `run_diamond`, DIAMOND was 11.7 and 14.3 times faster than BLASTP on two complete proteome pairs (12 s against 140 s, and 14 s against 200 s, in [Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)). DIAMOND returned fewer hits: 32,192 against 54,513 for *K. lactis* against *S. cerevisiae*. After the default filters (identity 40, length 200, E-value 1e-30), the two aligners kept 87.9 to 92.3 % of the same pairs on four targets (Jaccard index).
+`getDiamond` and `run_diamond` are alternatives that search with DIAMOND. With `--more-sensitive`, the default of `run_diamond`, DIAMOND was 11.7 and 14.3 times faster than BLASTP on two complete proteome pairs (12 s against 140 s, and 14 s against 200 s, in [Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)). DIAMOND returned fewer hits: 32,192 against 54,513 for *K. lactis* against *S. cerevisiae*. After the filters identity 40, length 200 and E-value 1e-30, the two aligners kept 87.9 to 92.3 % of the same pairs on four targets (Jaccard index).
 
 `makeFakeBlastStructure` and `make_ortholog_hits` put orthology assignments from another source (OrthoFinder, OMA or a published table) into the structure that the transfer step expects, and no search is run.
 
@@ -145,7 +145,7 @@ draft: 37 rxns, 49 mets, 54 genes
 :::
 ::::
 
-The transfer works reaction by reaction. For each reaction of the template, the genes in its gene rule are looked up in the hit table. A template gene is replaced by its accepted counterpart in the new organism, and the reaction is carried over when the rule can be satisfied after the substitution. A reaction that needs two subunits is dropped when only one of them has a counterpart, and a reaction with two isozymes is kept when either has one. The metabolites that a carried reaction needs are carried with it. The draft has 49 metabolites against 52 in the template, because the three metabolites that occur only in dropped reactions are not created.
+The transfer works reaction by reaction. For each reaction of the template, the genes in its gene rule are looked up in the hit table. A template gene is replaced by its accepted counterpart in the new organism, and the reaction is carried over when the rule can be satisfied after the substitution. A reaction that needs two subunits is kept with a placeholder gene (`OLD_<model>_<gene>`) for the missing subunit under the default `complexPolicy` (`complex_policy` in Python) of `flag`, and the policy `drop` removes it. A reaction with two isozymes is kept when either has a counterpart. The metabolites that a carried reaction needs are carried with it. The draft has 49 metabolites against 52 in the template, because the three metabolites that occur only in dropped reactions are not created.
 
 The line `Standardizing grRules` shows RAVEN rewriting the rules of the template in a canonical form before the substitution. One rule written in two ways is then handled identically.
 
@@ -163,13 +163,13 @@ The draft is smaller than the template, because reactions whose genes have no ac
 
 Three cut-offs select the accepted hits, and tightening any of them reduces the size of the draft.
 
-`maxE` / `max_evalue` (`1e-30`) is the maximum BLAST E-value, the number of hits of at least this quality that is expected by chance in a database of this size. The default is strict for BLAST, where `1e-5` is a common threshold, because a reaction transferred on a marginal hit adds a claim about metabolism that nothing downstream questions. In four organisms, the F0.5 score against KEGG was identical from `1e-4` to `1e-30`, up to 0.006 lower at `1e-50` and 0.020 to 0.063 lower at `1e-100` ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)).
+`maxE` / `max_evalue` (`1e-30`) is the maximum BLAST E-value, the number of hits of at least this quality that is expected by chance in a database of this size. The default is strict for BLAST, where `1e-5` is a common threshold, and it keeps the value of RAVEN 2. In four organisms, the F0.5 score against KEGG was identical from `1e-4` to `1e-30`, up to 0.006 lower at `1e-50` and 0.020 to 0.063 lower at `1e-100` ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)).
 
 `minLen` / `min_align_len` (`100`) is the minimum aligned length in residues. It rejects hits that align over a short conserved domain while the rest of the protein is unrelated. The value was measured against KEGG orthology assignments in four organisms ([Homology cut-off calibration](../parameter-tuning/studies/homology-cutoff-calibration.md)). The values 50 and 100 gave the same score, 150 gave a score that was at most 0.003 lower, and 200 and 300 gave lower scores. At 200 the loss came mainly from recall, and precision and recall were not reported for 300.
 
 `minIde` / `min_identity` (`40`) is the minimum percentage of identical residues across the alignment.
 
-A fourth parameter, `strictness`, sets how much agreement between the two BLAST directions is required. It ranges from accepting every hit that passes the cut-offs to requiring reciprocal best hits. At the strictest setting, each gene keeps its best hits by bitscore in each direction, and all of them when several tie. The bitscore, unlike the E-value, does not depend on the size of the searched database, so the choice does not shift when a proteome is updated.
+A fourth parameter, `strictness`, sets how much agreement between the two BLAST directions is required. It has three levels. Level 1, the default, requires a hit that passes the cut-offs in both directions. Level 2 requires a hit in one direction, and level 3 keeps the best hit per gene in each direction. At the strictest setting, each gene keeps its best hits by bitscore in each direction, and all of them when several tie. The bitscore, unlike the E-value, does not depend on the size of the searched database, so the choice does not shift when a proteome is updated.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB

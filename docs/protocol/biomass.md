@@ -1,6 +1,6 @@
 # Biomass composition
 
-Metabolism must be able to synthesise the macromolecules that make up the biomass. GEMs encode this in biomass pseudoreactions, which specify the required macromolecules (DNA, RNA, protein, lipid and carbohydrate) and their amounts. Defining the biomass composition early ensures that the model can synthesise everything that it needs.
+Metabolism must be able to synthesise the macromolecules that make up the biomass. GEMs encode this in biomass pseudoreactions, which specify the required macromolecules (DNA, RNA, protein, lipid and carbohydrate) and their amounts. Defining the biomass composition early states what the model must be able to synthesise.
 
 In the template models the biomass is split over several pseudoreactions, for example the DNA pseudoreaction:
 

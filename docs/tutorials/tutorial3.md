@@ -2,9 +2,9 @@
 
 The exercise runs FBA simulations and a gene deletion analysis, and it uses a GEM as a scaffold for the interpretation of microarray data. The model is a simplified model of yeast metabolism (`smallYeast.yml`), which `readYAMLmodel` imports.
 
-Tutorial 2 is assumed to be completed.
+Tutorial 2 must be completed first.
 
-`tutorial3.m` is a skeleton script for the exercise. The completed answers are in the companion script `tutorial3_solutions.m`, and the code excerpts below follow the solutions. The code can be derived before the solutions are read.
+`tutorial3.m` is a skeleton script for the exercise. The completed answers are in the companion script `tutorial3_solutions.m`, and the code excerpts below follow the solutions. The code should be written before the solutions are read.
 
 ## Step by step
 

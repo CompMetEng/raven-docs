@@ -4,7 +4,7 @@ The exercise creates a model from KEGG on the basis of protein sequences in a FA
 
 Unlike Tutorials 1 to 4, this tutorial is a demonstration. It provides a scaffold that can be adapted to reconstruct a GEM for any organism.
 
-The de novo reconstruction searches large HMM databases. Building the model takes up to 35 minutes on macOS and Unix systems and up to 55 minutes on Windows, depending on the hardware and the size of the proteome of the target organism. `gapReport` can take several to many hours, depending on the number of gaps in the model.
+The de novo reconstruction searches large HMM databases. Building the model takes 20 to 35 minutes on macOS and Unix systems and 40 to 55 minutes on Windows, depending on the hardware and the size of the proteome of the target organism. `gapReport` can take several to many hours, depending on the number of gaps in the model.
 
 ## Step by step
 
@@ -62,7 +62,7 @@ Many reactions remain. Only the reactions that involve amylose or starch are kep
 printFluxes(model, fluxes, false, [], [],'%rxnID (%rxnName):\n\t%eqn: %flux\n',{'Amylose';'Starch'});
 ```
 
-Two elementally unbalanced reactions remain, including the reaction identified by `removeBadRxns`. They contradict each other: the first shows that amylose and starch are interconvertible, and the second shows that amylose contains one glucose unit fewer than starch. General reactions of this kind are fixed manually. Trusting the result of `removeBadRxns`, `R02110` is deleted.
+Two elementally unbalanced reactions remain, including the reaction identified by `removeBadRxns`. They contradict each other: the first shows that amylose and starch are interconvertible, and the second shows that amylose contains one glucose unit fewer than starch. General reactions of this kind are fixed manually. The result of `removeBadRxns` is trusted, and `R02110` is deleted.
 
 ```matlab
 model=removeReactions(model,'R02110');

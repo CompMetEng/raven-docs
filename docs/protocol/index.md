@@ -4,7 +4,7 @@ The protocol is a complete homology-based reconstruction of `hanpo-GEM`, from th
 
 The protocol complements the [user guide](../guide/index.md). Each page of the guide covers one operation, and the protocol covers a whole reconstruction in order.
 
-The protocol predates the guide, which covers MATLAB and Python, and its steps are MATLAB. The documentation build does not run its commands, unlike the guide pages. Several steps take hours and need data that this site does not ship.
+The guide covers MATLAB and Python, and the protocol steps use MATLAB only. The documentation build does not run its commands, unlike the guide pages. Several steps take hours and need data that this site does not ship.
 
 ## Protocol steps
 

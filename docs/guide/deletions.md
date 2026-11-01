@@ -8,13 +8,14 @@ A gene deletion analysis finds the genes that can be deleted while the organism 
 |---|---|---|
 | `findGeneDeletions` | `single_gene_deletion` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | knock out each gene in turn |
 | `findGeneDeletions` (`'sgd'`/`'dgd'`) | `double_gene_deletion` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | knock out pairs of genes |
-| `getEssentialRxns` | `find_task_essential_reactions` | reactions that a task requires |
+| `getEssentialRxns` | `single_reaction_deletion` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | reactions that the model requires (feasibility in MATLAB, growth in Python) |
+| `checkTasks` (`getEssential`) | `find_task_essential_reactions` | reactions that a task requires |
 | `removeGenes` | `remove_genes` | remove genes from the model, which differs from a knockout |
 | no equivalent | `moma` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | fluxes of a knockout, kept close to the wild type |
 
 `removeGenes` and `remove_genes` rewrite each affected gene rule without the removed gene. A reaction that has no catalyst left stays in the model with its rule dropped and its bounds set to `(0, 0)`. This is the default of `remove_genes`, the behaviour of `removeGenes` with `removeBlockedRxns` false, and the bound state in which `knock_out_model_genes` leaves a blocked reaction, so the flux consequence of the default equals that of a knockout. Removal also takes the gene and its occurrences in the reaction rules out of the model, which a knockout does not. With `blocked_reactions="keep"` the blocked reactions keep their bounds, and `removeBlockedRxns` true or `blocked_reactions="remove"` deletes them.
 
-When at least one requested gene is in the model, the genes that no remaining reaction uses are removed as well, including genes that were not requested. When no requested gene is in the model, no gene is removed, and RAVEN standardises the rules in this case too when `standardizeRules` is true.
+When at least one requested gene is in the model, the genes that no remaining reaction used before the removal are removed as well, including genes that were not requested. When no requested gene is in the model, no gene is removed, and RAVEN standardises the rules in this case too when `standardizeRules` is true.
 
 ## Setup
 

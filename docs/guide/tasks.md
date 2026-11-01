@@ -23,12 +23,12 @@ A task list is a tab-separated table with one row per task. The columns hold the
 	LEAK	Biomass from nothing	1				biomass[c]	0.01	1000	…
 ```
 
-Two requirements of the format must be met the first time, because both fail in MATLAB with the same error `Index in position 2 is invalid`:
+Two requirements of the format apply to MATLAB:
 
-- Every row starts with an empty cell. `parseTaskList` discards every row whose first cell is not empty, which is how it skips comments and section headers, so a file without the leading tab discards every row.
-- The full set of columns is present, including empty columns. `parseTaskList` matches all seventeen known headers and indexes the numeric ones by position, so omitting `EQU LB` or `CHANGED LB` leaves an index of zero.
+- The header row starts with an empty cell. `parseTaskList` treats the leading rows whose first cell is not empty as comments and takes the first row with an empty first cell as the header, so a file without the leading tab has no header row.
+- The header row has a column named `ID`, which is the only required column. A file without a row that starts with an empty cell raises `RAVEN:badInput` with the message that the TASKS sheet must have a column named ID.
 
-`parse_task_list` of raven-toolbox accepts the file with or without either, so both are missed until the MATLAB example runs. `tasks.txt` has the full set, and the columns after `OUT UB` are blank.
+`parse_task_list` of raven-toolbox accepts the file with or without the leading empty cell, so a missing cell is noticed only when the MATLAB example runs. `tasks.txt` has the full set of columns, and the columns after `OUT UB` are blank.
 
 Metabolites are given as `name[compartment]` with the metabolite name and not the identifier. Several metabolites go in one cell, separated by `;`, and the bound columns apply to all of them. A metabolite with its own bounds goes on a continuation row, which is a row without an `ID` that adds its inputs and outputs to the task above it. `GROWTH` uses this to require at least 0.01 units of biomass while CO₂ and acetate are unrestricted. With a lower bound of 0 on biomass, the zero flux would pass the task. The value 0.01 is illustrative, and any positive lower bound has the same effect.
 

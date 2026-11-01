@@ -8,7 +8,7 @@ The workflow uses Human-GEM and the RNA-seq data that Human-GEM provides, in bot
 
 ftINIT is the recommended method and replaces the legacy method tINIT. The workflow uses ftINIT.
 
-tINIT (`getINITModel`) reproduces a model that was built with it. It is supported and not scheduled for removal. It issues the notice `RAVEN:legacyMethod`, which states that the method is not intended for new work, and `warning('off','RAVEN:legacyMethod')` silences the notice.
+tINIT (`getINITModel`) reproduces a model that was built with it. It is supported and not scheduled for removal. It issues the notice `RAVEN:legacyMethod` once per session, which states that the method is not intended for new work, and `warning('off','RAVEN:legacyMethod')` silences the notice.
 
 tINIT exists in MATLAB only. RAVEN includes it for the models that were built with it. raven-toolbox has no such installed base and includes ftINIT only, so a tINIT model is reproduced in MATLAB.
 
@@ -130,9 +130,9 @@ load 11s
 prep_init_model 2216s
 ```
 
-Reading Human-GEM from the Systems Biology Markup Language (SBML) file alone takes about 11 seconds, and the preparation takes 37 minutes in Python and 47 minutes in MATLAB. The two preparations were separate Slurm jobs on the same node type with four cores each. MATLAB used a pool of 4 workers and Python ran with `processes = 1`, so the two times compare the complete runs and not the code alone. Two settings affect the run:
+Reading Human-GEM from the Systems Biology Markup Language (SBML) file alone takes about 11 seconds, and the preparation takes 37 minutes in Python and 47 minutes in MATLAB. The two preparations were separate Slurm jobs on the same node type with four cores each. The MATLAB run used the default of `prepINITModel` for `runParallel`, which is serial, and the Python run used `processes = 1`, so the two times compare the complete runs and not the code alone. Two settings affect the run:
 
-- `prep_init_model` runs the flux variability analysis (FVA) of cobrapy, which starts worker processes by default. The Python run above used `processes = 1`. Where worker processes are not permitted (a locked-down Windows machine, some continuous integration (CI) runners), the default fails with `PermissionError: [WinError 5] Access is denied`, and `processes = 1` removes the parallelism and lets the run finish.
+- `prep_init_model` takes the argument `processes`, which defaults to 1, and its `simplify_model` passes follow `cobra.Configuration().processes`, which starts worker processes by default. The Python run above used `processes = 1`. Where worker processes are not permitted (a locked-down Windows machine, some continuous integration (CI) runners), the default fails with `PermissionError: [WinError 5] Access is denied`, and `processes = 1` removes the parallelism and lets the run finish.
 - `essential_cache_path` caches the slow search for task-essential reactions, so a second preparation of the same template skips it.
 :::
 ::::

@@ -1,6 +1,6 @@
 # Manual curation
 
-A draft GEM needs manual curation to become a high-quality model. Curation corrects gene associations, adds or removes reactions, and moves reactions between compartments, all to describe the in vivo network more accurately. For comparison, the *S. cerevisiae* model has been curated continuously since 2003.
+A draft GEM needs manual curation to become a high-quality model. Curation corrects gene associations, adds or removes reactions, and moves reactions between compartments, all to describe the in vivo network more accurately. For comparison, the *S. cerevisiae* model is curated continuously.
 
 ## Replacing template genes with target homologs
 
@@ -12,7 +12,7 @@ model.rxnNames(rhtoRxns);
 model.grRules(rhtoRxns);
 ```
 
-A literature search and BLAST found that gene `RHTO_03911` (oleoyl-CoA desaturase, reaction `y300009`) has the homolog `Hanpo2_15704`. The gene association is curated:
+BLAST identified that gene `RHTO_03911` (oleoyl-CoA desaturase, reaction `y300009`) has the homolog `Hanpo2_15704`. The gene association is curated:
 
 ```matlab
 model = changeGrRules(model, 'y300009', 'Hanpo2_15704', true);

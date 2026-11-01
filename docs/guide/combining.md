@@ -95,7 +95,7 @@ The asymmetry follows from the matching rules. Metabolites are matched by name a
 
 `mergeModels` takes `metParam`, which selects what metabolites are matched on. The value `"metNames"` is the default and is used in the example, and `"mets"` matches on identifier. Matching on identifier suits two models from the same database, where the identifiers have the same meaning and the names may differ.
 
-:::{admonition} Merging matches on names, not identifiers
+:::{admonition} Name-based merging
 :class: warning
 
 Two models built from different databases usually share almost no metabolite names either. The merge then gives a model with two disconnected halves in one struct. Merging assumes consistent naming, and the naming is checked before the merge.
@@ -134,9 +134,9 @@ after contracting: 53 rxns
 :::
 ::::
 
-`simplifyModel` removes nothing unless the flags say what to remove, as every flag is off by default except `deleteUnconstrained`. `deleteMinMax` is the expensive flag used in the example. It minimises and maximises each reaction to find out whether the reaction can carry flux. `deleteInaccessible` drops dead ends structurally, `deleteZeroInterval` drops reactions that are fixed at zero, and `deleteDuplicates` does what `contractModel` does. `reservedRxns` protects reactions from all of these flags. In Python, the same choices are `delete_no_flux` and its related arguments. `open_exchanges` decides whether the test runs on the medium as it is or with the boundary opened first.
+`simplifyModel` removes nothing unless the flags say what to remove, as every flag is off by default except `deleteUnconstrained`. `deleteMinMax` is the expensive flag used in the example. It minimises and maximises each reaction to find out whether the reaction can carry flux. `deleteInaccessible` drops dead ends structurally, `deleteZeroInterval` drops reactions that are fixed at zero, and `deleteDuplicates` does what `contractModel` does. `reservedRxns` protects reactions from `deleteZeroInterval`, `deleteInaccessible` and `deleteMinMax`. In Python, the same choices are `delete_no_flux` and its related arguments. `open_exchanges` decides whether the test runs on the medium as it is or with the boundary opened first.
 
-:::{admonition} Which functions mutate
+:::{admonition} Functions that change the model in place
 :class: warning
 
 Every RAVEN function here returns a new model struct and leaves its input unchanged. The Python functions differ:

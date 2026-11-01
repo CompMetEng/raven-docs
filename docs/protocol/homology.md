@@ -26,7 +26,7 @@ model = getModelFromHomology({modelSce, modelRhto}, blast, 'hanpo', ...
 model = contractModel(model);   % merge identical reactions with different grRules
 ```
 
-The cut-offs select the BLAST hits that count as homology. The maximum E-value is `1e-30` (the default), the minimum alignment length is 150 (default 100; values up to 150 give the same result) and the minimum identity is 35 % (default 40 %) ([Note 6](#notes)).
+The cut-offs select the BLAST hits that count as homology. The maximum E-value is `1e-30` (the default), the minimum alignment length is 150 (default 100; in the [calibration study](../parameter-tuning/studies/homology-cutoff-calibration.md), 150 scored at most 0.003 lower than 100) and the minimum identity is 35 % (default 40 %) ([Note 6](#notes)).
 
 ## Adding exchange reactions for the growth medium
 
