@@ -10,7 +10,7 @@ name: Guide examples
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "docs/guide/**"
       - "docs/data/**"
