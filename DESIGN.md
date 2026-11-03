@@ -3,7 +3,7 @@
 > **This is a living document, and it is the source of intent.** It describes how
 > the RAVEN documentation site *should* be designed and what it *should*
 > contain; it is a set of instructions, not a description of the current state
-> of `main`. When the site and this document disagree, treat this document as
+> of `develop`. When the site and this document disagree, treat this document as
 > the target and bring the site in line (not the other way round). Keep it
 > updated as decisions are made; record new decisions in the decisions log and
 > move resolved items out of "open questions".
@@ -15,7 +15,7 @@
 >
 > ```bash
 > git fetch --all --prune
-> git checkout main && git pull --ff-only
+> git checkout develop && git pull --ff-only
 > git submodule sync --recursive
 > git submodule update --init --recursive
 > ```
