@@ -482,3 +482,5 @@ regexpPattern
 removeUnusedMets
 complex_policy
 minNrFluxes
+blast_formatter              # executable of BLAST+
+chunk_rows                   # parameter of the sort of the organism_gene_ko table in raven_toolbox.reconstruction.kegg.parse

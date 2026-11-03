@@ -39,4 +39,5 @@ raven
 python
 data-and-binaries
 updating-kegg-assets
+updating-binaries
 ```

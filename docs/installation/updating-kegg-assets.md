@@ -35,7 +35,7 @@ The downloader reads the KEGG credentials from `~/.netrc` and takes none on the 
 machine ftp.kegg.net login YOUR_KEGG_USER password YOUR_KEGG_PASSWORD
 ```
 
-The host must be `ftp.kegg.net`, and Python's `netrc` parser refuses a file that others can read. To keep the credentials outside the home directory, pass `netrc_path=` to `download_kegg_dump`.
+The host must be `ftp.kegg.net`, and Python's `netrc` parser refuses a file that others can read. To keep the credentials outside the home directory, pass `netrc_path=` to `download_kegg_dump`. A secret manager can pass the credentials at run time as `auth=("USER", "PASSWORD")`; a literal password never belongs in committed code.
 
 ## Update procedure
 
@@ -100,6 +100,14 @@ The first command computes the URL, the SHA-256 sum and the size of each asset a
 - **raven-docs:** update the sizes in [Download data and binaries](data-and-binaries.md), and rerun the examples of [Reconstruction from KEGG](../guide/kegg.md) with the new release. That page quotes the release, the counts of the drafts and the timings.
 
 A new KEGG release changes the drafts. Adopt it in a release of the toolboxes after a review of the changes in the drafts of a few organisms against the previous release.
+
+## Format of the assets
+
+The tables are gzipped TSV and the reference model is gzipped YAML. The assets use gzip throughout, including the large `organism_gene_ko` table, because MATLAB reads gzip with its built-in `gunzip` and has no `xz` dependency. Both toolboxes share the files, so a format that only Python reads cheaply is excluded. The larger size is a cost of a download once per release.
+
+The table `organism_gene_ko` is sorted by `(organism, gene)`. The order places the gene identifiers of one organism next to each other, compresses better and matches the by-organism queries of both toolboxes. The sort is an external merge sort bounded by `chunk_rows`, so it stays within memory at the scale of KEGG.
+
+Parquet would be smaller and typed, and MATLAB reads it natively since R2019a, but it needs the package `pyarrow` in Python. It becomes a candidate if the load time and not the size is the bottleneck, or if either toolbox starts to read columns repeatedly. SQLite is excluded, because MATLAB reads it only with the Database Toolbox, which removes the property of the same files in both languages without extra dependencies.
 
 ## Run the build on a cluster
 
