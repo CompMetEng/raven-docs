@@ -4,7 +4,7 @@
 
 The KEGG reference data and the libraries of profile hidden Markov models (HMMs) are published as assets of one KEGG release in [`toolbox-assets`](https://github.com/CompMetEng/toolbox-assets). Both toolboxes download them, as described in [Download data and binaries](data-and-binaries.md). A new KEGG release needs a new set of assets. The package maintainers do this when they adopt a new KEGG release, and users of the toolboxes never do.
 
-The documentation build does not run these commands. The download needs a KEGG subscription, and the build of the libraries takes hours.
+The documentation build does not run the commands below. The download needs a KEGG subscription, and the build of the libraries for `kegg120` took about 50 core-hours.
 
 ## Assets of one release
 
@@ -24,7 +24,7 @@ Release tags are immutable. A release that is published under a name is not chan
 ## Requirements
 
 - A subscription to the bulk download of KEGG (`ftp.kegg.net`), which comes with a user name and a password.
-- raven-toolbox from a checkout of its repository, installed as described in [Installing RAVEN](python.md). The commands run from the root of that checkout.
+- raven-toolbox from a checkout of its repository, installed as described in [raven-toolbox (Python)](python.md). The commands run from the root of that checkout.
 - HMMER (`hmmbuild`), MAFFT and CD-HIT, on the `PATH` or pointed at with the environment variables `RAVEN_PYTHON_HMMBUILD`, `RAVEN_PYTHON_MAFFT` and `RAVEN_PYTHON_CDHIT`. MAFFT and CD-HIT have no native Windows build, so the build runs on Linux, macOS or inside WSL2. Keep the whole toolchain inside WSL2, because raven-toolbox calls the resolved executable directly and does not translate paths across the boundary.
 - The GitHub CLI `gh`, authenticated with write access to `toolbox-assets`.
 - Disk space for the dump and for the per-KO working files of the build, and enough memory for the largest alignments of MAFFT. MAFFT switches to a memory-light method for an alignment that is predicted to need more memory than the host has, and that method approximates the guide tree.
@@ -49,7 +49,7 @@ from raven_toolbox.reconstruction.kegg import download_kegg_dump
 download_kegg_dump("keggdb", force=True, progress=False)
 ```
 
-The function fetches the reaction, compound, glycan and KO archives, the proteomes and the taxonomy file, extracts them and arranges the flat layout that the parser expects. Without `force=True`, it skips files that exist, so use it for a new release in a directory that holds an older dump.
+The function fetches the reaction, compound, glycan and KO archives, the proteomes and the taxonomy file, extracts them and arranges the flat layout that the parser expects. Without `force=True`, the function keeps the files that exist. A new release in a directory that holds an older dump needs `force=True` to fetch the files again.
 
 ### 2. Build the assets
 
@@ -58,7 +58,7 @@ python scripts/build_kegg_artefacts.py --keggdb keggdb --out artefacts \
     --version kegg120 --hmms --threads 16
 ```
 
-The script parses the dump into the reference model and the tables, builds the library of each domain from the sequences of the KOs, and arranges the four assets in `artefacts`. `--domains` restricts the libraries to one domain.
+The script parses the dump into the reference model and the tables, builds the library of each domain from the sequences of the KOs, and arranges the four assets in `artefacts`. With `--hmms`, `--domains` restricts the libraries to the domains that follow it.
 
 The build of the libraries is the slow step. The script resumes: it skips a stage whose output exists, and it skips every KO whose profile exists in the working directory `artefacts/_hmms-<domain>`. Run the same command again after a failure. `--force` rebuilds everything, and a changed gene-to-KO table needs it, because a resumed run assumes the inputs of the first run.
 
@@ -68,7 +68,7 @@ The working directory holds one FASTA file and one profile per KO. On a file sys
 
 - The four files of the table exist in `artefacts`, and their sizes are of the same order as the previous release (49 MB, 135 MB, 155 MB and 0.2 MB for `kegg118`).
 - The number of profiles in a library is the number of lines that start with `NAME` in the decompressed file. Compare it with the previous release.
-- Reconstruct a draft for an organism that KEGG contains, for example *S. cerevisiae*, with `get_kegg_model_for_organism_from_artefacts`, and search its proteome against the eukaryotic library with `get_kegg_model_from_sequences_with_artefacts`. The assignment of the search should resemble the KEGG assignment of the organism. Both functions are described in [Reconstruction from KEGG](../guide/kegg.md).
+- Extract `kegg<N>_core.tar.gz` into a folder, and decompress `kegg<N>_eukaryotes.hmm.gz`. Reconstruct a draft for an organism that KEGG contains, for example *S. cerevisiae*, with `get_kegg_model_for_organism_from_artefacts("sce", artefact_dir=<folder>)`, and search its proteome against the eukaryotic library with `get_kegg_model_from_sequences_with_artefacts(<fasta>, artefact_dir=<folder>, library=<decompressed library>, domain="eukaryotes")`. Without `artefact_dir` and `library`, the functions use the published release that the registry names. The assignment of the search should resemble the KEGG assignment of the organism. Both functions are described in [Reconstruction from KEGG](../guide/kegg.md).
 - Record the KEGG release and the versions of HMMER, MAFFT and CD-HIT of the build.
 
 ### 4. Publish the assets
@@ -88,26 +88,26 @@ The manifest `data/manifest.json` is the single source of truth for the checksum
 python scripts/make_registry_snippet.py manifest --manifest data/manifest.json \
     --target data --dataset kegg --version kegg120 --dir artefacts --tag kegg120
 python scripts/make_registry_snippet.py sync
-python scripts/publish_to_toolbox_assets.py release --tag manifest-v4 data/manifest.json
+python scripts/publish_to_toolbox_assets.py release --tag manifest-v<N> data/manifest.json
 ```
 
-The first command computes the URL, the SHA-256 sum and the size of each asset and writes them to the manifest. The second regenerates the baked registry of raven-toolbox from the manifest. The third publishes the manifest as a new snapshot. The number of the snapshot is the next number after the newest `manifest-v<M>` release in `toolbox-assets`.
+The first command computes the URL, the SHA-256 sum and the size of each asset and writes them to the manifest. It replaces the whole entry of the dataset, so `--description`, `--license` and `--source` repeat the values of the existing entry. The second regenerates the baked registry of raven-toolbox from the manifest. The third publishes the manifest as a new snapshot. The number of the snapshot is the next number after the newest `manifest-v<M>` release in `toolbox-assets`.
 
 ### 6. Point the toolboxes to the new release
 
 - **raven-toolbox:** commit the changes to `data/manifest.json` and `src/raven_toolbox/data.py`, and open a pull request. raven-toolbox pins the manifest of its release, so users receive the new KEGG release with the next raven-toolbox release. The environment variable `RAVEN_PYTHON_MANIFEST` points an installed raven-toolbox to a newer manifest.
-- **RAVEN:** write the new release name in the first line of `src/reconstruction/kegg/KEGG_VERSION.md`, which `keggDataVersion` reads, and change the manifest URL in `fetchToolboxAsset` to the new snapshot. RAVEN reads the manifest on each call.
+- **RAVEN:** write the new release name in the first line of `src/reconstruction/kegg/KEGG_VERSION.md`, which `keggDataVersion` reads, and change the manifest URL in `fetchToolboxAsset` to the new snapshot. RAVEN reads the manifest once per session; the header comment of `fetchToolboxAsset.m` names the snapshot as well.
 - **raven-docs:** update the sizes in [Download data and binaries](data-and-binaries.md), and rerun the examples of [Reconstruction from KEGG](../guide/kegg.md) with the new release. That page quotes the release, the counts of the drafts and the timings.
 
 A new KEGG release changes the drafts. Adopt it in a release of the toolboxes after a review of the changes in the drafts of a few organisms against the previous release.
 
 ## Format of the assets
 
-The tables are gzipped TSV and the reference model is gzipped YAML. The assets use gzip throughout, including the large `organism_gene_ko` table, because MATLAB reads gzip with its built-in `gunzip` and has no `xz` dependency. Both toolboxes share the files, so a format that is cheap to read in Python alone is excluded. The larger size is a cost of a download once per release.
+The tables are gzipped TSV and the reference model is gzipped YAML. The assets use gzip throughout, including the large `organism_gene_ko` table, because MATLAB reads gzip with its built-in `gunzip` and has no `xz` dependency. Both toolboxes share the files, so a format that is cheap to read in Python alone is excluded. The files are larger, and a user downloads them once per release.
 
 The table `organism_gene_ko` is sorted by `(organism, gene)`. The order places the gene identifiers of one organism next to each other, compresses better and matches the by-organism queries of both toolboxes. The sort is an external merge sort bounded by `chunk_rows`, so it stays within memory at the scale of KEGG.
 
-Parquet would be smaller and typed, and MATLAB reads it natively since R2019a, but it needs the package `pyarrow` in Python. It becomes a candidate if the load time is the bottleneck and the size is not, or if either toolbox starts to read columns repeatedly. SQLite is excluded, because MATLAB reads it with the Database Toolbox alone, which removes the property of the same files in both languages without extra dependencies.
+Parquet would be smaller and typed, and MATLAB reads it natively since R2019a, but it needs the package `pyarrow` in Python. It becomes a candidate if the load time is the bottleneck and the size is not, or if either toolbox starts to read columns repeatedly. SQLite is excluded, because MATLAB needs the Database Toolbox to read it, which removes the property of the same files in both languages without extra dependencies.
 
 ## Run the build on a cluster
 
