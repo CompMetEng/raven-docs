@@ -14,7 +14,7 @@ The documentation build does not run these commands.
 | `blast` | `blastp`, `makeblastdb` | `blastn`, `tblastn`, `psiblast`, `rpsblast`, `blast_formatter`, the `*_vdb` tools, `doc/`, `ChangeLog`, `README` and the other tools of the suite |
 | `hmmer` | `hmmsearch` | the rest of the suite |
 
-Both toolboxes invoke only `makeblastdb`, `blastp`, and the `makedb` and `blastp` subcommands of DIAMOND, so the same minimal set serves both. For BLAST+ the minimal set reduces the size of the bundle from hundreds of megabytes to a few.
+Both toolboxes invoke `makeblastdb`, `blastp`, and the `makedb` and `blastp` subcommands of DIAMOND, and no other tool, so the same minimal set serves both. For BLAST+ the minimal set reduces the size of the bundle from hundreds of megabytes to a few.
 
 ## File name and layout
 

@@ -78,7 +78,7 @@ python scripts/publish_to_toolbox_assets.py --dry-run release --tag kegg120 --di
 python scripts/publish_to_toolbox_assets.py release --tag kegg120 --dir artefacts
 ```
 
-The first command prints the `gh` calls without running them. The second creates the release `kegg120` in `toolbox-assets` and uploads the four assets. A rerun uploads only the assets that are missing.
+The first command prints the `gh` calls without running them. The second creates the release `kegg120` in `toolbox-assets` and uploads the four assets. A rerun uploads the assets that are missing and leaves the others as they are.
 
 ### 5. Update the manifest and the registry
 
@@ -103,11 +103,11 @@ A new KEGG release changes the drafts. Adopt it in a release of the toolboxes af
 
 ## Format of the assets
 
-The tables are gzipped TSV and the reference model is gzipped YAML. The assets use gzip throughout, including the large `organism_gene_ko` table, because MATLAB reads gzip with its built-in `gunzip` and has no `xz` dependency. Both toolboxes share the files, so a format that only Python reads cheaply is excluded. The larger size is a cost of a download once per release.
+The tables are gzipped TSV and the reference model is gzipped YAML. The assets use gzip throughout, including the large `organism_gene_ko` table, because MATLAB reads gzip with its built-in `gunzip` and has no `xz` dependency. Both toolboxes share the files, so a format that is cheap to read in Python alone is excluded. The larger size is a cost of a download once per release.
 
 The table `organism_gene_ko` is sorted by `(organism, gene)`. The order places the gene identifiers of one organism next to each other, compresses better and matches the by-organism queries of both toolboxes. The sort is an external merge sort bounded by `chunk_rows`, so it stays within memory at the scale of KEGG.
 
-Parquet would be smaller and typed, and MATLAB reads it natively since R2019a, but it needs the package `pyarrow` in Python. It becomes a candidate if the load time and not the size is the bottleneck, or if either toolbox starts to read columns repeatedly. SQLite is excluded, because MATLAB reads it only with the Database Toolbox, which removes the property of the same files in both languages without extra dependencies.
+Parquet would be smaller and typed, and MATLAB reads it natively since R2019a, but it needs the package `pyarrow` in Python. It becomes a candidate if the load time is the bottleneck and the size is not, or if either toolbox starts to read columns repeatedly. SQLite is excluded, because MATLAB reads it with the Database Toolbox alone, which removes the property of the same files in both languages without extra dependencies.
 
 ## Run the build on a cluster
 
