@@ -49,7 +49,7 @@ from raven_toolbox.reconstruction.kegg import download_kegg_dump
 download_kegg_dump("keggdb", force=True, progress=False)
 ```
 
-The function fetches the reaction, compound, glycan and KO archives, the proteomes and the taxonomy file, extracts them and arranges the flat layout that the parser expects. Without `force=True`, the function keeps the files that exist. It deletes the archives after it extracts them, so the file `taxonomy` is the only file of an older dump that it keeps. A new release needs `force=True` or an empty directory.
+The function fetches the reaction, compound, glycan and KO archives, the proteomes and the taxonomy file, extracts them and arranges the flat layout that the parser expects. Without `force=True`, the function keeps the files that exist. It deletes the archives after it extracts them and keeps the file `taxonomy` of an older dump. A new release needs `force=True` or an empty directory.
 
 ### 2. Build the assets
 
