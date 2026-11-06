@@ -4,7 +4,7 @@
 
 The KEGG reference data and the libraries of profile hidden Markov models (HMMs) are published as assets of one KEGG release in [`toolbox-assets`](https://github.com/CompMetEng/toolbox-assets). Both toolboxes download them, as described in [Download data and binaries](data-and-binaries.md). A new KEGG release needs a new set of assets. The package maintainers do this when they adopt a new KEGG release, and users of the toolboxes never do.
 
-The documentation build does not run the commands below. The download needs a KEGG subscription, and the build of the libraries for `kegg120` took about 50 core-hours.
+The documentation build does not run the commands below. The download needs a KEGG subscription, and the build of the libraries is the slow step.
 
 ## Assets of one release
 
@@ -49,7 +49,7 @@ from raven_toolbox.reconstruction.kegg import download_kegg_dump
 download_kegg_dump("keggdb", force=True, progress=False)
 ```
 
-The function fetches the reaction, compound, glycan and KO archives, the proteomes and the taxonomy file, extracts them and arranges the flat layout that the parser expects. Without `force=True`, the function keeps the files that exist. A new release in a directory that holds an older dump needs `force=True` to fetch the files again.
+The function fetches the reaction, compound, glycan and KO archives, the proteomes and the taxonomy file, extracts them and arranges the flat layout that the parser expects. Without `force=True`, the function keeps the files that exist. It deletes the archives after it extracts them, so the file `taxonomy` is the only file of an older dump that it keeps. A new release needs `force=True` or an empty directory.
 
 ### 2. Build the assets
 
@@ -58,7 +58,7 @@ python scripts/build_kegg_artefacts.py --keggdb keggdb --out artefacts \
     --version kegg120 --hmms --threads 16
 ```
 
-The script parses the dump into the reference model and the tables, builds the library of each domain from the sequences of the KOs, and arranges the four assets in `artefacts`. With `--hmms`, `--domains` restricts the libraries to the domains that follow it.
+The script parses the dump into the reference model and the tables, builds the library of each domain from the sequences of the KOs, and arranges the four assets in `artefacts`. With `--hmms`, `--domains` restricts the libraries to the listed domains (`prokaryotes`, `eukaryotes`).
 
 The build of the libraries is the slow step. The script resumes: it skips a stage whose output exists, and it skips every KO whose profile exists in the working directory `artefacts/_hmms-<domain>`. Run the same command again after a failure. `--force` rebuilds everything, and a changed gene-to-KO table needs it, because a resumed run assumes the inputs of the first run.
 
@@ -68,7 +68,7 @@ The working directory holds one FASTA file and one profile per KO. On a file sys
 
 - The four files of the table exist in `artefacts`, and their sizes are of the same order as the previous release (49 MB, 135 MB, 155 MB and 0.2 MB for `kegg118`).
 - The number of profiles in a library is the number of lines that start with `NAME` in the decompressed file. Compare it with the previous release.
-- Extract `kegg<N>_core.tar.gz` into a folder, and decompress `kegg<N>_eukaryotes.hmm.gz`. Reconstruct a draft for an organism that KEGG contains, for example *S. cerevisiae*, with `get_kegg_model_for_organism_from_artefacts("sce", artefact_dir=<folder>)`, and search its proteome against the eukaryotic library with `get_kegg_model_from_sequences_with_artefacts(<fasta>, artefact_dir=<folder>, library=<decompressed library>, domain="eukaryotes")`. Without `artefact_dir` and `library`, the functions use the published release that the registry names. The assignment of the search should resemble the KEGG assignment of the organism. Both functions are described in [Reconstruction from KEGG](../guide/kegg.md).
+- Extract `kegg<N>_core.tar.gz` into a folder, and decompress `kegg<N>_eukaryotes.hmm.gz`. Reconstruct a draft for an organism that KEGG contains, for example *S. cerevisiae*, with `get_kegg_model_for_organism_from_artefacts("sce", artefact_dir=<folder>)`, and search its proteome against the eukaryotic library with `get_kegg_model_from_sequences_with_artefacts(<fasta>, artefact_dir=<folder>, library=<decompressed library>)`. Without `artefact_dir` (and `library`), the functions fetch the release that the registry names. The assignment of the search should resemble the KEGG assignment of the organism. Both functions are described in [Reconstruction from KEGG](../guide/kegg.md).
 - Record the KEGG release and the versions of HMMER, MAFFT and CD-HIT of the build.
 
 ### 4. Publish the assets
@@ -103,7 +103,7 @@ A new KEGG release changes the drafts. Adopt it in a release of the toolboxes af
 
 ## Format of the assets
 
-The tables are gzipped TSV and the reference model is gzipped YAML. The assets use gzip throughout, including the large `organism_gene_ko` table, because MATLAB reads gzip with its built-in `gunzip` and has no `xz` dependency. Both toolboxes share the files, so a format that is cheap to read in Python alone is excluded. The files are larger, and a user downloads them once per release.
+The tables are gzipped TSV and the reference model is gzipped YAML. The assets use gzip throughout, including the large `organism_gene_ko` table, because MATLAB reads gzip with its built-in `gunzip` and has no `xz` dependency. Both toolboxes share the files, so a format that MATLAB reads at a high cost is excluded. The files are larger, and a user downloads them once per release.
 
 The table `organism_gene_ko` is sorted by `(organism, gene)`. The order places the gene identifiers of one organism next to each other, compresses better and matches the by-organism queries of both toolboxes. The sort is an external merge sort bounded by `chunk_rows`, so it stays within memory at the scale of KEGG.
 

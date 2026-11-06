@@ -10,8 +10,8 @@ The documentation build does not run the commands below.
 
 | Bundle | Included | Left out |
 |---|---|---|
-| `diamond` | `diamond` | nothing; it is one static binary |
-| `blast` | `blastp`, `makeblastdb` | `blastn`, `tblastn`, `psiblast`, `rpsblast`, `blast_formatter`, the `*_vdb` tools, `doc/`, `ChangeLog`, `README` and the other tools of the suite |
+| `diamond` | `diamond` | nothing; the bundle is one executable |
+| `blast` | `blastp`, `makeblastdb` | the other executables and the documentation of the suite |
 | `hmmer` | `hmmsearch` | the rest of the suite |
 
 A bundle holds the executables that the toolboxes invoke for a user: `makeblastdb` and `blastp` of BLAST+, the `makedb` and `blastp` subcommands of DIAMOND, and `hmmsearch` of HMMER. The build of the KEGG libraries needs `hmmbuild`, MAFFT and CD-HIT as well; they are not bundled, and [Update the KEGG assets](updating-kegg-assets.md) lists them. The published BLAST+ ZIP files are 13 to 35 MB, depending on the platform.
@@ -30,7 +30,7 @@ A ZIP file is named `<bundle>-<version>-<os>-<arch>.zip`. It is flat: the execut
 | DIAMOND | GPL-3.0 | the licence text, the unmodified binary, and a separate asset that is not part of the raven-toolbox package |
 | HMMER | BSD-3-Clause | the upstream `LICENSE` |
 
-`PROVENANCE-binaries.txt` in the repository `toolbox-assets` records the source of the executables.
+`PROVENANCE-binaries.txt` in the repository `toolbox-assets` records the source of the executables. It holds the content of the `PROVENANCE.txt` that the build script writes, and the publish command does not upload it.
 
 ## HMMER on Windows
 
@@ -51,14 +51,14 @@ python scripts/make_registry_snippet.py manifest --manifest data/manifest.json \
 python scripts/make_registry_snippet.py sync
 ```
 
-The first command downloads the executables from the RAVEN release v2.10.5 and from a pinned commit of RAVEN on GitHub, and builds the ZIP files in `dist/binaries` with checksums. The second creates the release tags in `toolbox-assets` and skips the assets that exist. The third computes the checksums with the helper that `ensure_binary` verifies with, and writes the entry of the bundle to `data/manifest.json`. It runs once for each bundle, and it replaces the whole entry of the bundle, so `--description` and `--license` repeat the values of the existing entry (`GPL-3.0-only` for DIAMOND). It takes the ZIP files whose names start with `<bundle>-<version>-`, so a file with another version, such as the Windows file of HMMER 3.3.2, is not part of an entry for HMMER 3.4.0. The fourth regenerates the baked registries of raven-toolbox from the manifest.
+The first command downloads the executables from the RAVEN release v2.10.5 and from a pinned commit of RAVEN on GitHub, and builds the ZIP files in `dist/binaries` with checksums. The second creates the release tags in `toolbox-assets` and skips the assets that exist. The third computes the checksums with the helper that `ensure_binary` verifies with, and writes the entry of the bundle to `data/manifest.json`. It runs once for each bundle, and it replaces the whole entry of the bundle, so `--description` and `--license` repeat the values of the existing entry (`GPL-3.0-only` for DIAMOND). It takes the ZIP files whose names start with `<bundle>-<version>-`. The entry of `hmmer` in the published manifest lists the Windows file of version 3.3.2 beside the files of version 3.4.0, so that platform is added to `data/manifest.json` by hand, with the URL and the checksum of the file. The fourth regenerates the baked registries of raven-toolbox from the manifest.
 
 `data/manifest.json` is the source of truth, and the registries `_DATA_REGISTRY` in `src/raven_toolbox/data.py` and `_REGISTRY` in `src/raven_toolbox/binaries.py` are never edited by hand. The manifest is published as the next `manifest-v<N>` snapshot, as step 5 of [Update the KEGG assets](updating-kegg-assets.md) describes.
 
 ## A new version or a new tool
 
 - **New version of a tool:** the versions, the source references and the `PROVIDES` table are values in `scripts/build_binary_bundles.py` (`SPECS`, `RAVEN3`, `V2105`, `PROVIDES`). `downloadRavenBinaries.m` of RAVEN names the tags and the asset names and needs the new tag.
-- **New tool:** `_ENV_VARS` in `raven_toolbox.binaries` names the environment variable that overrides the executable, and `BINARY_SETS` lists the executables that the command `raven-toolbox-binaries` downloads. Both need an entry for the tool.
+- **New tool:** an entry in `_ENV_VARS` of `raven_toolbox.binaries` adds the environment variable that overrides the executable, and an entry in `BINARY_SETS` adds the executable to the downloads of the command `raven-toolbox-binaries`.
 - **Both toolboxes** read the new manifest snapshot after the update: the manifest URL in `fetchToolboxAsset.m` and the baked registry of raven-toolbox.
 
 ## See also
