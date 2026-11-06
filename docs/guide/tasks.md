@@ -161,7 +161,7 @@ The tasks differ in the CO₂ output. With the exchange reactions of the model o
 
 ## Task-essential reactions
 
-Essentiality here refers to a task. Each candidate reaction is removed, and the task is tested again. ftINIT uses the result to decide which reactions must remain in an extraction regardless of their expression score.
+Essentiality here refers to a task. Each candidate reaction is removed, and the task is tested again. ftINIT uses the result to determine which reactions must remain in an extraction regardless of their expression score.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB

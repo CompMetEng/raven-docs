@@ -11,7 +11,7 @@ Flux balance analysis (FBA) sets an objective, limits the uptake rates, solves t
 | `printFluxes` | `Model.summary` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | show the fluxes that carry material |
 | `solveLP` (`minFlux`) | `pfba` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | select a parsimonious solution among the optima |
 
-Every Python simulation step on this page comes from cobrapy and carries the {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` badge in the functions table. In MATLAB, `solveLP` does not need the COBRA Toolbox or any other package outside RAVEN.
+Every Python simulation step on this page comes from cobrapy and has the {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` badge in the functions table. In MATLAB, `solveLP` does not need the COBRA Toolbox or any other package outside RAVEN.
 
 ## Setup
 

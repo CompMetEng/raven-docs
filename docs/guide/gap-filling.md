@@ -58,7 +58,7 @@ print(f"draft {len(draft.reactions)} rxns, template {len(template.reactions)} rx
 draft 52 rxns, template 53 rxns
 ```
 
-With the medium as shipped (closed), 51 of the 53 reactions of `smallYeast` are blocked, because nothing can enter. Gap-filling a model in that state asks the wrong question.
+With the medium as given in the model (closed), 51 of the 53 reactions of `smallYeast` are blocked, because nothing can enter. Gap-filling a model in that state asks the wrong question.
 :::
 ::::
 
@@ -134,7 +134,7 @@ print(f"{len(result.added_reactions)} added: "
 
 Both toolboxes return the reaction that was removed, and this identity is the result to report. `fillGaps` also returns the newly connected reactions and the reactions that cannot be connected. Their numbers are not stable, because the problem is a MILP with several equally optimal solutions, and the returned solution can change with the machine or the number of threads. Two CI runs on identical input reported 11 and 9 newly connected reactions.
 
-Both are MILPs. `connect_blocked_reactions` runs on the GLPK that ships with cobrapy. `fillGaps` runs on the GLPK that ships with RAVEN and warns that Gurobi is recommended (`setRavenSolver('gurobi')`).
+Both are MILPs. `connect_blocked_reactions` runs on the GLPK that is included with cobrapy. `fillGaps` runs on the GLPK that is included with RAVEN and warns that Gurobi is recommended (`setRavenSolver('gurobi')`).
 
 `allow_net_production` sets how strict the test is. A reaction can be blocked because a substrate is unavailable or because a product has nowhere to go. With net production allowed, the first case counts. Turning it off asks the harder question and usually adds more reactions.
 :::

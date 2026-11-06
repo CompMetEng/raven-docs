@@ -68,7 +68,7 @@ fprintf('%d amplification target(s) of %d reactions\n', ...
 
 The scan runs for `iterations` steps, ten by default, up to `coefficient` times the theoretical maximum product flux, `0.9` by default. `outputFile` keeps the per-reaction table out of the command window, and the table is printed there without it.
 
-`corrThreshold` decides what counts as a target. A reaction is kept when the absolute Pearson correlation between its flux and the enforced product flux is at least this value, `0.9` by default. Alternative optima make individual fluxes change erratically between steps, and the requirement of a nearly linear response keeps this noise out of the target list.
+`corrThreshold` determines what counts as a target. A reaction is kept when the absolute Pearson correlation between its flux and the enforced product flux is at least this value, `0.9` by default. Alternative optima make individual fluxes change erratically between steps, and the requirement of a nearly linear response keeps this noise out of the target list.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -216,7 +216,7 @@ Both toolboxes compute the background correction in closed form and report the s
 - FSEOF is read as a prediction. It reports what the stoichiometry allows when product formation is forced, which is a hypothesis to test.
 - The target list contains noise. With a lowered correlation threshold, alternative optima appear as targets. When the flux of a reaction is not close to linear in the enforced product, its slope has no meaning.
 - A product that the model cannot make is forced. When the target exchange cannot carry flux, every step of the scan is infeasible and there is nothing to correlate. A single solve checks this first.
-- Reporter metabolites are computed on an unfiltered gene list. The correction handles the size of the neighbourhood and does not handle a uniform p-value distribution that arises because nothing is differentially expressed. Inspect the distribution of the input before trusting the ranking.
+- Reporter metabolites are computed on an unfiltered gene list. The correction accounts for the size of the neighbourhood and does not account for a uniform p-value distribution that arises because nothing is differentially expressed. Inspect the distribution of the input before trusting the ranking.
 - Currency metabolites rank at the top. ATP, NADH and water take part in many reactions and therefore tend to rank at the top. Exclude them, or read the ranking beyond them.
 :::
 

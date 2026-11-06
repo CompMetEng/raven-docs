@@ -1,6 +1,6 @@
 # Solvers and configuration
 
-Most simulations on this site solve a linear program (LP). Gap-filling, minimal media with a minimum number of components, `solveLP` with `minFlux` set to 3, and ftINIT solve mixed-integer linear programs (MILPs). The quadratic MOMA in [Deletions and essentiality](deletions.md) solves a quadratic program (QP). The solvers that can handle each problem type depend on the solver and on the toolbox.
+Most simulations on this site solve a linear program (LP). Gap-filling, minimal media with a minimum number of components, `solveLP` with `minFlux` set to 3, and ftINIT solve mixed-integer linear programs (MILPs). The quadratic MOMA in [Deletions and essentiality](deletions.md) solves a quadratic program (QP). The solvers that can solve each problem type depend on the solver and on the toolbox.
 
 ## Functions
 
@@ -39,7 +39,7 @@ model.reactions.get_by_id("o2IN").upper_bound = 1000.0
 :::
 ::::
 
-The sign convention is the opposite of the one in yeast-GEM, where uptake is a negative flux through an exchange reaction. A model carries the convention of its author, and the direction in which the equation is written decides which bound opens the reaction. [Growth media and conditions](media.md) works with the other convention.
+The sign convention is the opposite of the one in yeast-GEM, where uptake is a negative flux through an exchange reaction. A model uses the convention of its author, and the direction in which the equation is written determines which bound opens the reaction. [Growth media and conditions](media.md) works with the other convention.
 
 ## Solver in use
 
@@ -78,7 +78,7 @@ cobrapy has two levels. `Configuration()` holds the default for models created a
 
 ## Changing the solver
 
-Both toolboxes ship with GLPK, which solves LPs and MILPs and therefore runs every example on this site except the quadratic MOMA. RAVEN warns when it sends a MILP to GLPK and recommends Gurobi. GLPK handles problems of the size of these examples, but gap-filling and ftINIT on a genome-scale model take much longer than with Gurobi, which is free for academic use. A QP needs a solver that supports QPs, such as Gurobi or CPLEX. RAVEN has no function that solves a QP.
+Both toolboxes include GLPK, which solves LPs and MILPs and therefore runs every example on this site except the quadratic MOMA. RAVEN warns when it sends a MILP to GLPK and recommends Gurobi. GLPK solves problems of the size of these examples, but gap-filling and ftINIT on a genome-scale model take much longer than with Gurobi, which is free for academic use. A QP needs a solver that supports QPs, such as Gurobi or CPLEX. RAVEN has no function that solves a QP.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -88,7 +88,7 @@ Both toolboxes ship with GLPK, which solves LPs and MILPs and therefore runs eve
 setRavenSolver('glpk');     % 'gurobi', 'scip', or 'cobra' to hand over to the COBRA Toolbox
 ```
 
-The accepted values are `'glpk'`, `'gurobi'`, `'scip'` and `'cobra'`. `'glpk'` uses the binaries that ship with RAVEN and needs no further installation. `'gurobi'` needs Gurobi on the MATLAB path, and `'scip'` needs the SCIP MATLAB interface. `'cobra'` translates the problem to the format of the COBRA Toolbox and uses the solver last selected with `changeCobraSolver`. It requires an initialised COBRA Toolbox, which `setRavenSolver` checks, and it raises an error without storing a preference that cannot work.
+The accepted values are `'glpk'`, `'gurobi'`, `'scip'` and `'cobra'`. `'glpk'` uses the binaries that RAVEN includes and needs no further installation. `'gurobi'` needs Gurobi on the MATLAB path, and `'scip'` needs the SCIP MATLAB interface. `'cobra'` translates the problem to the format of the COBRA Toolbox and uses the solver last selected with `changeCobraSolver`. It requires an initialised COBRA Toolbox, which `setRavenSolver` checks, and it raises an error without storing a preference that cannot work.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -106,7 +106,7 @@ Assigning to `model.solver` rebuilds the problem of this model. Assigning to `Co
 
 ## Solution objects
 
-The two solution objects carry the same information under different names.
+The two solution objects contain the same information under different names.
 
 | MATLAB `solveLP` | cobrapy `Solution` | Meaning |
 |---|---|---|
@@ -136,7 +136,7 @@ stat 1: Optimal solution found
 growth 0.1222 /h
 ```
 
-`solveLP` builds a problem struct in the COBRA format and passes it to `optimizeProb`, which calls the selected solver. `optimizeProb` is called directly to solve a problem that the toolbox built, such as the MILPs inside gap-filling. It takes two name-value arguments: `'params'`, a struct that is passed to the solver, and `'verbose'`, which shows the progress of a MILP. RAVEN handles one field of `params` itself and does not pass it on. `maxRatio` applies to LPs, splits badly scaled columns through auxiliary metabolites before solving and leaves the feasible region unchanged.
+`solveLP` builds a problem struct in the COBRA format and passes it to `optimizeProb`, which calls the selected solver. `optimizeProb` is called directly to solve a problem that the toolbox built, such as the MILPs inside gap-filling. It takes two name-value arguments: `'params'`, a struct that is passed to the solver, and `'verbose'`, which shows the progress of a MILP. RAVEN uses one field of `params` itself and does not pass it on. `maxRatio` applies to LPs, splits badly scaled columns through auxiliary metabolites before solving and leaves the feasible region unchanged.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -212,5 +212,5 @@ An infeasible model is over-constrained, and no solution satisfies the constrain
 ## See also
 
 - [Simulating growth with FBA](fba.md): the solve.
-- [Growth media and conditions](media.md): the constraints that decide whether a problem is feasible.
+- [Growth media and conditions](media.md): the constraints that determine whether a problem is feasible.
 - [Installation](../installation/index.md): installation and test of a solver.

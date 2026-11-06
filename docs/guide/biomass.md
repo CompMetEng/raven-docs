@@ -250,7 +250,7 @@ The terms are assigned from the content of the model:
 - A reaction in which one metabolite name occurs in more than one compartment is a transport (SBO:0000655). `GROWTH`, which uses acetyl-CoA in `c` and `m`, is labelled as one.
 - Every other reaction is a metabolic reaction (SBO:0000176), unless its name marks it as the biomass, maintenance or another pseudoreaction.
 
-Nothing is inferred beyond what the stoichiometry supports. On a model with wrong compartments, the assignment carries the error forward and does not detect it.
+Nothing is inferred beyond what the stoichiometry supports. On a model with wrong compartments, the assignment propagates the error and does not detect it.
 
 ## Cross-reference and thermodynamic annotation
 

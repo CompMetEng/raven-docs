@@ -2,7 +2,7 @@
 
 Homology-based reconstruction builds a draft model for an organism without one, with a curated model of a related organism as the source of reactions. Genes of the new organism are matched to genes of the template by sequence similarity, and a template reaction is copied when its genes have an accepted match.
 
-The reconstruction has two steps. A sequence search produces a table of hits, and a transfer step selects the hits that are sufficient to carry a reaction. The cut-offs of the transfer step determine the size and the reliability of the draft.
+The reconstruction has two steps. A sequence search produces a table of hits, and a transfer step selects the hits that are sufficient to support a reaction. The cut-offs of the transfer step determine the size and the reliability of the draft.
 
 ## Functions
 
@@ -98,11 +98,11 @@ sce      hanpo    159
 :::
 ::::
 
-The two directions return different counts because they answer different questions, and neither count is a count of genes, as each line of BLAST output is one alignment. The 159 alignments from the template to *H. polymorpha* come from 60 of the 61 template genes, and the 178 alignments in the other direction come from 106 *H. polymorpha* genes. Neither number is the number of orthologs. The next step decides that from the pairs that occur in both directions.
+The two directions return different counts because they answer different questions, and neither count is a count of genes, as each line of BLAST output is one alignment. The 159 alignments from the template to *H. polymorpha* come from 60 of the 61 template genes, and the 178 alignments in the other direction come from 106 *H. polymorpha* genes. Neither number is the number of orthologs. The next step determines that from the pairs that occur in both directions.
 
 The result has a different shape in the two toolboxes. RAVEN returns a struct array with one entry per direction. Each entry has `fromId`, `toId`, `fromGenes`, `toGenes` and per-hit vectors `evalue`, `aligLen` and `identity`. raven-toolbox returns one `pandas` DataFrame with the columns `from_id` and `to_id`, which holds both directions and can be filtered with DataFrame operations before it is passed on.
 
-Both call the same BLAST+ executables with the same parameters, so the hit counts agree. Neither toolbox ships the executables. RAVEN downloads them for the platform on first use and caches them. raven-toolbox uses `RAVEN_PYTHON_BLASTP` if it is set, then a `blastp` on the `PATH`, and downloads when neither exists. A first reconstruction that downloads needs network access.
+Both call the same BLAST+ executables with the same parameters, so the hit counts agree. Neither toolbox includes the executables. RAVEN downloads them for the platform on first use and caches them. raven-toolbox uses `RAVEN_PYTHON_BLASTP` if it is set, then a `blastp` on the `PATH`, and downloads when neither exists. A first reconstruction that downloads needs network access.
 
 Without `threads`, `run_blast`, `run_diamond` and `run_supporth` use every CPU that the process can run on. In MATLAB, `getBlast`, `getDiamond` and `runSuppOrth` use the cores that are assigned to MATLAB (`feature('numcores')`), and `runSuppOrth` is the sole function with a `threads` option.
 
@@ -145,7 +145,7 @@ draft: 37 rxns, 49 mets, 54 genes
 :::
 ::::
 
-The transfer works reaction by reaction. For each reaction of the template, the genes in its gene rule are looked up in the hit table. A template gene is replaced by its accepted counterpart in the new organism, and the reaction is carried over when the rule can be satisfied after the substitution. A reaction that needs two subunits is kept with a placeholder gene (`OLD_<model>_<gene>`) for the missing subunit under the default `complexPolicy` (`complex_policy` in Python) of `flag`, and the policy `drop` removes it. A reaction with two isozymes is kept when either has a counterpart. The metabolites that a carried reaction needs are carried with it. The draft has 49 metabolites against 52 in the template, because the three metabolites that occur in dropped reactions alone are not created.
+The transfer works reaction by reaction. For each reaction of the template, the genes in its gene rule are looked up in the hit table. A template gene is replaced by its accepted counterpart in the new organism, and the reaction is transferred when the rule can be satisfied after the substitution. A reaction that needs two subunits is kept with a placeholder gene (`OLD_<model>_<gene>`) for the missing subunit under the default `complexPolicy` (`complex_policy` in Python) of `flag`, and the policy `drop` removes it. A reaction with two isozymes is kept when either has a counterpart. The metabolites that a transferred reaction needs are transferred with it. The draft has 49 metabolites against 52 in the template, because the three metabolites that occur in dropped reactions alone are not created.
 
 The line `Standardizing grRules` shows RAVEN rewriting the rules of the template in a canonical form before the substitution. One rule written in two ways is then handled identically.
 
@@ -157,7 +157,7 @@ The line `Standardizing grRules` shows RAVEN rewriting the rules of the template
 
 RAVEN returns the draft and its hit genes as two separate outputs.
 
-The draft is smaller than the template, because reactions whose genes have no accepted counterpart are not carried over. This is the intended behaviour and also the main source of error, as a reaction left out because no hit passed the cut-offs looks the same as a reaction that the organism lacks.
+The draft is smaller than the template, because reactions whose genes have no accepted counterpart are not transferred. This is the intended behaviour and also the main source of error, as a reaction left out because no hit passed the cut-offs looks the same as a reaction that the organism lacks.
 
 ## Hit cut-offs
 
@@ -211,7 +211,7 @@ Some of these defaults differ from the values of RAVEN 2, so the same script can
 
 ## Contents of a draft
 
-The result of this step has reactions, metabolites and genes. It has no biomass reaction unless a template reaction carried one, no exchange reactions, and no guarantee that any reaction carries flux.
+The result of this step has reactions, metabolites and genes. It has no biomass reaction unless a template reaction contained one, no exchange reactions, and no guarantee that any reaction carries flux.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -254,19 +254,19 @@ reactions that can carry flux: 0 of 37
 
 None of the 37 reactions carries flux. This does not indicate a defect of the draft. Without exchange reactions nothing enters or leaves the model, and the draft has no internal cycle, so no flux is possible. The number says nothing about the quality of the reconstruction, and it becomes informative after a medium is defined.
 
-A homology draft is a set of claims about the reactions of the organism. Three steps turn it into a model: a medium ([Growth media and conditions](media.md)), gap-filling to close the gaps that prevent biomass production ([Gap-filling](gap-filling.md)), and a check against the known behaviour of the organism ([Metabolic tasks](tasks.md)). The [GEM reconstruction protocol](../protocol/index.md) follows this path for *H. polymorpha* at full scale.
+A homology draft is a set of claims about the reactions of the organism. Three steps turn it into a model: a medium ([Growth media and conditions](media.md)), gap-filling to fill the gaps that prevent biomass production ([Gap-filling](gap-filling.md)), and a check against the known behaviour of the organism ([Metabolic tasks](tasks.md)). The [GEM reconstruction protocol](../protocol/index.md) follows this path for *H. polymorpha* at full scale.
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- The identifiers do not match. The headers of the FASTA file carry the gene identifiers of the `genes` field of the template model. A mismatch gives a draft without reactions and without an error.
-- One template carries the bias of one organism. Every reaction of the draft comes from the template, so the draft cannot have anything that the template lacks. Several templates, ordered with `preferredOrder`, spread the risk.
+- The identifiers do not match. The headers of the FASTA file contain the gene identifiers of the `genes` field of the template model. A mismatch gives a draft without reactions and without an error.
+- One template has the bias of one organism. Every reaction of the draft comes from the template, so the draft cannot have anything that the template lacks. Several templates, ordered with `preferredOrder`, spread the risk.
 - Absence is read as evidence. A missing reaction means that no acceptable hit was found, and it does not show that the organism lacks the capability. Sequencing gaps, divergent sequences and short proteins look the same.
 - Complete proteomes are slow. The example finishes in seconds because the template proteome has 61 sequences. Two complete proteomes take minutes to hours with BLASTP, and `getDiamond` and `run_diamond` are faster.
 :::
 
 ## See also
 
-- [Gap-filling](gap-filling.md): the next step, which decides what the draft lacks.
+- [Gap-filling](gap-filling.md): the next step, which determines what the draft lacks.
 - [Context-specific models](init.md): reducing a model by evidence, where homology builds a model up.
 - [Comparing models](comparing.md): comparing a draft with a curated model of the same organism.

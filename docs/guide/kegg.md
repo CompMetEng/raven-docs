@@ -102,7 +102,7 @@ objective:       none
 
 The draft has no compartments. KEGG describes reactions, so every metabolite is in one undifferentiated space. A KEGG draft cannot distinguish mitochondrial and cytosolic reactions until it is localised. [Combining and simplifying models](combining.md) covers the reverse operation and what it discards.
 
-The flags decide how inclusive the draft is. `keepIncomplete` / `keep_incomplete` keeps reactions that KEGG labels incomplete, erroneous or unclear. `keepUndefinedStoich` / `keep_undefined_stoich` keeps reactions with `n` or `x` in the stoichiometry, which cannot be balanced as written. With both turned off:
+The flags determine how inclusive the draft is. `keepIncomplete` / `keep_incomplete` keeps reactions that KEGG labels incomplete, erroneous or unclear. `keepUndefinedStoich` / `keep_undefined_stoich` keeps reactions with `n` or `x` in the stoichiometry, which cannot be balanced as written. With both turned off:
 
 ```python
 strict = get_kegg_model_for_organism_from_artefacts(

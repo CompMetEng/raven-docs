@@ -1,6 +1,6 @@
 # Installation
 
-RAVEN is available as a MATLAB toolbox and as the Python package raven-toolbox. Both build models for the same workflows, some algorithms differ between them ([Tuned parameter defaults](../tuned-parameters.md)), and the workflow decides which to use.
+RAVEN is available as a MATLAB toolbox and as the Python package raven-toolbox. Both build models for the same workflows, some algorithms differ between them ([Tuned parameter defaults](../tuned-parameters.md)), and the workflow determines which to use.
 
 ::::{grid} 1 2 2 2
 

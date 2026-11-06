@@ -130,7 +130,7 @@ bounds: [0 Inf], genes: YFR053C
 
 `eqnType` specifies how the equation is written. The value `1` or `"id"` matches the metabolites against `model.mets`. The value `2` or `"name"` matches against `model.metNames` and uses `compartment` for the location. The value `3` or `"name[comp]"` reads the compartment from the token.
 
-`allowNewGenes` is required because `YFR053C` is not in the model. `allowNewGenes` and `allowNewMets` default to `false`, so `addRxns` raises an error for an unknown identifier unless the option is set, and a mistyped identifier does not create a new entity. `allowNewMets` also accepts a string, which becomes the prefix of the generated identifiers. Metabolites added with `addMets` first carry more annotation than `addRxns` can infer.
+`allowNewGenes` is required because `YFR053C` is not in the model. `allowNewGenes` and `allowNewMets` default to `false`, so `addRxns` raises an error for an unknown identifier unless the option is set, and a mistyped identifier does not create a new entity. `allowNewMets` also accepts a string, which becomes the prefix of the generated identifiers. Metabolites added with `addMets` first have more annotation than `addRxns` can infer.
 :::
 :::{tab-item} 🐍 Python
 :sync: python

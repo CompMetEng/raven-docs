@@ -1,6 +1,6 @@
 # New functionality, dependencies and error handling
 
-RAVEN 3 changes gap-filling and the extraction of context-specific models with `ftINIT`, adds functions, depends on fewer MATLAB toolboxes, and handles errors in a different way.
+RAVEN 3 changes gap-filling and the extraction of context-specific models with `ftINIT`, adds functions, depends on fewer MATLAB toolboxes, and reports errors in a different way.
 
 (ftinit)=
 ## Gap-filling and context-specific model extraction
@@ -92,7 +92,7 @@ The function documentation of `sampleCHRR` states that the polytope is rounded b
 | Parallel Computing Toolbox | Optional. The `parfor` loops, for example in `getAllowedBounds` and `randomSampling`, run serially without it | Optional. `parallelWorkersRAVEN` returns 0 workers when `runParallel` is false, which runs the `parfor` loops as plain loops |
 | Excel I/O | Bundled Apache POI (Java) | OOXML writer without dependencies |
 | LP and MILP solver | Required: bundled `glpk`, or Gurobi, SCIP or COBRA | Unchanged |
-| External binaries | Committed to the repository (BLAST+, DIAMOND, HMMER) and available offline after cloning | Fetched on first use as ZIP files per platform into `src/external/<tool>`. For air-gapped installs the workflow `.github/workflows/release-bundle.yml` builds `RAVEN-<tag>-full.zip` with the binaries of all platforms and attaches it to a published release. Whether a given release carries it was not checked |
+| External binaries | Committed to the repository (BLAST+, DIAMOND, HMMER) and available offline after cloning | Fetched on first use as ZIP files per platform into `src/external/<tool>`. For air-gapped installs the workflow `.github/workflows/release-bundle.yml` builds `RAVEN-<tag>-full.zip` with the binaries of all platforms and attaches it to a published release. Whether a given release includes it was not checked |
 | KEGG HMM libraries and reference data | Manual download or local build | Fetched on first use and cached |
 | Installation self-check | `installation/checkInstallation.m` runs `importExportTests`, `solverTests` and the test files of BLAST+, DIAMOND, HMMER, CD-HIT and MAFFT to fill its table of passed and failed tests | `checkRaven` in the repository root imports `empty.xml`, exports SBML, imports and exports YAML, exports Excel, solves a two-reaction LP per solver and downloads missing binaries without a prompt. `checkInstallation` forwards to it (see [Renamed and merged functions](#renamed-merged-and-consolidated-functions)) |
 
@@ -108,6 +108,6 @@ KEGG data, binaries and the checksum manifest come from releases of `toolbox-ass
 
 ## Error and warning handling
 
-RAVEN 3 raises errors and issues warnings with `error()` and `warning()`. Outside `src/external` there are 411 `error` calls, counted as lines that contain `error(` and do not start with a comment. Of these, 301 carry an identifier, and 242 of those are in the `RAVEN:*` namespace. By the same rule there are 94 `warning` calls, of which 79 carry an identifier and 72 are in the `RAVEN:*` namespace. Whether the message texts of the RAVEN 2 checks are preserved was not checked. A `try/catch` block that matches message text can be replaced by a match on the identifier where one exists. [Backward-incompatible changes](#backward-incompatible-changes) describes the replacement of `dispEM`, and [Removed functionality](#removed-functionality) names the helper `utils/ravenList.m`.
+RAVEN 3 raises errors and issues warnings with `error()` and `warning()`. Outside `src/external` there are 411 `error` calls, counted as lines that contain `error(` and do not start with a comment. Of these, 301 have an identifier, and 242 of those are in the `RAVEN:*` namespace. By the same rule there are 94 `warning` calls, of which 79 have an identifier and 72 are in the `RAVEN:*` namespace. Whether the message texts of the RAVEN 2 checks are preserved was not checked. A `try/catch` block that matches message text can be replaced by a match on the identifier where one exists. [Backward-incompatible changes](#backward-incompatible-changes) describes the replacement of `dispEM`, and [Removed functionality](#removed-functionality) names the helper `utils/ravenList.m`.
 
 The call `issues = checkModelStruct(model)` returns a structure array of the problems (`category`, `target` and `message`) for programmatic model QC and raises no error. Without an output argument the function raises errors or issues warnings as in RAVEN 2. The options `throwErrors` and `trimWarnings`, which are positional in RAVEN 2, can also be given as name-value pairs.
