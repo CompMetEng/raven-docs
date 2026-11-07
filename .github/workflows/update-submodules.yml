@@ -1,7 +1,13 @@
 name: Update submodules
 
-# Moves each submodule to the tip of the branch set in .gitmodules and commits
-# the new pointers to develop.
+# Moves each submodule to the tip of the branch set in .gitmodules and opens a
+# pull request against develop. The pull request build checks that the new source
+# still builds and that the documented examples still hold; nothing is pushed to
+# develop or main.
+# A push or a pull request made with the workflow token does not start the
+# pull request workflows. workflow_dispatch is the documented exception, so the
+# checks are started on the branch by hand below; their results show on the
+# pull request.
 
 on:
   schedule:
@@ -9,7 +15,9 @@ on:
   workflow_dispatch: {}
 
 permissions:
+  actions: write
   contents: write
+  pull-requests: write
 
 concurrency:
   group: update-submodules
@@ -38,7 +46,9 @@ jobs:
             git checkout -B "$branch" FETCH_HEAD
           '
 
-      - name: Commit to develop
+      - name: Open or update the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if git diff --quiet; then
             echo "No submodule updates."
@@ -46,6 +56,17 @@ jobs:
           fi
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C chore/update-submodules
           git add -A
           git commit -m "chore: update submodules to latest tracked branches"
-          git push origin HEAD:develop
+          git push --force-with-lease origin chore/update-submodules
+          if [ -z "$(gh pr list --head chore/update-submodules --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base develop --head chore/update-submodules \
+              --title "chore: update submodules to latest tracked branches" \
+              --body "Moves each submodule to the tip of the branch set in .gitmodules."
+          fi
+          for workflow in docs-build.yml examples.yml; do
+            if [ -f ".github/workflows/$workflow" ]; then
+              gh workflow run "$workflow" --ref chore/update-submodules
+            fi
+          done
