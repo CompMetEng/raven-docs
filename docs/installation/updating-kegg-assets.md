@@ -8,7 +8,7 @@ The documentation build does not run the commands below. The download needs a KE
 
 ## Assets of one release
 
-A release has the name `kegg<N>`, with `N` the KEGG release number, and four assets that carry the name as a prefix.
+A release has the name `kegg<N>`, with `N` the KEGG release number, and four assets that have the name as a prefix.
 
 | Asset | Content |
 |---|---|
@@ -91,7 +91,7 @@ python scripts/make_registry_snippet.py sync
 python scripts/publish_to_toolbox_assets.py release --tag manifest-v<N> data/manifest.json
 ```
 
-The first command computes the URL, the SHA-256 sum and the size of each asset and writes them to the manifest. It replaces the whole entry of the dataset, so `--description`, `--license` and `--source` repeat the values of the existing entry. The second regenerates the baked registry of raven-toolbox from the manifest. The third publishes the manifest as a new snapshot. The number of the snapshot is the next number after the newest `manifest-v<M>` release in `toolbox-assets`.
+The first command computes the URL, the SHA-256 sum and the size of each asset and writes them to the manifest. It replaces the whole entry of the dataset, so `--description`, `--license` and `--source` repeat the values of the existing entry. The second regenerates the registry that raven-toolbox includes from the manifest. The third publishes the manifest as a new snapshot. The number of the snapshot is the next number after the newest `manifest-v<M>` release in `toolbox-assets`.
 
 ### 6. Point the toolboxes to the new release
 

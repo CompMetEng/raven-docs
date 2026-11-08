@@ -1,6 +1,6 @@
 # Combining and simplifying models
 
-Merging and simplifying look like bookkeeping and carry risk. Merging puts models together, such as a draft and a template, two organisms, or a curated core and an extension. The result is sound if a metabolite in one model is the same molecule as the metabolite of that name in the other. Simplifying takes a model apart and drops what cannot carry flux, and its risk is the deletion of something that is needed.
+Merging and simplifying look like bookkeeping and involve risk. Merging puts models together, such as a draft and a template, two organisms, or a curated core and an extension. The result is sound if a metabolite in one model is the same molecule as the metabolite of that name in the other. Simplifying takes a model apart and drops what cannot carry flux, and its risk is the deletion of something that is needed.
 
 ## Functions
 
@@ -89,7 +89,7 @@ merged: 106 rxns, 52 mets, 61 genes
 :::
 ::::
 
-The number of reactions doubles and the number of metabolites does not. The two models describe the same 52 metabolites, which the merged model shares, and every reaction of both sources is carried over.
+The number of reactions doubles and the number of metabolites does not. The two models describe the same 52 metabolites, which the merged model shares, and every reaction of both sources is copied.
 
 The asymmetry follows from the matching rules. Metabolites are matched by name and compartment (`metaboliteName[comp]`) and genes by name, so anything that the two models call by the same name becomes one entity. Reactions are matched on nothing, and the warning reports this. An identifier that exists in both models receives the identifier of the source model as a suffix (`HXK` and `HXK_second`), which keeps the identifiers unique, and the two reactions are not reconciled. Python renames in the same way and gives no warning.
 
@@ -134,7 +134,7 @@ after contracting: 53 rxns
 :::
 ::::
 
-`simplifyModel` removes nothing unless the flags say what to remove, as every flag is off by default except `deleteUnconstrained`. `deleteMinMax` is the expensive flag used in the example. It minimises and maximises each reaction to find out whether the reaction can carry flux. `deleteInaccessible` drops dead ends structurally, `deleteZeroInterval` drops reactions that are fixed at zero, and `deleteDuplicates` does what `contractModel` does. `reservedRxns` protects reactions from `deleteZeroInterval`, `deleteInaccessible` and `deleteMinMax`. In Python, the same choices are `delete_no_flux` and its related arguments. `open_exchanges` decides whether the test runs on the medium as it is or with the boundary opened first.
+`simplifyModel` removes nothing unless the flags say what to remove, as every flag is off by default except `deleteUnconstrained`. `deleteMinMax` is the expensive flag used in the example. It minimises and maximises each reaction to find out whether the reaction can carry flux. `deleteInaccessible` drops dead ends structurally, `deleteZeroInterval` drops reactions that are fixed at zero, and `deleteDuplicates` does what `contractModel` does. `reservedRxns` protects reactions from `deleteZeroInterval`, `deleteInaccessible` and `deleteMinMax`. In Python, the same choices are `delete_no_flux` and its related arguments. `open_exchanges` determines whether the test runs on the medium as it is or with the boundary opened first.
 
 :::{admonition} Functions that change the model in place
 :class: warning
@@ -151,7 +151,7 @@ Every RAVEN function here returns a new model struct and leaves its input unchan
 
 ## Dropping what cannot carry flux
 
-`smallYeast` ships with a shut medium, so almost nothing in it can carry flux, which is the state that [Quality control](quality-control.md) measures. This makes it a subject for simplification and shows its hazard.
+`smallYeast` has a shut medium, so almost nothing in it can carry flux, which is the state that [Quality control](quality-control.md) measures. This makes it a subject for simplification and shows its hazard.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -232,7 +232,7 @@ print(f"{len(dropped)} transport reactions dropped")
 :::
 ::::
 
-Seven metabolites of this model exist in both compartments, so 52 metabolites collapse to 45. The three reactions that moved a metabolite across the mitochondrial membrane become `A -> A`, carry no information and are dropped.
+Seven metabolites of this model exist in both compartments, so 52 metabolites collapse to 45. The three reactions that moved a metabolite across the mitochondrial membrane become `A -> A`, contain no information and are dropped.
 
 The merged metabolite is one of its copies, with all fields of that copy (identifier, name, formula, charge, annotation), and raven-toolbox also adds `notes["merged_base_id"]`. The copy is the one in the merged compartment if there is one, and otherwise the copy whose identifier sorts first (`ACCOA_c` before `ACCOA_m`). The identifier can therefore name a compartment that the merged model does not contain.
 

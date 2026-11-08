@@ -96,7 +96,7 @@ updated: ['MAL_m', 'AKG_m', 'P2G_c', 'P3G_c']
 
 ## Adding entities and overwriting values
 
-A row whose name matches nothing in the model adds a new entity. The identifier is generated. Both toolboxes find the largest zero-padded number that carries the prefix and continue from it, so the new identifiers continue the scheme of the model.
+A row whose name matches nothing in the model adds a new entity. The identifier is generated. Both toolboxes find the largest zero-padded number that has the prefix and continue from it, so the new identifiers continue the scheme of the model.
 
 The prefixes are arguments: `metPrefix` and `rxnPrefix` in MATLAB, `met_id_prefix` and `rxn_id_prefix` in Python. The defaults are `M_` and `R_`, the BiGG convention. A model derived from yeast-GEM uses `s_` and `r_`, and other prefixes give a model with two identifier schemes.
 

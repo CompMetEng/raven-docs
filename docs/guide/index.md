@@ -6,7 +6,7 @@ The [reconstruction protocol](../protocol/index.md) for *H. polymorpha* and the 
 
 ## Functions from cobrapy
 
-A function that comes from cobrapy carries a {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` badge that links to the cobrapy documentation, and its import line shows where it lives (`from cobra.io import read_sbml_model`). The [function mapping](../matlab-vs-python.md) lists all of these functions.
+A function that comes from cobrapy has a {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` badge that links to the cobrapy documentation, and its import line shows where it lives (`from cobra.io import read_sbml_model`). The [function mapping](../matlab-vs-python.md) lists all of these functions.
 
 ## Executed examples
 

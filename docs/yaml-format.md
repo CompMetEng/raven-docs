@@ -87,7 +87,7 @@ Three structural rules apply to the field-by-field description:
 
 | Key | Required | Source | Notes |
 |-----|----------|--------|-------|
-| `metaData` | optional | RAVEN | Provenance block with `id`, `name`, `version`, `date`, `taxonomy`, optionally `givenName`, `familyName`, `email`, `organization`, `note` and `sourceUrl`, and `defaultLB` and `defaultUB`. cobrapy ignores the block, which carries no semantics of the core model. |
+| `metaData` | optional | RAVEN | Provenance block with `id`, `name`, `version`, `date`, `taxonomy`, optionally `givenName`, `familyName`, `email`, `organization`, `note` and `sourceUrl`, and `defaultLB` and `defaultUB`. cobrapy ignores the block, which has no semantics in the core model. |
 | `metabolites` | yes | cobra core | Ordered list of `- !!omap` entries. |
 | `reactions` | yes | cobra core | Ordered list of `- !!omap` entries. |
 | `genes` | yes | cobra core | Ordered list; `genes: []` for a model without genes. |
@@ -198,7 +198,7 @@ Empty names (`name: ''`) are not written, as in RAVEN MATLAB.
     - m: mitochondrion
 ```
 
-The block is an `!!omap` of `<short code>: <human-readable name>` pairs. Compartments carry no MIRIAM annotations of their own in the format.
+The block is an `!!omap` of `<short code>: <human-readable name>` pairs. Compartments have no MIRIAM annotations of their own in the format.
 
 ---
 
@@ -229,7 +229,7 @@ The block holds provenance. cobrapy ignores it. raven-toolbox keeps the verbatim
 
 ## GECKO sections
 
-Enzyme-constrained models carry the EC layer in three additional top-level keys:
+Enzyme-constrained models contain the EC layer in three additional top-level keys:
 
 ```yaml
 - gecko_light: false        # true for the "light" formulation
@@ -298,7 +298,7 @@ The characters `[`, `]`, `{` and `}` inside a value do not trigger quoting.
 
 In a double-quoted string, `\` and `"` are escaped. Other characters, including Unicode and newlines where the model permits them, are passed through.
 
-The reader of raven-toolbox repairs three quoted shapes that are not valid YAML: `""text""`, a double-quoted scalar with an unescaped inner quote (`"a "b" c"`), and a single-quoted scalar with an inner apostrophe (`'it's'`). The values are `"text"`, `a "b" c` and `it's`, as `readYAMLmodel` reads them. The repair runs when the strict parse fails, and it does not handle a comment after the closing quote.
+The reader of raven-toolbox repairs three quoted shapes that are not valid YAML: `""text""`, a double-quoted scalar with an unescaped inner quote (`"a "b" c"`), and a single-quoted scalar with an inner apostrophe (`'it's'`). The values are `"text"`, `a "b" c` and `it's`, as `readYAMLmodel` reads them. The repair runs when the strict parse fails, and it does not repair a comment after the closing quote.
 
 ---
 

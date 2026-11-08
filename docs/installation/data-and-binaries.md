@@ -1,6 +1,6 @@
 # Download data and binaries
 
-Neither toolbox ships the large files that it needs. The KEGG reference data, the libraries of profile hidden Markov models (HMMs) and the executables of BLAST+, DIAMOND and HMMER are fetched on first use from a shared, checksummed release and cached locally. The sections below describe what is fetched, where it is kept and how each step is overridden.
+Neither toolbox includes the large files that it needs. The KEGG reference data, the libraries of profile hidden Markov models (HMMs) and the executables of BLAST+, DIAMOND and HMMER are fetched on first use from a shared, checksummed release and cached locally. The sections below describe what is fetched, where it is kept and how each step is overridden.
 
 Both toolboxes read from the same [`toolbox-assets`](https://github.com/CompMetEng/toolbox-assets) repository, so RAVEN and raven-toolbox download the same files.
 
@@ -102,7 +102,7 @@ For data artefacts, an explicit directory replaces the cache. `get_kegg_model_fo
 
 ## Platform support
 
-Every tool is invoked as a subprocess, so the availability of a native build for the platform decides the support. The bundles in `toolbox-assets` are built for Linux on x86-64, macOS on Apple silicon (arm64) and Windows on x86-64. Intel Macs and Linux on arm64 have no bundle, and the table applies to the three bundle platforms.
+Every tool is invoked as a subprocess, so the availability of a native build for the platform determines the support. The bundles in `toolbox-assets` are built for Linux on x86-64, macOS on Apple silicon (arm64) and Windows on x86-64. Intel Macs and Linux on arm64 have no bundle, and the table applies to the three bundle platforms.
 
 | Tool | Linux | macOS | Windows |
 |---|---|---|---|
