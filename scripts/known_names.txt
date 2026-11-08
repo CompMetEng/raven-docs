@@ -399,6 +399,8 @@ seqIdentity                  # getKEGGModelForOrganism argument, removed
 
 kegg118_eukaryotes           # raven-data KEGG artefact name, not a function
 kegg118_prokaryotes          # raven-data KEGG artefact name, not a function
+kegg120_eukaryotes           # toolbox-assets KEGG artefact name, not a function
+kegg120_prokaryotes          # toolbox-assets KEGG artefact name, not a function
 xml_toolbox                  # third-party library bundled by RAVEN 2's legacy/
 
 # checkRaven.m sits at the RAVEN root, outside src/, which the index reads.
