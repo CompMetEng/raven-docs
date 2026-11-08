@@ -490,3 +490,4 @@ loadEcModel                  # GECKO function
 load_ec_model                # geckopy function
 gecko_format                 # key of the metaData of an ecModel file
 artefact_dir                 # parameter of get_kegg_model_for_organism_from_artefacts
+preferred_order              # get_model_from_homology argument
