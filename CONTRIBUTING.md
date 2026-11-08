@@ -12,6 +12,10 @@ The standard for this site is the `docs-site` plugin of [CompMetEng/skills](http
 3. Established technical shorthand (a domain term, a standard abbreviation) stays.
 4. No mention of AI tools or AI authorship in the repository: not in commits, pull requests, code comments or pages. Branch names do not contain a tool name.
 
+## Branches
+
+`develop` is the integration branch. It documents the `develop` branches of RAVEN and raven-toolbox, which the submodules track, and a daily workflow opens a pull request against `develop` that moves the submodule pointers to their tips. Pull requests target `develop`. `main` documents the released versions: a release of RAVEN and raven-toolbox is followed by a pull request from `develop` to `main` that is merged with a merge commit and pins the submodules to the released commits.
+
 ## Building and checking
 
 ```bash

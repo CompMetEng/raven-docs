@@ -132,3 +132,5 @@ On Windows, homology reconstruction and the KEGG query path run natively, becaus
 - [Reconstruction from KEGG](../guide/kegg.md): the workflow that fetches the KEGG artefacts.
 - [Reconstruction from homology](../guide/homology.md): the workflow that needs BLAST+ or DIAMOND.
 - [RAVEN (MATLAB)](raven.md) and [raven-toolbox (Python)](python.md).
+- [Update the KEGG assets](updating-kegg-assets.md): how the maintainers publish the assets of a new KEGG release.
+- [Update the binary bundles](updating-binaries.md): how the maintainers publish the BLAST+, DIAMOND and HMMER bundles.

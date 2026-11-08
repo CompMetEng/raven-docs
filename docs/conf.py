@@ -51,7 +51,14 @@ html_favicon = "_static/raven-icon.png"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 # Remembers the language of the code tabs across pages, browser tabs and visits.
-html_js_files = ["language-sync.js"]
+html_js_files = [
+    "language-sync.js",
+    # Page-view statistics of GoatCounter, which sets no cookies.
+    (
+        "https://gc.zgo.at/count.js",
+        {"async": "async", "data-goatcounter": "https://raven-docs.goatcounter.com/count"},
+    ),
+]
 # The "view source" link points at this generated MyST file, not anything a
 # reader can act on the way an edit-on-GitHub link would.
 html_show_sourcelink = False
