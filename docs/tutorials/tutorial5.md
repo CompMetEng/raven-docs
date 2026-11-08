@@ -10,12 +10,12 @@ The de novo reconstruction searches large HMM databases. Building the model take
 
 ### 1. Reconstructing from KEGG
 
-`getKEGGModelForOrganism` needs trained hidden Markov models (HMMs) for eukaryotes. When the library file `<dataDir>.hmm` or its `.gz` archive exists, for example after a manual download, it is used. Otherwise it is downloaded from the matching release of [toolbox-assets](https://github.com/CompMetEng/toolbox-assets). Here the archive `kegg118_eukaryotes` is selected for automatic download.
+`getKEGGModelForOrganism` needs trained hidden Markov models (HMMs) for eukaryotes. When the library file `<dataDir>.hmm` or its `.gz` archive exists, for example after a manual download, it is used. Otherwise it is downloaded from the matching release of [toolbox-assets](https://github.com/CompMetEng/toolbox-assets). Here the archive `kegg120_eukaryotes` is selected for automatic download.
 
 The function then creates a model for *S. cerevisiae* from the FASTA file of the whole proteome (`sce.fa`). The parameters exclude general or unclear reactions and reactions with undefined stoichiometry. `help getKEGGModelForOrganism` describes the parameters.
 
 ```matlab
-model=getKEGGModelForOrganism('sce','sce.fa','kegg118_eukaryotes','output',false,false,false,false,10^-30,0.8,0.3,-1);
+model=getKEGGModelForOrganism('sce','sce.fa','kegg120_eukaryotes','output',false,false,false,false,10^-30,0.8,0.3,-1);
 disp(model);
 ```
 

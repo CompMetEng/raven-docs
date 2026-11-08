@@ -98,7 +98,7 @@ The function documentation of `sampleCHRR` states that the polytope is rounded b
 
 KEGG data, binaries and the checksum manifest come from releases of `toolbox-assets`. Other downloads have other sources. A RAVEN 3 clone needs network access for these downloads.
 
-- KEGG data comes from the release tag that `keggDataVersion()` returns (`src/reconstruction/kegg/KEGG_VERSION.md`, tag `kegg118`).
+- KEGG data comes from the release tag that `keggDataVersion()` returns (`src/reconstruction/kegg/KEGG_VERSION.md`, tag `kegg120`).
 - The binaries come from the fixed tags in `src/installation/downloadRavenBinaries.m`: `blast-2.17.0`, `diamond-2.1.17`, `hmmer-3.4.0` and, on Windows, `hmmer-3.3.2`.
 - The checksums of downloaded files come from `manifest.json` of the `manifest-v3` release, which is read at download time.
 - `setRavenSolver('scip')` on Windows downloads `scip_mex_win.zip` from the RAVEN v2.8.6 release on GitHub into `src/external/scip`. The repository holds no SCIP files, and other platforms need a SCIP installation made by hand.

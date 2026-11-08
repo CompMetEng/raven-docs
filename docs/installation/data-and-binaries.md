@@ -8,8 +8,8 @@ Both toolboxes read from the same [`toolbox-assets`](https://github.com/CompMetE
 
 | Artefact | Download size | Needed for |
 |---|---|---|
-| KEGG core bundle (reference model and the tables of KOs, reactions and organism genes) | 49 MB | [Reconstruction from KEGG](../guide/kegg.md), both methods |
-| KEGG HMM library, one per domain | 135 MB for eukaryotes, 155 MB for prokaryotes | a KEGG draft for an organism that is not in KEGG |
+| KEGG core bundle (reference model and the tables of KOs, reactions and organism genes) | 51 MB | [Reconstruction from KEGG](../guide/kegg.md), both methods |
+| KEGG HMM library, one per domain | 140 MB for eukaryotes, 159 MB for prokaryotes | a KEGG draft for an organism that is not in KEGG |
 | KEGG taxonomy | 0.2 MB | phylogenetic weighting of KO assignments |
 | BLAST+ (`blastp`, `makeblastdb`) | 13 to 35 MB per platform | [Reconstruction from homology](../guide/homology.md) |
 | DIAMOND | 3 to 9 MB per platform | the faster homology method |
@@ -133,3 +133,4 @@ On Windows, homology reconstruction and the KEGG query path run natively, becaus
 - [Reconstruction from homology](../guide/homology.md): the workflow that needs BLAST+ or DIAMOND.
 - [RAVEN (MATLAB)](raven.md) and [raven-toolbox (Python)](python.md).
 - [Update the KEGG assets](updating-kegg-assets.md): how the maintainers publish the assets of a new KEGG release.
+- [Update the binary bundles](updating-binaries.md): how the maintainers publish the BLAST+, DIAMOND and HMMER bundles.

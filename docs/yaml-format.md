@@ -253,7 +253,11 @@ Enzyme-constrained models contain the EC layer in three additional top-level key
 
 The sections map to `model.ec` in RAVEN MATLAB and to `raven_toolbox.io.ec_data.EcData` (attached as `model.ec`) in raven-toolbox. cobrapy ignores them.
 
-An `- enzymes: !!omap` line with nothing under the tag is read as a reaction without enzymes.
+An ec reaction without enzymes is written with no `enzymes` entry, as GECKO 4 and geckopy 4.0.0b2 write it. GECKO and geckopy read a missing entry as a reaction without enzymes, and they read `- enzymes: !!omap` with nothing under the tag and `enzymes: !!omap []` in the same way.
+
+An ecModel file records its format and its writer in `metaData`: `gecko_format` is `4`, and `generator` names the release that wrote the file. `loadEcModel` of GECKO and `load_ec_model` of geckopy raise an error for a format above 4. Both upgrade an ecModel whose protein usage and pool reactions run in the GECKO 3 direction, in memory and with a warning; the file stays as it is.
+
+A value in double quotes that contains double quotes is read with the outer pair of quotes removed and the inner quotes kept. RAVEN 2 ecModels carry the notes of some reactions in this form, and `read_yaml_model` of raven-toolbox, `readYAMLmodel` of RAVEN and `load_ec_model` of geckopy read it.
 
 The spelling `geckoLight` inside `metaData` is also accepted on reading.
 

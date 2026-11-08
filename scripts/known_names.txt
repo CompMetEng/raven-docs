@@ -399,6 +399,8 @@ seqIdentity                  # getKEGGModelForOrganism argument, removed
 
 kegg118_eukaryotes           # raven-data KEGG artefact name, not a function
 kegg118_prokaryotes          # raven-data KEGG artefact name, not a function
+kegg120_eukaryotes           # toolbox-assets KEGG artefact name, not a function
+kegg120_prokaryotes          # toolbox-assets KEGG artefact name, not a function
 xml_toolbox                  # third-party library bundled by RAVEN 2's legacy/
 
 # checkRaven.m sits at the RAVEN root, outside src/, which the index reads.
@@ -482,3 +484,9 @@ regexpPattern
 removeUnusedMets
 complex_policy
 minNrFluxes
+blast_formatter              # executable of BLAST+
+chunk_rows                   # parameter of the sort of the organism_gene_ko table in raven_toolbox.reconstruction.kegg.parse
+loadEcModel                  # GECKO function
+load_ec_model                # geckopy function
+gecko_format                 # key of the metaData of an ecModel file
+artefact_dir                 # parameter of get_kegg_model_for_organism_from_artefacts
