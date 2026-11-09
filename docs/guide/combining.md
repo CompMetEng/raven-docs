@@ -7,7 +7,7 @@ Merging and simplifying look like bookkeeping and involve risk. Merging puts mod
 | MATLAB | Python | Purpose |
 |---|---|---|
 | `mergeModels` | `merge_models` | combine models into one |
-| `contractModel` | `remove_duplicate_reactions` | collapse identical reactions |
+| `contractModel` | `contract_model` | collapse identical reactions |
 | `simplifyModel` | `simplify_model` | drop what cannot carry flux |
 | `expandModel` | `expand_model` | split reactions with `or` in the gene rule |
 | `mergeCompartments` | `merge_compartments` | collapse the model to one compartment |
@@ -122,9 +122,9 @@ after contracting: 53 rxns
 :sync: python
 
 ```python
-from raven_toolbox.manipulation import remove_duplicate_reactions
+from raven_toolbox.manipulation import contract_model
 
-remove_duplicate_reactions(merged)
+contract_model(merged)
 print(f"after contracting: {len(merged.reactions)} rxns")
 ```
 
@@ -143,7 +143,8 @@ Every RAVEN function here returns a new model struct and leaves its input unchan
 
 | Python | Behaviour |
 |---|---|
-| `remove_duplicate_reactions`, `simplify_model` | change the model in place and return `None` |
+| `contract_model` | changes the model in place and returns the ids of the removed reactions |
+| `simplify_model` | changes the model in place and returns `None` |
 | `merge_models`, `merge_compartments` | return a new model |
 
 `model = simplify_model(model)` is correct in MATLAB and sets `model` to `None` in Python. The model should be copied first when the original is needed.
