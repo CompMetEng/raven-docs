@@ -482,3 +482,29 @@ regexpPattern
 removeUnusedMets
 complex_policy
 minNrFluxes
+
+# -- experiments and maintenance pages --------------------------------------
+# Struct fields, attributes, arguments and column names of the experiments
+# functions and of fit_maintenance, named in the guide pages.
+grRate                        # field of the MATLAB flux data struct and a column of fluxData.tsv
+zeroFlux                      # field of the MATLAB experiment data struct
+exchFluxes                    # field of the MATLAB flux data struct and of a simulation
+exchMets                      # field of the MATLAB flux data struct
+exchRxnIDs                    # field of the MATLAB flux data struct and of a simulation
+blockRxnIDs                   # field of a MATLAB simulation
+blockFluxes                   # field of a MATLAB simulation
+cSource                       # argument of applyFluxDataConstraints
+maxGrowthWeight               # argument of experimentDistance
+metSmiles                     # field of the RAVEN model struct
+flux_data                     # attribute of ExperimentData
+max_growth                    # attribute of ExperimentData
+zero_flux                     # attribute of ExperimentData
+gr_rate                       # attribute of FluxData
+exch_fluxes                   # attribute of FluxData and of a simulation result
+exch_mets                     # attribute of FluxData
+exch_rxn_ids                  # attribute of FluxData
+block_fluxes                  # attribute of a simulation result
+max_growth_weight             # argument of experiment_distance
+growth_rate                   # column of the table of fit_maintenance
+condition_setup               # argument of fit_maintenance
+keep_offsets_of               # argument of set_gam
