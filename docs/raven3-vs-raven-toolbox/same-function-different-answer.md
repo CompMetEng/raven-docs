@@ -2,7 +2,7 @@
 
 A function of RAVEN and its counterpart in raven-toolbox can differ in the algorithm they choose, in the form of the result or in the value of the result. The sections below describe the differences found by reading the code of both implementations. Where a section says that a result was not checked, no run compared the two implementations.
 
-The list is incomplete, and a function that is not listed can behave differently. Candidates that were not compared include `random_sampling`, which replaces both `sampleACHR` and `sampleCHRR`; `remove_duplicate_reactions`, which replaces `contractModel`; and `simplify_model`, which corresponds to `simplifyModel`.
+The list is incomplete, and a function that is not listed can behave differently. Candidates that were not compared include `random_sampling`, which replaces both `sampleACHR` and `sampleCHRR`; `contract_model`, which corresponds to `contractModel`; and `simplify_model`, which corresponds to `simplifyModel`.
 
 ## Metabolic task checking
 
