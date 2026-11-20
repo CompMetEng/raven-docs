@@ -508,3 +508,8 @@ max_growth_weight             # argument of experiment_distance
 growth_rate                   # column of the table of fit_maintenance
 condition_setup               # argument of fit_maintenance
 keep_offsets_of               # argument of set_gam
+keepOffsetsOf                 # option of setGAM
+fluxData                      # field of the MATLAB experiment data struct, the flux conditions
+maxGrowth                     # field of the MATLAB experiment data struct, the maximum-growth conditions
+flux_sims                     # argument of experiment_distance
+max_growth_sims               # argument of experiment_distance

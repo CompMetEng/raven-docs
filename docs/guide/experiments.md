@@ -1,6 +1,8 @@
 # Comparing a model with measured conditions
 
-A model is tested against an experiment by setting what the experiment controlled, solving the model, and comparing what it predicts with what was measured. The experiments functions do this for a set of conditions, each with a measured growth rate and measured exchange fluxes, and reduce the comparison to one number. That number is what a calibration minimises, for example the tuning of kcats in an enzyme-constrained model.
+A model is tested against an experiment by setting what the experiment controlled, solving the model, and comparing what it predicts with what was measured. The experiments functions do this for a set of conditions, each with a measured growth rate and measured exchange fluxes, and reduce the comparison to one number. That number, the distance, is what a calibration minimises, for example the tuning of kcats in an enzyme-constrained model, and it is also a way to compare two versions of a model.
+
+Two kinds of conditions are scored. A **flux condition** limits the uptake of the carbon source to its measured rate, and the growth rate and the measured exchange fluxes of the model are compared with the measurements. A **maximum-growth condition** leaves the uptake of the carbon source unlimited, and only the maximal growth rate of the model is compared with the measured growth rate. The two kinds are stored in two files with the same layout.
 
 ## Functions
 
@@ -11,8 +13,8 @@ A model is tested against an experiment by setting what the experiment controlle
 | `applyFluxDataConstraints` | `apply_flux_data_constraints` | constrain a model to one condition |
 | `simulateConditions` | `simulate_conditions` | solve the model for every condition |
 | `computeCarbonWeights` | `compute_carbon_weights` | put growth and exchange fluxes on one carbon scale |
-| `datasetRmse` | `dataset_rmse` | the distance of one dataset |
-| `experimentDistance` | `experiment_distance` | the distance of all datasets of a folder |
+| `datasetRmse` | `dataset_rmse` | the distance of the conditions of one kind, flux or maximum-growth |
+| `experimentDistance` | `experiment_distance` | the distance of the flux and the maximum-growth conditions of a folder, combined |
 
 ## Setup
 
@@ -22,8 +24,8 @@ A data folder holds up to three files, and each is optional:
 
 | File | Content |
 |---|---|
-| `fluxData.tsv` | conditions with a measured growth rate and measured exchange fluxes |
-| `maxGrowth.tsv` | conditions with one carbon source each, simulated with the uptake fully open |
+| `fluxData.tsv` | flux conditions: a measured growth rate and measured exchange fluxes, with the uptake of the carbon source limited to the measured rate |
+| `maxGrowth.tsv` | maximum-growth conditions: one carbon source each, simulated with the uptake fully open, and only the growth rate compared |
 | `zeroFlux.tsv` | reactions that carry no flux in any condition, one reaction id per line below the header `Rxns` |
 
 `fluxData.tsv` and `maxGrowth.tsv` have the same layout, a tab-delimited file with one row per condition:
@@ -63,7 +65,7 @@ for i = 1:numel(fluxData.conds)
 end
 fprintf('zero-flux reactions: %s\n', strjoin(experimentData.zeroFlux, ', '));
 if isempty(experimentData.maxGrowth)
-    disp('maximum growth data: none');
+    disp('maximum-growth conditions: none');
 end
 ```
 
@@ -72,10 +74,10 @@ glucose  growth 0.80 /h, weight 1
 glucose  growth 0.30 /h, weight 1
 ethanol  growth 0.55 /h, weight 1
 zero-flux reactions: r_1634, r_1808
-maximum growth data: none
+maximum-growth conditions: none
 ```
 
-`loadExperimentData` returns a struct. A file that is not in the folder gives `[]`, or an empty cell array for `zeroFlux`, and no error. `loadFluxData` reads one file and returns the struct of its conditions: `conds`, `Ptot`, `grRate`, `exchFluxes` (conditions in rows), `exchMets` and `exchRxnIDs`, and `weight` and `source` when the file has the columns.
+`loadExperimentData` returns a struct with the field `fluxData` for the flux conditions of `fluxData.tsv`, `maxGrowth` for the maximum-growth conditions of `maxGrowth.tsv` and `zeroFlux` for the reactions of `zeroFlux.tsv`. A file that is not in the folder gives `[]`, or an empty cell array for `zeroFlux`, and no error. `loadFluxData` reads one file and returns the struct of its conditions: `conds`, `Ptot`, `grRate`, `exchFluxes` (conditions in rows), `exchMets` and `exchRxnIDs`, and `weight` and `source` when the file has the columns.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -93,7 +95,7 @@ flux = data.flux_data
 for name, growth, weight in zip(flux.conds, flux.gr_rate, flux.weight):
     print(f"{name:<8} growth {growth:.2f} /h, weight {weight:.0f}")
 print("zero-flux reactions:", ", ".join(data.zero_flux))
-print("maximum growth data:", data.max_growth)
+print("maximum-growth conditions:", data.max_growth)
 ```
 
 ```text
@@ -101,10 +103,10 @@ glucose  growth 0.80 /h, weight 1
 glucose  growth 0.30 /h, weight 1
 ethanol  growth 0.55 /h, weight 1
 zero-flux reactions: r_1634, r_1808
-maximum growth data: None
+maximum-growth conditions: None
 ```
 
-`load_experiment_data` returns an `ExperimentData` with the attributes `flux_data`, `max_growth` and `zero_flux`. A file that is not in the folder gives `None`, or an empty list for `zero_flux`, and no error. `load_flux_data` reads one file and returns a `FluxData`: `conds`, `p_tot`, `gr_rate`, `exch_fluxes` (conditions in rows), `exch_mets` and `exch_rxn_ids`, and `weight` and `source`, which are `None` when the file lacks the columns.
+`load_experiment_data` returns an `ExperimentData` with the attribute `flux_data` for the flux conditions of `fluxData.tsv`, `max_growth` for the maximum-growth conditions of `maxGrowth.tsv` and `zero_flux` for the reactions of `zeroFlux.tsv`. A file that is not in the folder gives `None`, or an empty list for `zero_flux`, and no error. `load_flux_data` reads one file and returns a `FluxData`: `conds`, `p_tot`, `gr_rate`, `exch_fluxes` (conditions in rows), `exch_mets` and `exch_rxn_ids`, and `weight` and `source`, which are `None` when the file lacks the columns.
 :::
 ::::
 
@@ -170,10 +172,10 @@ In both blocks, the measured growth rate is a bound and not a target. The solve 
 
 ## Solve every condition
 
-`simulateConditions` and `simulate_conditions` solve the model once for each condition of a dataset, and record the growth rate and the fluxes that are compared with the measurements. For each condition with a weight other than 0 they:
+`simulateConditions` and `simulate_conditions` solve the model once for each condition of one file, flux conditions or maximum-growth conditions, and record the growth rate and the fluxes that are compared with the measurements. For each condition with a weight other than 0 they:
 
 1. close the uptake of every carbon source that occurs in a condition with a weight other than 0, so that the carbon source of one condition cannot carry flux in another;
-2. open the carbon source of the condition: its lower bound becomes the measured uptake when the argument `constrain` is true (a flux dataset), or `-1000` when it is false (a maximum growth dataset, which asks for the best growth on the carbon source);
+2. open the carbon source of the condition: its lower bound becomes the measured uptake when the argument `constrain` is true (flux conditions), or `-1000` when it is false (maximum-growth conditions, which ask for the best growth on the carbon source);
 3. make the model anaerobic when the oxygen flux of the condition is exactly 0 and a function for it is given, and change the protein content of the model when `Ptot` is given and not 0 and a function for it is given;
 4. solve, and record the growth rate, the flux of every measured exchange and the flux of every reaction in the zero-flux list, except the carbon source of the condition.
 
@@ -234,7 +236,7 @@ The second condition has no oxygen uptake and grows slower than the first. It al
 
 The growth rate is in 1/h and the exchange fluxes are in mmol/gDW/h, so they cannot be added as they are. `computeCarbonWeights` and `compute_carbon_weights` give each exchange reaction the number of carbon atoms of the metabolite that it exchanges, which turns the flux into Cmmol/gDW/h. The biomass reaction gets 41, the assumed carbon content of biomass in Cmmol/gDW. A metabolite without carbon (oxygen, water) or without a formula gets 1, so that its deviation still counts.
 
-For each condition the distance is the root mean square of the carbon-weighted differences between measured and simulated values: the growth rate, each measured exchange flux, and each zero-flux reaction with a flux other than 0. A condition that the model cannot solve gets the penalty 99, which is meant to be larger than any distance of a solved condition. The distance of a dataset is the mean, over the conditions with a weight other than 0, of the condition values, each multiplied by its weight. A condition with the weight 0 has the value `NaN` and is not in the mean, and a dataset in which every condition has the weight 0 has the distance `NaN` and is left out of the combination. `experimentDistance` and `experiment_distance` combine the flux dataset and the maximum growth dataset as `(flux + w * maxGrowth) / (1 + w)`, where `w` is the argument `maxGrowthWeight` or `max_growth_weight` (default 1). A dataset that the folder lacks does not contribute, and the maximum growth dataset compares the growth rate alone.
+For each condition the distance is the root mean square of the carbon-weighted differences between measured and simulated values: the growth rate, each measured exchange flux, and each zero-flux reaction with a flux other than 0. A condition that the model cannot solve gets the penalty 99, which is meant to be larger than any distance of a solved condition. The distance of the flux conditions is the mean, over the conditions with a weight other than 0, of the condition values, each multiplied by its weight, and the same holds for the maximum-growth conditions. A condition with the weight 0 has the value `NaN` and is not in the mean, and a file in which every condition has the weight 0 has the distance `NaN` and is left out of the combination. `experimentDistance` and `experiment_distance` combine the distance of the flux conditions and of the maximum-growth conditions as `(flux + w * maxGrowth) / (1 + w)`, where `w` is the argument `maxGrowthWeight` or `max_growth_weight` (default 1). A kind of condition that the folder lacks does not contribute, and the maximum-growth conditions compare the growth rate alone.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -256,7 +258,7 @@ distance: 1.808
 per condition: [1.03 3.47 0.926]
 ```
 
-`computeCarbonWeights` returns a `containers.Map` from reaction id to weight. `experimentDistance` takes the simulation of the flux dataset and the simulation of the maximum growth dataset, with `[]` for a dataset that the folder lacks, and returns the distance and a struct with the value of each condition.
+`computeCarbonWeights` returns a `containers.Map` from reaction id to weight. `experimentDistance` takes the simulation of the flux conditions and the simulation of the maximum-growth conditions, with `[]` for a kind that the folder lacks, and returns the distance and a struct with the value of each condition.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -280,7 +282,7 @@ distance: 1.808
 per condition: 1.030, 3.469, 0.926
 ```
 
-`compute_carbon_weights` returns a dictionary from reaction id to weight. `experiment_distance` takes the simulation of each dataset as a keyword, `None` for a dataset that the folder lacks, and returns the distance and a dictionary with the value of each condition under `"flux_data"` and `"max_growth"`.
+`compute_carbon_weights` returns a dictionary from reaction id to weight. `experiment_distance` takes the simulation of each kind of condition as a keyword (`flux_sims` and `max_growth_sims`), `None` for a kind that the folder lacks, and returns the distance and a dictionary with the value of each condition under `"flux_data"` and `"max_growth"`.
 :::
 ::::
 
@@ -335,7 +337,7 @@ per condition: nan, 3.469, 0.926
 
 The first condition has `skipped` true and `feasible` false, and its value is `NaN`. The distance is the mean of the values of the other two conditions.
 
-A calibration changes a parameter of the model, repeats the simulation and the distance, and keeps the change when the distance falls. `dataset_rmse` and `datasetRmse` give the value of a single dataset when the folder holds only one.
+A calibration changes a parameter of the model, repeats the simulation and the distance, and keeps the change when the distance falls. `dataset_rmse` and `datasetRmse` give the distance of one kind of condition, for example when the folder holds only one file.
 
 ## Differences between the toolboxes
 
