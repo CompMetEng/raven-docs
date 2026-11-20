@@ -31,7 +31,7 @@ A data folder holds up to three files, and each is optional:
 - `Condition` is the name of the carbon source. The exchange column with the same metabolite name is the carbon source of the row, and a name can occur in several rows.
 - `Ptot` is the total protein content in g/gDW and `grRate` the growth rate in 1/h. `Ptot` is empty (`NaN`) when it was not measured.
 - One column per exchange reaction, with the header `<metabolite> (<reaction id>)`, holds the flux in mmol/gDW/h. The sign follows the model, so in yeast-GEM an uptake is negative. `NaN` means that the flux was not measured, and `-1000` or `1000` means an uptake or an excretion that is not limited.
-- `weight` is optional and is the weight of the condition in the distance. A weight of 0 leaves the condition out. Without the column every condition has the weight 1.
+- `weight` is optional and is the weight of the condition in the distance. A condition with the weight 0 is left out of the simulation and of the distance, and its `Condition` need not match an exchange column, so a row that another step reads, such as a standard condition, can stay in the file. Without the column every condition has the weight 1.
 - `source` is optional and is a free text that says where the row comes from.
 
 The conditions of `maxGrowth.tsv` are simulated with the uptake of the carbon source opened to `-1000`, and only the growth rate is compared. In a model where nothing besides the uptake limits growth, that gives a growth rate without biological meaning, so the file is for models in which something else limits growth, such as the enzyme capacity of an enzyme-constrained model. The examples on this page use `fluxData.tsv` and `zeroFlux.tsv`.
@@ -170,9 +170,9 @@ In both blocks, the measured growth rate is a bound and not a target. The solve 
 
 ## Solve every condition
 
-`simulateConditions` and `simulate_conditions` solve the model once for each condition of a dataset, and record the growth rate and the fluxes that are compared with the measurements. For each condition they:
+`simulateConditions` and `simulate_conditions` solve the model once for each condition of a dataset, and record the growth rate and the fluxes that are compared with the measurements. For each condition with a weight other than 0 they:
 
-1. close the uptake of every carbon source that occurs in the dataset, so that the carbon source of one condition cannot carry flux in another;
+1. close the uptake of every carbon source that occurs in a condition with a weight other than 0, so that the carbon source of one condition cannot carry flux in another;
 2. open the carbon source of the condition: its lower bound becomes the measured uptake when the argument `constrain` is true (a flux dataset), or `-1000` when it is false (a maximum growth dataset, which asks for the best growth on the carbon source);
 3. make the model anaerobic when the oxygen flux of the condition is exactly 0 and a function for it is given, and change the protein content of the model when `Ptot` is given and not 0 and a function for it is given;
 4. solve, and record the growth rate, the flux of every measured exchange and the flux of every reaction in the zero-flux list, except the carbon source of the condition.
@@ -199,7 +199,7 @@ glucose  growth 0.161 /h, glycerol 1.86
 ethanol  growth 0.583 /h, glycerol 0.00
 ```
 
-`sims` is a struct array with one element per condition. Its fields are `feasible`, `growth`, `exchRxnIDs` and `exchFluxes` (the measured exchanges), and `blockRxnIDs` and `blockFluxes` (the zero-flux reactions). The functions that make the model anaerobic and change its protein content take a model and return a model.
+`sims` is a struct array with one element per condition. Its fields are `feasible`, `skipped`, `growth`, `exchRxnIDs` and `exchFluxes` (the measured exchanges), and `blockRxnIDs` and `blockFluxes` (the zero-flux reactions). The functions that make the model anaerobic and change its protein content take a model and return a model.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -224,7 +224,7 @@ glucose  growth 0.161 /h, glycerol 1.86
 ethanol  growth 0.583 /h, glycerol 0.00
 ```
 
-`sims` is a list of `ConditionSimResult`, one per condition, with the attributes `feasible`, `growth`, `exch_fluxes` and `block_fluxes` (dictionaries keyed by reaction id). The functions that make the model anaerobic and change its protein content take a model and change it in place.
+`sims` is a list of `ConditionSimResult`, one per condition, with the attributes `feasible`, `skipped`, `growth`, `exch_fluxes` and `block_fluxes` (dictionaries keyed by reaction id). The functions that make the model anaerobic and change its protein content take a model and change it in place.
 :::
 ::::
 
@@ -234,7 +234,7 @@ The second condition has no oxygen uptake and grows slower than the first. It al
 
 The growth rate is in 1/h and the exchange fluxes are in mmol/gDW/h, so they cannot be added as they are. `computeCarbonWeights` and `compute_carbon_weights` give each exchange reaction the number of carbon atoms of the metabolite that it exchanges, which turns the flux into Cmmol/gDW/h. The biomass reaction gets 41, the assumed carbon content of biomass in Cmmol/gDW. A metabolite without carbon (oxygen, water) or without a formula gets 1, so that its deviation still counts.
 
-For each condition the distance is the root mean square of the carbon-weighted differences between measured and simulated values: the growth rate, each measured exchange flux, and each zero-flux reaction with a flux other than 0. A condition that the model cannot solve gets the penalty 99, which is meant to be larger than any distance of a solved condition. The distance of a dataset is the mean of the condition values, each multiplied by its weight. `experimentDistance` and `experiment_distance` combine the flux dataset and the maximum growth dataset as `(flux + w * maxGrowth) / (1 + w)`, where `w` is the argument `maxGrowthWeight` or `max_growth_weight` (default 1). A dataset that the folder lacks does not contribute, and the maximum growth dataset compares the growth rate alone.
+For each condition the distance is the root mean square of the carbon-weighted differences between measured and simulated values: the growth rate, each measured exchange flux, and each zero-flux reaction with a flux other than 0. A condition that the model cannot solve gets the penalty 99, which is meant to be larger than any distance of a solved condition. The distance of a dataset is the mean, over the conditions with a weight other than 0, of the condition values, each multiplied by its weight. A condition with the weight 0 has the value `NaN` and is not in the mean, and a dataset in which every condition has the weight 0 has the distance `NaN` and is left out of the combination. `experimentDistance` and `experiment_distance` combine the flux dataset and the maximum growth dataset as `(flux + w * maxGrowth) / (1 + w)`, where `w` is the argument `maxGrowthWeight` or `max_growth_weight` (default 1). A dataset that the folder lacks does not contribute, and the maximum growth dataset compares the growth rate alone.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -284,6 +284,57 @@ per condition: 1.030, 3.469, 0.926
 :::
 ::::
 
+A condition with the weight 0 is neither simulated nor part of the distance. Here the first condition gets the weight 0:
+
+::::{tab-set}
+:::{tab-item} Ⓜ️ MATLAB
+:sync: matlab
+
+```matlab
+experimentData.fluxData.weight(1) = 0;
+fluxData = experimentData.fluxData;
+sims = simulateConditions(model, fluxData, true, experimentData.zeroFlux, 'r_2111', ...
+    'makeAnaerobic', makeAnaerobic);
+fprintf('skipped: %s\n', mat2str([sims.skipped]));
+[distance, detail] = experimentDistance(experimentData, sims, [], carbonWeights, 'r_2111');
+fprintf('distance: %.3f\n', distance);
+fprintf('per condition: %s\n', mat2str(detail.fluxData', 3));
+```
+
+```text
+skipped: [true false false]
+distance: 2.197
+per condition: [NaN 3.47 0.926]
+```
+:::
+:::{tab-item} 🐍 Python
+:sync: python
+
+```python
+flux.weight[0] = 0
+sims = simulate_conditions(
+    model, flux, constrain=True, zero_flux_rxns=data.zero_flux,
+    bio_rxn_id="r_2111", make_anaerobic=make_anaerobic,
+)
+print("skipped:", [sim.skipped for sim in sims])
+distance, detail = experiment_distance(
+    data, flux_sims=sims, max_growth_sims=None,
+    carbon_weights=carbon_weights, bio_rxn_id="r_2111",
+)
+print(f"distance: {distance:.3f}")
+print("per condition:", ", ".join(f"{x:.3f}" for x in detail["flux_data"]))
+```
+
+```text
+skipped: [True, False, False]
+distance: 2.197
+per condition: nan, 3.469, 0.926
+```
+:::
+::::
+
+The first condition has `skipped` true and `feasible` false, and its value is `NaN`. The distance is the mean of the values of the other two conditions.
+
 A calibration changes a parameter of the model, repeats the simulation and the distance, and keeps the change when the distance falls. `dataset_rmse` and `datasetRmse` give the value of a single dataset when the folder holds only one.
 
 ## Differences between the toolboxes
@@ -296,12 +347,14 @@ A calibration changes a parameter of the model, repeats the simulation and the d
 | Biomass reaction | required argument, an error when it is not in the model | keyword, read as flux 0 in the result when it is not in the model |
 | Carbon weights | `containers.Map` | dictionary |
 | Simulation result | struct array | list of `ConditionSimResult` |
+| Condition with the weight 0 | `sims(i).skipped` is true and its value in `detail` is `NaN` | `ConditionSimResult.skipped` is `True` and its value in `detail` is `NaN` |
 | Solver | `optimize` is a function handle that returns `x`, `f` and `stat`, default `solveLP` | `optimize` is a function that returns a cobrapy solution, default `model.optimize()` |
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- A condition name has no matching exchange column. The error is `simulateConditions:unmatchedCondition` in MATLAB and a `ValueError` in Python. The name of a condition is the metabolite name in a column header, so a condition `glucose` needs a column `glucose (r_1714)`.
+- A condition name has no matching exchange column. The error is `simulateConditions:unmatchedCondition` in MATLAB and a `ValueError` in Python. The name of a condition is the metabolite name in a column header, so a condition `glucose` needs a column `glucose (r_1714)`. Only conditions with a weight other than 0 are matched, so a row that is not part of the distance can have the weight 0.
+- A condition has the value `NaN`. Its weight is 0, and it is left out of the simulation and of the distance.
 - An anaerobic row grows on oxygen. A row with an oxygen flux of exactly 0 is made anaerobic only when a function for it is given. Without one the row is solved with the oxygen exchange of the model as it is.
 - Every condition has the distance 99. The model is infeasible for the condition, often because a measured flux does not fit the model, such as an uptake that is higher than the model can use or an excretion that it cannot make. Constrain the model to the condition and solve to see which bound conflicts.
 - A measured zero and a missing value look alike. A flux of `0.0` is a measurement and is compared with the simulated flux. `NaN`, and an empty cell in the file, is not compared.
