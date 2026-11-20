@@ -513,3 +513,4 @@ fluxData                      # field of the MATLAB experiment data struct, the 
 maxGrowth                     # field of the MATLAB experiment data struct, the maximum-growth conditions
 flux_sims                     # argument of experiment_distance
 max_growth_sims               # argument of experiment_distance
+skip_prefixes                 # argument of find_met_smiles

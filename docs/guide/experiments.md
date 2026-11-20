@@ -179,6 +179,8 @@ In both blocks, the measured growth rate is a bound and not a target. The solve 
 3. make the model anaerobic when the oxygen flux of the condition is exactly 0 and a function for it is given, and change the protein content of the model when `Ptot` is given and not 0 and a function for it is given;
 4. solve, and record the growth rate, the flux of every measured exchange and the flux of every reaction in the zero-flux list, except the carbon source of the condition.
 
+The model objective must be the maximisation of the growth. The functions do not set the objective: each condition is solved with the objective that the model has, and the growth rate is the flux of the biomass reaction in that solution. Set the objective of the model to the biomass reaction before the simulation (`setParam(model, 'obj', 'r_2111', 1)` in MATLAB, `model.objective = "r_2111"` in Python). With another objective the biomass flux is the value in one of the optimal solutions of that objective, and in a maximum-growth condition the distance then compares a number that is not the maximal growth rate with the measurement.
+
 The changes are made on a model that is restored afterwards. What makes a model anaerobic, and how the protein content is changed, depend on the organism, so the functions that do it have no default and are passed as arguments. Here the anaerobic condition file of [Growth media and conditions](media.md) is applied. A third function, the argument `optimize`, replaces the solve. It defaults to `solveLP` in MATLAB and to `model.optimize()` in Python.
 
 ::::{tab-set}
@@ -234,7 +236,7 @@ The second condition has no oxygen uptake and grows slower than the first. It al
 
 ## The distance
 
-The growth rate is in 1/h and the exchange fluxes are in mmol/gDW/h, so they cannot be added as they are. `computeCarbonWeights` and `compute_carbon_weights` give each exchange reaction the number of carbon atoms of the metabolite that it exchanges, which turns the flux into Cmmol/gDW/h. The biomass reaction gets 41, the assumed carbon content of biomass in Cmmol/gDW. A metabolite without carbon (oxygen, water) or without a formula gets 1, so that its deviation still counts.
+The growth rate is in 1/h and the exchange fluxes are in mmol/gDW/h, so they cannot be added as they are. `computeCarbonWeights` and `compute_carbon_weights` give each exchange reaction the number of carbon atoms of the metabolite that it exchanges, which turns the flux into Cmmol/gDW/h. The biomass reaction gets 41, the assumed carbon content of biomass in Cmmol/gDW. A metabolite without carbon (oxygen, water) or without a formula gets 1, so that its deviation still counts. The formula is read as element symbols with an optional integer or decimal count (`C6H12O6`, `C2.5H5`); a charge sign and a `*` between parts of the formula (`C6H12O6*H2O`) are ignored. A formula with parentheses (`C6H12O6(H2O)2`, `(C5H8)n`) or an unknown element symbol cannot be read and also gets 1. MATLAB and Python give the same weights.
 
 For each condition the distance is the root mean square of the carbon-weighted differences between measured and simulated values: the growth rate, each measured exchange flux, and each zero-flux reaction with a flux other than 0. A condition that the model cannot solve gets the penalty 99, which is meant to be larger than any distance of a solved condition. The distance of the flux conditions is the mean, over the conditions with a weight other than 0, of the condition values, each multiplied by its weight, and the same holds for the maximum-growth conditions. A condition with the weight 0 has the value `NaN` and is not in the mean, and a file in which every condition has the weight 0 has the distance `NaN` and is left out of the combination. `experimentDistance` and `experiment_distance` combine the distance of the flux conditions and of the maximum-growth conditions as `(flux + w * maxGrowth) / (1 + w)`, where `w` is the argument `maxGrowthWeight` or `max_growth_weight` (default 1). A kind of condition that the folder lacks does not contribute, and the maximum-growth conditions compare the growth rate alone.
 
@@ -247,7 +249,7 @@ rxnIds = [fluxData.exchRxnIDs(:); experimentData.zeroFlux(:); {'r_2111'}];
 carbonWeights = computeCarbonWeights(model, rxnIds, 'r_2111');
 fprintf('glucose %g, oxygen %g, growth %g\n', carbonWeights('r_1714'), ...
     carbonWeights('r_1992'), carbonWeights('r_2111'));
-[distance, detail] = experimentDistance(experimentData, sims, [], carbonWeights, 'r_2111');
+[distance, detail] = experimentDistance(experimentData, sims, [], carbonWeights);
 fprintf('distance: %.3f\n', distance);
 fprintf('per condition: %s\n', mat2str(detail.fluxData', 3));
 ```
@@ -270,7 +272,7 @@ print(f"glucose {carbon_weights['r_1714']:g}, oxygen {carbon_weights['r_1992']:g
       f"growth {carbon_weights['r_2111']:g}")
 distance, detail = experiment_distance(
     data, flux_sims=sims, max_growth_sims=None,
-    carbon_weights=carbon_weights, bio_rxn_id="r_2111",
+    carbon_weights=carbon_weights,
 )
 print(f"distance: {distance:.3f}")
 print("per condition:", ", ".join(f"{x:.3f}" for x in detail["flux_data"]))
@@ -298,7 +300,7 @@ fluxData = experimentData.fluxData;
 sims = simulateConditions(model, fluxData, true, experimentData.zeroFlux, 'r_2111', ...
     'makeAnaerobic', makeAnaerobic);
 fprintf('skipped: %s\n', mat2str([sims.skipped]));
-[distance, detail] = experimentDistance(experimentData, sims, [], carbonWeights, 'r_2111');
+[distance, detail] = experimentDistance(experimentData, sims, [], carbonWeights);
 fprintf('distance: %.3f\n', distance);
 fprintf('per condition: %s\n', mat2str(detail.fluxData', 3));
 ```
@@ -321,7 +323,7 @@ sims = simulate_conditions(
 print("skipped:", [sim.skipped for sim in sims])
 distance, detail = experiment_distance(
     data, flux_sims=sims, max_growth_sims=None,
-    carbon_weights=carbon_weights, bio_rxn_id="r_2111",
+    carbon_weights=carbon_weights,
 )
 print(f"distance: {distance:.3f}")
 print("per condition:", ", ".join(f"{x:.3f}" for x in detail["flux_data"]))
