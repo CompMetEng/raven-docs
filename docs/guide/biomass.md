@@ -10,7 +10,7 @@ The biomass pseudoreaction states the composition of a cell and sets the units o
 | `scaleBiomassFraction` | `scale_biomass` | rescale one component to a target |
 | `scaleBiomassPseudoreaction` | `rescale_pseudoreaction` | rescale a pseudoreaction and rebalance it |
 | `setGAM` | `set_gam` | set the growth-associated maintenance and the non-growth-associated maintenance |
-| no equivalent | `get_gam` | read the growth-associated maintenance |
+| `getGAM` | `get_gam` | read the growth-associated maintenance |
 | no equivalent | `fit_maintenance` | fit both maintenance values to chemostat and retentostat data |
 | `assignSBOterms` | `add_sbo_terms` | label reactions and metabolites with SBO terms |
 | `loadDeltaGCSV`, `saveDeltaGCSV` | `load_delta_g_csv`, `save_delta_g_csv` | thermodynamic data in CSV files |
@@ -216,8 +216,9 @@ Two numbers set what keeping a cell alive costs in ATP. The growth-associated ma
 
 ```matlab
 cofactors = {'ATP', 'ADP', 'H2O', 'H+', 'phosphate'};
+fprintf('GAM before: %g\n', getGAM(model, 'r_4041'));
 maintained = setGAM(model, 40, 'r_4041', cofactors, ...
-    'ngamRxn', 'r_4046', 'ngamValue', 1);
+    'ngamRxn', 'r_4046', 'ngamValue', 1, 'keepOffsetsOf', 'ATP');
 rxnIdx = getIndexes(maintained, 'r_4041', 'rxns');
 metIdx = find(maintained.S(:, rxnIdx) ~= 0 & ismember(maintained.metNames, cofactors));
 for i = metIdx'
@@ -226,14 +227,15 @@ end
 ```
 
 ```text
+GAM before: 55.3
 ADP        40
 ATP        -40
-H+         40
+H+         37
 H2O        -40
 phosphate  40
 ```
 
-`setGAM` gives every listed metabolite the same coefficient, with the sign that it has. A proton coefficient that differs from the ATP coefficient to balance the charge of the other biomass terms is therefore lost. `setGAM` returns a new struct.
+`setGAM` returns a new struct. With `keepOffsetsOf` set to `'ATP'` the ATP coefficient becomes the value and every other listed metabolite moves by the same amount, so a proton coefficient that balances the charge keeps its offset from ATP. Without it every listed metabolite gets the same coefficient, with the sign that it has, and a proton offset is lost. `getGAM` returns the size of the ATP coefficient.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -263,7 +265,7 @@ H2O        -40
 phosphate  40
 ```
 
-`set_gam` changes the model in place. Without `keep_offsets_of` it behaves like `setGAM`. With `keep_offsets_of="ATP"` the ATP coefficient becomes the value and every other listed metabolite moves by the same amount, so a proton coefficient that balances the charge keeps its offset from ATP. `get_gam` returns the size of the ATP coefficient.
+`set_gam` changes the model in place. Its `keep_offsets_of` is the `keepOffsetsOf` of `setGAM`, and `get_gam` is `getGAM`.
 :::
 ::::
 
