@@ -142,8 +142,8 @@ identical, and side by side a reader sees where raven-toolbox has no counterpart
 because cobrapy already covers it. Two parallel trees would double the
 maintenance and drift.
 
-Twenty-two numbered pages are written: getting started, model structure, I/O,
-FBA, media and conditions, solvers, building, editing, quality control,
+Twenty-three numbered pages are written: getting started, model structure, I/O,
+FBA, media and conditions, solvers, comparison with measured conditions, building, editing, quality control,
 tINIT/ftINIT, deletions, tasks, gap-filling, flux variability, sampling,
 combining and simplifying, comparison, homology reconstruction and KEGG
 reconstruction, engineering targets, table-driven curation, and biomass and

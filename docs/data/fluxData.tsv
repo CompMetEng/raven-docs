@@ -1,0 +1,4 @@
+Condition	Ptot	grRate	glucose (r_1714)	oxygen (r_1992)	carbon dioxide (r_1672)	ethanol (r_1761)	weight	source
+glucose	NaN	0.80	-10.0	-24.0	26.0	0.0	1	written for this guide
+glucose	NaN	0.30	-10.0	0.0	18.0	17.0	1	written for this guide
+ethanol	NaN	0.55	NaN	-35.0	16.0	-20.0	1	written for this guide

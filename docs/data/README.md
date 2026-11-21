@@ -10,6 +10,8 @@ The models that the pages of the [user guide](../guide/index.md) load are copied
 | [`yeast-GEM.yml`](yeast-GEM.yml) | 3.6 MB | yeast-GEM v9.1.0, `model/yeast-GEM.yml` | the pages that need a genome-scale model: [Reading and writing models](../guide/io.md), [Simulating growth with FBA](../guide/fba.md), [Growth media and conditions](../guide/media.md) and [Biomass composition and annotation](../guide/biomass.md) |
 | [`yeast-GEM.xml`](yeast-GEM.xml) | 11.6 MB | yeast-GEM v9.1.0, `model/yeast-GEM.xml` | the same model as SBML, for [Reading and writing models](../guide/io.md) |
 | [`anaerobic.yml`](anaerobic.yml) | 2 kB | transcribed from `anaerobicModel.m` of yeast-GEM | [Growth media and conditions](../guide/media.md): a condition file, yeast-GEM under anaerobic conditions |
+| [`fluxData.tsv`](fluxData.tsv) | 0.5 kB | written for this guide | [Comparing a model with measured conditions](../guide/experiments.md) |
+| [`zeroFlux.tsv`](zeroFlux.tsv) | 0.02 kB | written for this guide | [Comparing a model with measured conditions](../guide/experiments.md) |
 | [`tasks.txt`](tasks.txt) | 0.5 kB | written for this guide | [Metabolic tasks](../guide/tasks.md) and [Gap-filling](../guide/gap-filling.md): a task list for `smallYeast.yml` |
 | [`curation-mets.tsv`](curation-mets.tsv) | 0.3 kB | written for this guide | [Table-driven curation](../guide/curation.md): a metabolite curation table |
 | [`hpa-sample.tsv`](hpa-sample.tsv) | 1 kB | an excerpt of ten rows in Human Protein Atlas format | [Context-specific models with ftINIT](../guide/init.md) |
