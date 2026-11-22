@@ -167,5 +167,6 @@ migrate
 guide/index
 api/index
 parameter-tuning/index
+release-notes/index
 references
 ```

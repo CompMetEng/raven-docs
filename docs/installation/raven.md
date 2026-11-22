@@ -66,7 +66,7 @@ The installation runs from within MATLAB and needs no separate download. The ins
 2. Search for RAVEN Toolbox and select Add, then Add to MATLAB.
 3. [Verify the installation](#verification).
 
-When MATLAB does not pick up the toolbox after step 2, `matlab.addons.enableAddon("RAVEN")` enables it.
+When MATLAB does not load the toolbox after step 2, `matlab.addons.enableAddon("RAVEN")` enables it.
 :::
 :::{tab-item} {octicon}`download;1em` Release download
 

@@ -75,8 +75,8 @@ The function `conversion/ravenCobraWrapper.m` keeps its signature, `newModel = r
 | Source of the reaction and gene database | Local KEGG FTP dump (licence required), read when the cached files `keggGenes.mat`, `keggMets.mat` and `keggRxns.mat` are absent | Prebuilt artefacts fetched on demand from releases of `toolbox-assets` |
 | Functions that build the database | `getGenesFromKEGG`, `getMetsFromKEGG` and `getRxnsFromKEGG` | `buildGlobalKEGGModel`, `buildGlobalGPR` and `readKEGGTable` |
 | Argument `keggPath` of `getModelFromKEGG` | Optional, default `external/kegg` | Removed |
-| Ortholog HMM library | One `.hmm` file per KEGG Orthology (KO) entry and one `hmmsearch` call per KO, through the Windows Subsystem for Linux (WSL) on Windows | One concatenated library per domain (`kegg118_eukaryotes.hmm` and `kegg118_prokaryotes.hmm`), one `hmmsearch` call against the whole proteome, and no WSL |
-| `dataDir` | Any local folder | For the homology method, which takes a FASTA file, the folder name must end in `kegg118_eukaryotes` or `kegg118_prokaryotes`. The annotation method ignores `dataDir` |
+| Ortholog HMM library | One `.hmm` file per KEGG Orthology (KO) entry and one `hmmsearch` call per KO, through the Windows Subsystem for Linux (WSL) on Windows | One concatenated library per domain (`kegg120_eukaryotes.hmm` and `kegg120_prokaryotes.hmm`), one `hmmsearch` call against the whole proteome, and no WSL |
+| `dataDir` | Any local folder | For the homology method, which takes a FASTA file, the folder name must end in `kegg120_eukaryotes` or `kegg120_prokaryotes`. The annotation method ignores `dataDir` |
 | `nSequences`, `seqIdentity` (CD-HIT clustering controls) | Configurable | Removed; there is no local clustering step |
 | Default of `cutOff` | `10^-50` | `10^-30` |
 | Default of `minScoreRatioG` | `0.8` | `0.9` |

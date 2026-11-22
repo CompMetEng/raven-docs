@@ -24,7 +24,7 @@ The two methods are separate implementations that share no algorithm code. In th
 | Task gap-filling | `fitTasks` | `fitTasks` (`gapFillMode` `'preMerged'`), `ftINITFillGaps` |
 | Gene pruning | inline in `getINITModel` | `removeLowScoreGenes` |
 
-The methods share general RAVEN functions that are not specific to either. `checkTasks` and `getEssentialRxns` decide which tasks are feasible and which reactions they need. Below these are `parseTaskList`, `simplifyModel`, the solver layer, and the functions for model manipulation and input and output.
+The methods share general RAVEN functions that are not specific to either. `checkTasks` and `getEssentialRxns` determine which tasks are feasible and which reactions they need. Below these are `parseTaskList`, `simplifyModel`, the solver layer, and the functions for model manipulation and input and output.
 
 `scoreModel` is one function for both methods. `getINITModel` calls it with a single operator for `and` and `or` in a gene rule and with `dataPrecedence` `'reaction'`, the settings that the original tINIT algorithm needs, and afterwards converts the score of an unmeasured gene from `NaN` to `-Inf`. `ftINIT` calls it with the general defaults. Task gap-filling is one `fitTasks` loop for both. `getINITModel` uses the default `gapFillMode` (`'merge'`, backed by `fillGaps`). `ftINIT` passes `'preMerged'`, backed by `ftINITFillGaps`, because its reference model already contains the reactions of the sample and needs no merge per task. The MILP formulation is therefore the one place where gap-filling differs: `fillGaps` merges per task, and `ftINITFillGaps` expects a model that is merged already. The difference does not lie between `getINITModel` and `ftINIT` as such.
 
@@ -132,7 +132,7 @@ prep_init_model 2216s
 
 Reading Human-GEM from the Systems Biology Markup Language (SBML) file alone takes about 11 seconds, and the preparation takes 37 minutes in Python and 47 minutes in MATLAB. The two preparations were separate Slurm jobs on the same node type with four cores each. The MATLAB run used the default of `prepINITModel` for `runParallel`, which is serial, and the Python run used `processes = 1`, so the two times compare the complete runs. Two settings affect the run:
 
-- `prep_init_model` takes the argument `processes`, which defaults to 1, and its `simplify_model` passes follow `cobra.Configuration().processes`, which starts worker processes by default. The Python run above used `processes = 1`. Where worker processes are not permitted (a locked-down Windows machine, some continuous integration (CI) runners), the default fails with `PermissionError: [WinError 5] Access is denied`, and `processes = 1` removes the parallelism and lets the run finish.
+- `prep_init_model` takes the argument `processes`, which defaults to 1, and its `simplify_model` passes follow `cobra.Configuration().processes`, which starts worker processes by default. The Python run above used `processes = 1`. Where worker processes are not permitted (a locked-down Windows machine, some continuous integration (CI) runners), the default fails with `PermissionError: [WinError 5] Access is denied`, and `processes = 1` removes the parallelism and allows the run to finish.
 - `essential_cache_path` caches the slow search for task-essential reactions, so a second preparation of the same template skips it.
 :::
 ::::

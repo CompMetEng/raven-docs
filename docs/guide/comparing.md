@@ -1,6 +1,6 @@
 # Comparing models
 
-Curation produces several versions of one model, such as a draft and a curated version, the model before and after gap-filling, or a local build and a published one. Two questions follow. What changed is answered by an exact entry-by-entry difference, which serves review and continuous integration (CI). How alike the models are is answered by an overview over whole sets, which serves to decide whether two models describe the same organism.
+Curation produces several versions of one model, such as a draft and a curated version, the model before and after gap-filling, or a local build and a published one. Two questions follow. What changed is answered by an exact entry-by-entry difference, which serves review and continuous integration (CI). How alike the models are is answered by an overview over whole sets, which serves to determine whether two models describe the same organism.
 
 ## Functions
 
@@ -148,7 +148,7 @@ The two models have a similarity of 0.945 on the reaction set, and one of them i
 
 ## Comparison by behaviour
 
-Two models with the same reactions can behave differently, and two models with different reactions can behave identically. A simulation of both under the same constraints decides. Growth is compared first, then flux ranges or tasks, and a single flux vector is not compared, because it is one optimum among many ([Flux variability and alternative optima](fva.md)).
+Two models with the same reactions can behave differently, and two models with different reactions can behave identically. A simulation of both under the same constraints gives the answer. Growth is compared first, then flux ranges or tasks, and a single flux vector is not compared, because it is one optimum among many ([Flux variability and alternative optima](fva.md)).
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB

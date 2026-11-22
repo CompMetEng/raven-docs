@@ -4,7 +4,7 @@ A draft GEM needs manual curation to become a high-quality model. Curation corre
 
 ## Replacing template genes with target homologs
 
-Gap-filling adds reactions from the templates without a homology search for the associated genes, so the draft contains *S. cerevisiae* and *R. toruloides* genes that should be replaced by *H. polymorpha* homologs. List the reactions that carry an *R. toruloides* gene:
+Gap-filling adds reactions from the templates without a homology search for the associated genes, so the draft contains *S. cerevisiae* and *R. toruloides* genes that should be replaced by *H. polymorpha* homologs. List the reactions that have an *R. toruloides* gene:
 
 ```matlab
 rhtoRxns = find(contains(model.grRules, 'RHTO'));

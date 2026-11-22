@@ -16,7 +16,7 @@ Measurable rates, such as the carbon uptake, constrain the model. Flux balance a
 
 ## The homology-based approach
 
-RAVEN creates a draft GEM for an organism with well-curated models of phylogenetically related organisms as templates. The homology between the protein sequences of the two organisms, determined by bidirectional BLAST, decides whether a reaction of a template is included in the new model.
+RAVEN creates a draft GEM for an organism with well-curated models of phylogenetically related organisms as templates. The homology between the protein sequences of the two organisms, determined by bidirectional BLAST, determines whether a reaction of a template is included in the new model.
 
 The protocol reconstructs a draft model for the industrially relevant methylotrophic yeast *Hansenula polymorpha* (also named *Ogataea polymorpha*), which has no published high-quality GEM. Two highly curated yeast models are the templates:
 
