@@ -28,7 +28,9 @@ intersphinx_mapping = {"cobra": ("https://cobrapy.readthedocs.io/en/latest/", No
 def _inventory_reachable(base: str) -> bool:
     """True when base + objects.inv can be fetched; a miss prints a note only."""
     try:
-        urllib.request.urlopen(base + "objects.inv", timeout=10).close()
+        # Read the Docs answers the default Python user agent with 403.
+        request = urllib.request.Request(base + "objects.inv", headers={"User-Agent": "sphinx"})
+        urllib.request.urlopen(request, timeout=10).close()
     except OSError as err:
         print(f"note: inventory {base} unreachable ({err}); links to it stay plain text", file=sys.stderr)
         return False
