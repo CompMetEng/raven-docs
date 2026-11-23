@@ -6,6 +6,9 @@ dependencies this build needs.
 
 from __future__ import annotations
 
+import sys
+import urllib.request
+
 project = "RAVEN"
 copyright = "CompMetEng"
 author = "Wang, Marcisauskas, Sanchez, Domenzain, Hermansson, Agren, Nielsen, Kerkhoven et al."
@@ -20,6 +23,25 @@ extensions = [
 # cobrapy's inventory, which scripts/autolink.py uses to link cobrapy names on
 # the guide pages to their entries in cobrapy's documentation.
 intersphinx_mapping = {"cobra": ("https://cobrapy.readthedocs.io/en/latest/", None)}
+
+
+def _inventory_reachable(base: str) -> bool:
+    """True when base + objects.inv can be fetched; a miss prints a note only."""
+    try:
+        urllib.request.urlopen(base + "objects.inv", timeout=10).close()
+    except OSError as err:
+        print(f"note: inventory {base} unreachable ({err}); links to it stay plain text", file=sys.stderr)
+        return False
+    return True
+
+
+# The GECKO documentation is linked through its inventory. Sphinx fails a strict
+# build on an unreachable inventory and the warning has no name to suppress, so
+# the inventory is added only when it can be fetched. A link to a missing
+# inventory then leaves plain text.
+if _inventory_reachable("https://gecko-docs.readthedocs.io/en/latest/"):
+    intersphinx_mapping["gecko"] = ("https://gecko-docs.readthedocs.io/en/latest/", None)
+suppress_warnings = ["intersphinx.external"]
 
 source_suffix = {".md": "markdown"}
 root_doc = "index"
@@ -49,6 +71,8 @@ html_theme = "pydata_sphinx_theme"
 html_title = "RAVEN documentation"
 html_favicon = "_static/raven-icon.png"
 html_static_path = ["_static"]
+# site-footer.html is the footer of every page.
+templates_path = ["_templates"]
 html_css_files = ["custom.css"]
 # Remembers the language of the code tabs across pages, browser tabs and visits.
 html_js_files = [
@@ -86,6 +110,11 @@ html_theme_options = {
     ],
     "use_edit_page_button": False,
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    # One footer: the lab and the GECKO documentation. The theme's copyright and
+    # Sphinx version lines are left out.
+    "footer_start": ["site-footer"],
+    "footer_center": [],
+    "footer_end": [],
     # The wordmark already carries the "RAVEN" text, so no separate navbar
     # logo text is needed alongside it.
     "logo": {
@@ -95,7 +124,10 @@ html_theme_options = {
     "announcement": (
         "This site documents RAVEN <strong>3.0.0b3</strong> "
         "(MATLAB and Python), a pre-release version. The API may still "
-        "change before the stable 3.0.0 release. "
+        "change before the stable 3.0.0 release. The stable releases are "
+        "RAVEN 2.11.4 (MATLAB, Add-Ons manager) and raven-toolbox 0.4.0 "
+        "(<code>pip install raven-toolbox</code>). "
+        '<a href="{upgrade}">Upgrade from RAVEN 2</a> | '
         '<a href="{release_notes}">Release notes</a>.'
     ),
 }
@@ -122,12 +154,12 @@ def setup(app):
     gen_api_pages.generate(Path(__file__).resolve().parent)
 
     def link_release_notes(app, pagename, templatename, context, doctree):
-        """Point the announcement to the release notes from every page."""
+        """Point the announcement to the upgrade page and the release notes."""
         announcement = context.get("theme_announcement")
         if announcement and "{release_notes}" in announcement:
             context["theme_announcement"] = announcement.replace(
                 "{release_notes}", context["pathto"]("release-notes/index")
-            )
+            ).replace("{upgrade}", context["pathto"]("raven3-migration"))
 
     app.connect("html-page-context", link_release_notes)
     return autolink.setup(app)

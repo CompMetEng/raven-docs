@@ -1,4 +1,4 @@
-# Migration guides
+# Migration
 
 Two pages compare toolboxes. One compares RAVEN 3 with RAVEN 2, the other RAVEN 3 with the Python package raven-toolbox.
 

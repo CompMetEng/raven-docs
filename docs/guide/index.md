@@ -1,31 +1,6 @@
 # Guide
 
-Each page of the guide covers one task, with MATLAB and Python examples side by side. The pages can be read in the order below or one at a time; [Getting started](getting-started.md) is the first.
-
-The [reconstruction protocol](../protocol/index.md) for *H. polymorpha* and the [legacy tutorials](../tutorials/index.md) from the original RAVEN paper are separate from the task pages. Both use MATLAB.
-
-## Functions from cobrapy
-
-A function that comes from cobrapy has a {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` badge that links to the cobrapy documentation, and its import line shows where it lives (`from cobra.io import read_sbml_model`). The [function mapping](../matlab-vs-python.md) lists all of these functions.
-
-## Executed examples
-
-The [Guide examples](https://github.com/CompMetEng/raven-docs/actions/workflows/examples.yml) workflow runs the code on the task pages, MATLAB and Python separately. It starts when a guide page, the example data or the runner changes, and once a week against the latest RAVEN and raven-toolbox. A run fails when a block raises an error or prints output that differs from the output shown beneath it. The blocks of a page run in order in one session, so a block uses what the preceding blocks made. Reading a page starts at its Setup section.
-
-One page and part of another are not executed. [Reconstruction from KEGG](kegg.md) downloads tens of megabytes and takes minutes, and the Human-GEM steps of [Context-specific models with ftINIT](init.md) take hours. Both pages quote the run that their numbers come from. A few further blocks are marked as not run on their own page, with the reason. The protocol and the legacy tutorials are not executed.
-
-## Example data
-
-| File | Content |
-|---|---|
-| [`smallYeast.yml`](../data/smallYeast.yml) | Central carbon metabolism of yeast; the default example |
-| [`smallYeastBad.yml`](../data/smallYeastBad.yml) | The same model with deliberate errors, used on the curation pages |
-| [`empty.xml`](../data/empty.xml) | A starter model with four metabolites and one reaction, the start of a model built from scratch |
-| [`yeast-GEM.yml`](../data/yeast-GEM.yml) | yeast-GEM v9.1.0, the consensus *S. cerevisiae* model, for pages that need a genome-scale model |
-| [`yeast-GEM.xml`](../data/yeast-GEM.xml) | yeast-GEM v9.1.0 as SBML |
-| [`anaerobic.yml`](../data/anaerobic.yml) | A condition file: yeast-GEM under anaerobic conditions |
-| [`fluxData.tsv`](../data/fluxData.tsv) | Three conditions with a measured growth rate and exchange fluxes, for yeast-GEM |
-| [`zeroFlux.tsv`](../data/zeroFlux.tsv) | The reactions that carry no flux in those conditions |
+Each page of the guide covers one task, with MATLAB and Python examples side by side. The pages can be read in the order below or one at a time; [Getting started](getting-started.md) is the first. [Functions from cobrapy](cobrapy.md) explains the badge on functions that come from cobrapy, and [Executed examples](executed-examples.md) describes how the examples are checked.
 
 ## Pages
 
@@ -70,6 +45,19 @@ One page and part of another are not executed. [Reconstruction from KEGG](kegg.m
 22. [Comparing models](comparing.md): the differences between two models and their effect on predictions.
 23. [Engineering targets](engineering.md): FSEOF for over-production targets and reporter metabolites for the metabolites around a transcriptional response.
 
+## Example data
+
+| File | Content |
+|---|---|
+| [`smallYeast.yml`](../data/smallYeast.yml) | Central carbon metabolism of yeast; the default example |
+| [`smallYeastBad.yml`](../data/smallYeastBad.yml) | The same model with deliberate errors, used on the curation pages |
+| [`empty.xml`](../data/empty.xml) | A starter model with four metabolites and one reaction, the start of a model built from scratch |
+| [`yeast-GEM.yml`](../data/yeast-GEM.yml) | yeast-GEM v9.1.0, the consensus *S. cerevisiae* model, for pages that need a genome-scale model |
+| [`yeast-GEM.xml`](../data/yeast-GEM.xml) | yeast-GEM v9.1.0 as SBML |
+| [`anaerobic.yml`](../data/anaerobic.yml) | A condition file: yeast-GEM under anaerobic conditions |
+| [`fluxData.tsv`](../data/fluxData.tsv) | Three conditions with a measured growth rate and exchange fluxes, for yeast-GEM |
+| [`zeroFlux.tsv`](../data/zeroFlux.tsv) | The reactions that carry no flux in those conditions |
+
 ## Protocol and legacy tutorials
 
 | Resource | Content |
@@ -78,19 +66,6 @@ One page and part of another are not executed. [Reconstruction from KEGG](kegg.m
 | [Legacy tutorials](../tutorials/index.md) | Five exercises from the original RAVEN paper (Agren et al., 2013), adapted to run with current RAVEN and otherwise unchanged. MATLAB. |
 
 The task pages are for looking up a single task. The protocol follows one reconstruction in order.
-
-## Compartment localisation
-
-No page covers it. The feature is in development and the two toolboxes differ in it.
-
-```{toctree}
-:hidden:
-:caption: Start
-
-../installation/index
-../yaml-format
-../data/README
-```
 
 ```{toctree}
 :hidden:
@@ -119,6 +94,16 @@ sampling
 combining
 comparing
 engineering
+```
+
+```{toctree}
+:hidden:
+:caption: Background
+
+../yaml-format
+../data/README
+cobrapy
+executed-examples
 ```
 
 ```{toctree}
