@@ -21,7 +21,7 @@ The model contains 1632 reactions, 1395 metabolites and 1006 genes.
 
 ### 2. Simplifying the model
 
-Mass balancing is done around the internal metabolites. Remove the unconstrained (boundary) metabolites that let the system take up or excrete compounds before simulation. `simplifyModel` makes models smaller, for example by grouping linear reactions and by deleting reactions that cannot carry flux. The call below deletes the unconstrained metabolites, the reactions constrained to zero flux (mainly the uptake of non-standard carbon sources) and the dead-end reactions, and leaves linear reactions ungrouped.
+Mass balancing is done around the internal metabolites. Remove the unconstrained (boundary) metabolites that allow the system to take up or excrete compounds before simulation. `simplifyModel` makes models smaller, for example by grouping linear reactions and by deleting reactions that cannot carry flux. The call below deletes the unconstrained metabolites, the reactions constrained to zero flux (mainly the uptake of non-standard carbon sources) and the dead-end reactions, and leaves linear reactions ungrouped.
 
 ```matlab
 model = simplifyModel(model, true, false, true, true);

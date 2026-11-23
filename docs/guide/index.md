@@ -6,7 +6,7 @@ The [reconstruction protocol](../protocol/index.md) for *H. polymorpha* and the 
 
 ## Functions from cobrapy
 
-A function that comes from cobrapy carries a {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` badge that links to the cobrapy documentation, and its import line shows where it lives (`from cobra.io import read_sbml_model`). The [function mapping](../matlab-vs-python.md) lists all of these functions.
+A function that comes from cobrapy has a {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` badge that links to the cobrapy documentation, and its import line shows where it lives (`from cobra.io import read_sbml_model`). The [function mapping](../matlab-vs-python.md) lists all of these functions.
 
 ## Executed examples
 
@@ -24,6 +24,8 @@ One page and part of another are not executed. [Reconstruction from KEGG](kegg.m
 | [`yeast-GEM.yml`](../data/yeast-GEM.yml) | yeast-GEM v9.1.0, the consensus *S. cerevisiae* model, for pages that need a genome-scale model |
 | [`yeast-GEM.xml`](../data/yeast-GEM.xml) | yeast-GEM v9.1.0 as SBML |
 | [`anaerobic.yml`](../data/anaerobic.yml) | A condition file: yeast-GEM under anaerobic conditions |
+| [`fluxData.tsv`](../data/fluxData.tsv) | Three conditions with a measured growth rate and exchange fluxes, for yeast-GEM |
+| [`zeroFlux.tsv`](../data/zeroFlux.tsv) | The reactions that carry no flux in those conditions |
 
 ## Pages
 
@@ -38,34 +40,35 @@ One page and part of another are not executed. [Reconstruction from KEGG](kegg.m
 4. [Simulating growth with FBA](fba.md): objective, bounds, solving and reading the fluxes.
 5. [Growth media and conditions](media.md): defining a medium and keeping a condition as data.
 6. [Solvers and configuration](solvers.md): selecting a solver and reading what it returns.
+7. [Comparing a model with measured conditions](experiments.md): measured growth rates and fluxes, one condition applied to a model, and the distance between a simulation and the data.
 
 ### Building and curating
 
-7. [Building a model from scratch](building.md): metabolites, reactions, genes and exchange reactions.
-8. [Editing an existing model](editing.md): stoichiometry, gene-reaction rules, bounds and deletions.
-9. [Quality control](quality-control.md): structure, mass balance, blocked reactions and mass produced from nothing.
-10. [Table-driven curation](curation.md): curation kept as reviewable tables.
-11. [Biomass composition and annotation](biomass.md): the composition of the biomass reaction, rescaling it, and the annotation that the model keeps after the solve.
+8. [Building a model from scratch](building.md): metabolites, reactions, genes and exchange reactions.
+9. [Editing an existing model](editing.md): stoichiometry, gene-reaction rules, bounds and deletions.
+10. [Quality control](quality-control.md): structure, mass balance, blocked reactions and mass produced from nothing.
+11. [Table-driven curation](curation.md): curation kept as reviewable tables.
+12. [Biomass composition and annotation](biomass.md): the composition of the biomass reaction, rescaling it, and the annotation that the model keeps after the solve.
 
 ### Reconstruction
 
-12. [Reconstruction from homology](homology.md): aligning a proteome against the genes of a template model, and the effect of the cut-offs.
-13. [Reconstruction from KEGG](kegg.md): a draft without a template model, and what such a draft lacks.
-14. [Context-specific models with ftINIT](init.md): integrating omics data and extracting a cell-line model from Human-GEM and RNA-seq data.
+13. [Reconstruction from homology](homology.md): aligning a proteome against the genes of a template model, and the effect of the cut-offs.
+14. [Reconstruction from KEGG](kegg.md): a draft without a template model, and what such a draft lacks.
+15. [Context-specific models with ftINIT](init.md): integrating omics data and extracting a cell-line model from Human-GEM and RNA-seq data.
 
 ### Analysis and repair
 
-15. [Metabolic tasks](tasks.md): defining what a model must be able to do and checking that it keeps that ability.
-16. [Deletions and essentiality](deletions.md): knockouts, essential genes and reactions, and MOMA.
-17. [Gap-filling](gap-filling.md): closing the gaps of a draft model.
-18. [Flux variability and alternative optima](fva.md): the range of each flux and the predictions that the model fixes.
-19. [Random sampling](sampling.md): the flux distribution behind those ranges and its conditioning on a state.
+16. [Metabolic tasks](tasks.md): defining what a model must be able to do and checking that it keeps that ability.
+17. [Deletions and essentiality](deletions.md): knockouts, essential genes and reactions, and MOMA.
+18. [Gap-filling](gap-filling.md): closing the gaps of a draft model.
+19. [Flux variability and alternative optima](fva.md): the range of each flux and the predictions that the model fixes.
+20. [Random sampling](sampling.md): the flux distribution behind those ranges and its conditioning on a state.
 
 ### Comparing and engineering
 
-20. [Combining and simplifying models](combining.md): merging models on metabolite names and taking a model apart.
-21. [Comparing models](comparing.md): the differences between two models and their effect on predictions.
-22. [Engineering targets](engineering.md): FSEOF for over-production targets and reporter metabolites for the metabolites around a transcriptional response.
+21. [Combining and simplifying models](combining.md): merging models on metabolite names and taking a model apart.
+22. [Comparing models](comparing.md): the differences between two models and their effect on predictions.
+23. [Engineering targets](engineering.md): FSEOF for over-production targets and reporter metabolites for the metabolites around a transcriptional response.
 
 ## Protocol and legacy tutorials
 
@@ -99,6 +102,7 @@ io
 fba
 media
 solvers
+experiments
 building
 editing
 quality-control

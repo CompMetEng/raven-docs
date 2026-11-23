@@ -2,7 +2,7 @@
 
 A function of RAVEN and its counterpart in raven-toolbox can differ in the algorithm they choose, in the form of the result or in the value of the result. The sections below describe the differences found by reading the code of both implementations. Where a section says that a result was not checked, no run compared the two implementations.
 
-The list is incomplete, and a function that is not listed can behave differently. Candidates that were not compared include `random_sampling`, which replaces both `sampleACHR` and `sampleCHRR`; `remove_duplicate_reactions`, which replaces `contractModel`; and `simplify_model`, which corresponds to `simplifyModel`.
+The list is incomplete, and a function that is not listed can behave differently. Candidates that were not compared include `random_sampling`, which replaces both `sampleACHR` and `sampleCHRR`; `contract_model`, which corresponds to `contractModel`; and `simplify_model`, which corresponds to `simplifyModel`.
 
 ## Metabolic task checking
 
@@ -44,7 +44,7 @@ Four measurements quantify the differences.
 
 Compare such outputs by the overlap of the reaction sets, for example the Jaccard index.
 
-The option `resolveTies` of the `ftINIT` of RAVEN and `resolve_ties` of the `ftinit` of raven-toolbox are off by default in both. When on, each step keeps the score optimum and picks among the tied solutions in four phases, in this order: the fewest kept removable reactions, the lowest summed ID rank of those, the least total absolute flux and the least backward flux weighted by ID rank. The last step of `ftINIT` skips the two flux phases. A step that stops at its time limit keeps the answer of the solver.
+The option `resolveTies` of the `ftINIT` of RAVEN and `resolve_ties` of the `ftinit` of raven-toolbox are off by default in both. When on, each step keeps the score optimum and selects among the tied solutions in four phases, in this order: the fewest kept removable reactions, the lowest summed ID rank of those, the least total absolute flux and the least backward flux weighted by ID rank. The last step of `ftINIT` skips the two flux phases. A step that stops at its time limit keeps the answer of the solver.
 
 In raven-toolbox, runs with `resolve_ties` at the same score optimum returned identical solutions across seeds. The primary solve can end at a different objective value for a different seed, within the gap and time limits, so the final reaction sets can differ. This was not measured for RAVEN. Without `resolveTies` or `resolve_ties`, the ftINIT MILP can return any of the tied optima.
 
@@ -54,7 +54,7 @@ The functions `getElementalBalance` in RAVEN and `get_elemental_balance` in rave
 
 The function `getElementalBalance` returns the numeric field `balanceStructure.balanceStatus` per reaction: 1 for balanced, 0 for unbalanced, -1 for missing information (no formula, or a reaction without metabolites) and -2 for a formula that cannot be parsed. The function `get_elemental_balance` returns the strings `balanced`, `unbalanced` and `unknown`. It reports `unknown` for a missing formula, for a formula that cannot be parsed and for a reaction without metabolites, so the codes -1 and -2 of RAVEN are one result in raven-toolbox.
 
-The two parsers handle some formulas differently, so the results differ for some reactions.
+The two parsers parse some formulas differently, so the results differ for some reactions.
 
 - A polymer formula such as `(C5H8)n` is counted with n equal to 1 in RAVEN. raven-toolbox reports `unknown`.
 - RAVEN uses the field `inchis` when `metFormulas` is absent. raven-toolbox does not.

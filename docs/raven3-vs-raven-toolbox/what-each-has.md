@@ -14,7 +14,7 @@ cobrapy provides flux balance analysis (FBA), flux variability analysis (FVA), k
 
 raven-toolbox builds the KEGG reference artefacts. It parses a KEGG release into tables of reactions and compounds, assembles the reference model with `build_reference_model`, builds the FASTA sets and HMM libraries per KEGG Orthology (KO) entry, and derives the phylogenetic distance matrix. The download of a KEGG release requires a KEGG FTP subscription, and the artefacts can be rebuilt from a specified KEGG release.
 
-RAVEN loads published artefacts and does not produce them. The function `buildGlobalKEGGModel` joins a downloaded bundle onto the reference model, and the phylogenetic distance matrix is a file shipped with RAVEN (`keggPhylDist.mat`). In the mapping, `getModelFromKEGG` corresponds to `build_reference_model`, which loads in RAVEN and builds in raven-toolbox.
+RAVEN loads published artefacts and does not produce them. The function `buildGlobalKEGGModel` joins a downloaded bundle onto the reference model, and the phylogenetic distance matrix is a file included with RAVEN (`keggPhylDist.mat`). In the mapping, `getModelFromKEGG` corresponds to `build_reference_model`, which loads in RAVEN and builds in raven-toolbox.
 
 ### Checksum registry for binaries and data
 

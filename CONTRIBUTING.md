@@ -14,7 +14,7 @@ The standard for this site is the `docs-site` plugin of [CompMetEng/skills](http
 
 ## Branches
 
-`develop` is the default branch. It documents the `develop` branches of RAVEN and raven-toolbox, which the submodules track, and a daily workflow moves the submodule pointers to their tips. Pull requests target `develop`. `main` documents the released versions: a release of RAVEN and raven-toolbox is followed by a pull request from `develop` to `main` that is merged with a merge commit and pins the submodules to the released commits.
+`develop` is the integration branch. It documents the `develop` branches of RAVEN and raven-toolbox, which the submodules track, and a daily workflow opens a pull request against `develop` that moves the submodule pointers to their tips. Pull requests target `develop`. `main` documents the released versions: a release of RAVEN and raven-toolbox is followed by a pull request from `develop` to `main` that is merged with a merge commit and pins the submodules to the released commits.
 
 ## Building and checking
 

@@ -23,7 +23,7 @@ aliases:
   addTransport: add_transport_reactions
   changeGrRules: change_gene_reaction_rules
   changeRxns: change_reaction_equations
-  contractModel: remove_duplicate_reactions
+  contractModel: contract_model
   convertToIrrev: convert_to_irreversible
   copyToComps: copy_to_compartment
   findDuplicateRxns: find_duplicate_reactions

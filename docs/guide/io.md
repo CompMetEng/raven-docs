@@ -114,7 +114,7 @@ cobrapy decodes the identifiers of reactions, metabolites and genes and leaves t
 
 ## Read time by format
 
-Each toolbox reads one format quickly and the other slowly, and the ranking is reversed between them. Reading yeast-GEM takes about 17 s from SBML and 73 s from YAML in Python, and about 78 s from SBML and 17 s from YAML in MATLAB. The format follows from what the file is needed for: a readable difference between versions, or the RAVEN-specific fields that YAML preserves. A script that spends most of its time reading the file runs faster with the format that its toolbox reads quickly.
+Each toolbox reads one format quickly and the other slowly, and the ranking is reversed between them. Reading yeast-GEM takes about 17 s from SBML and 73 s from YAML in Python, and about 78 s from SBML and 17 s from YAML in MATLAB. The format follows from what the file is needed for: a readable difference between versions, or the RAVEN-specific fields that YAML preserves. A script that uses most of its time to read the file runs faster with the format that its toolbox reads quickly.
 
 ## Writing a model
 

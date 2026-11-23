@@ -30,7 +30,7 @@ The default run contains 19 noise tracks. All are knockdown targets with a stand
 
 ### `remove_genes`
 
-The `remove_genes` benchmark ran on e_coli_core (95 reactions) from the cobrapy distribution, with the bounds as shipped, raven-toolbox commit `94f39407` and RAVEN commit `2d0630e3`. It deleted `b1779`, the only gene of GAPD (glyceraldehyde-3-phosphate dehydrogenase), with each setting of `blocked_reactions` in `remove_genes` and of `removeBlockedRxns` in `removeGenes` of RAVEN. The predicted growth is the optimal flux through the biomass reaction of the model, in h⁻¹. The unmodified model has 95 reactions and predicts a growth rate of 0.874 h⁻¹. Each call ran once.
+The `remove_genes` benchmark ran on e_coli_core (95 reactions) from the cobrapy distribution, with the bounds of the distribution, raven-toolbox commit `94f39407` and RAVEN commit `2d0630e3`. It deleted `b1779`, the only gene of GAPD (glyceraldehyde-3-phosphate dehydrogenase), with each setting of `blocked_reactions` in `remove_genes` and of `removeBlockedRxns` in `removeGenes` of RAVEN. The predicted growth is the optimal flux through the biomass reaction of the model, in h⁻¹. The unmodified model has 95 reactions and predicts a growth rate of 0.874 h⁻¹. Each call ran once.
 
 ### `connect_blocked_reactions`
 
@@ -82,9 +82,9 @@ Every swept value changes the target set. None of the added targets is a noise t
 | `removeGenes(model, genes, 'removeBlockedRxns', true)` | 94 | 0.000 | deleted |
 | unmodified model | 95 | 0.874 (MATLAB biomass flux 0.8739) | present |
 
-`blocked_reactions` of `remove_genes` and `removeBlockedRxns` of `removeGenes` decide what happens to a reaction whose gene rule is emptied by a deletion. Both default settings keep such a reaction with bounds of zero, and the two gave the same model. After the deletion of `b1779` that model predicts no growth, because GAPD stays in the network without capacity to carry flux. With `"remove"` and with `removeBlockedRxns` true the model also predicted no growth. Both delete GAPD, which changes the number of reactions and the set of reaction identifiers.
+`blocked_reactions` of `remove_genes` and `removeBlockedRxns` of `removeGenes` determine what happens to a reaction whose gene rule is emptied by a deletion. Both default settings keep such a reaction with bounds of zero, and the two gave the same model. After the deletion of `b1779` that model predicts no growth, because GAPD stays in the network without capacity to carry flux. With `"remove"` and with `removeBlockedRxns` true the model also predicted no growth. Both delete GAPD, which changes the number of reactions and the set of reaction identifiers.
 
-The setting `"keep"` leaves GAPD with an empty gene rule and unchanged bounds, so the model predicted the growth of the unmodified model, 0.874 h⁻¹, although the only gene of GAPD was deleted. The default setting predicted no growth after the same deletion, so the growth predicted with `"keep"` is probably a false positive in this model (the bounds are those shipped with e_coli_core). The docstring of `remove_genes` states no use for `"keep"`. The documentation names the editing of gene annotations without changing the network as a use, and the code gives no source for that use.
+The setting `"keep"` leaves GAPD with an empty gene rule and unchanged bounds, so the model predicted the growth of the unmodified model, 0.874 h⁻¹, although the only gene of GAPD was deleted. The default setting predicted no growth after the same deletion, so the growth predicted with `"keep"` is probably a false positive in this model (the bounds are those included with e_coli_core). The docstring of `remove_genes` states no use for `"keep"`. The documentation names the editing of gene annotations without changing the network as a use, and the code gives no source for that use.
 
 ### `connect_blocked_reactions` at four values of `threshold`
 

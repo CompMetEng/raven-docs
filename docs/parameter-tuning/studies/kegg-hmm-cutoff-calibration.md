@@ -205,11 +205,11 @@ The setting `threads` in `run_hmmsearch` and `build_ko_hmm` defaults to every CP
 
 The setting `seq_identity` in `build_ko_hmm` is `0.9`. It is the identity at which CD-HIT collapses near-duplicate sequences within a KO before the HMM is built, and the clustering keeps a KO with many near-identical entries from giving an overfitted profile. It is the value that CD-HIT recommends for proteins and the default of `seqIdentity` in RAVEN 2.11.3. The value `seq_identity=-1` skips the clustering. The `getKEGGModelForOrganism` of RAVEN 3 uses prebuilt HMM libraries and has no clustering step.
 
-The model-assembly flags decide which reactions a draft keeps, and they have the same defaults as in RAVEN.
+The model-assembly flags determine which reactions a draft keeps, and they have the same defaults as in RAVEN.
 
 | Flag | Default | What it admits | Reason given for the default |
 |---|---|---|---|
-| `keep_spontaneous` | `True` | Reactions marked spontaneous in KEGG, which carry no gene rule. | Excluding them breaks pathways that need them. |
+| `keep_spontaneous` | `True` | Reactions marked spontaneous in KEGG, which have no gene rule. | Excluding them breaks pathways that need them. |
 | `keep_undefined_stoich` | `True` | Reactions with variable stoichiometry (`n` subunits), which cannot be mass-balanced as written. | Dropping them removes real chemistry from the draft. |
 | `keep_incomplete` | `True` | Reactions whose enzyme set is only partly known. | |
 | `keep_general` | `False` | Overview-map reactions that lump many specific steps into one. | Admitting them counts the same conversion twice. |

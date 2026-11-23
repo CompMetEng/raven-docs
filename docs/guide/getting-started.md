@@ -15,7 +15,7 @@ The page covers loading a model, reporting its size and inspecting one reaction,
 
 ## Setup
 
-The examples use `smallYeast.yml`, a model of the central carbon metabolism of yeast that ships with RAVEN. The file is [`docs/data/smallYeast.yml`](../data/smallYeast.yml), and the examples run in the directory that contains it.
+The examples use `smallYeast.yml`, a model of the central carbon metabolism of yeast that is included with RAVEN. The file is [`docs/data/smallYeast.yml`](../data/smallYeast.yml), and the examples run in the directory that contains it.
 
 One of the toolboxes must be installed first ([Installation](../installation/index.md)). The Setup section of most pages names the files that the page needs. All of them are in [`docs/data/`](../data/README.md), which is also the working directory when the `raven-docs` repository is cloned. The blocks of a page build on each other and run in order in one MATLAB or Python session.
 
@@ -105,7 +105,7 @@ Python has no equivalent of `printModelStats`. The collections are attributes, s
 
 ## Inspecting a reaction
 
-Glucose-6-phosphate isomerase (`PGI`) is reversible, has a gene association and is expected to be mass balanced, which covers most of what a reaction carries.
+Glucose-6-phosphate isomerase (`PGI`) is reversible, has a gene association and is expected to be mass balanced, which covers most of what a reaction contains.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -151,7 +151,7 @@ YBR196C
 :::
 ::::
 
-The bounds define the direction. A lower bound of −1000 allows the reaction to run backwards, and a lower bound of zero does not. cobrapy derives `reversibility` from the bounds whenever it is read, so the two cannot disagree. RAVEN stores a separate `model.rev` field next to the bounds, and one can be changed without the other. [Model structure and identifiers](model-structure.md) describes how to handle this.
+The bounds define the direction. A lower bound of −1000 allows the reaction to run backwards, and a lower bound of zero does not. cobrapy derives `reversibility` from the bounds whenever it is read, so the two cannot disagree. RAVEN stores a separate `model.rev` field next to the bounds, and one can be changed without the other. [Model structure and identifiers](model-structure.md) describes how to keep the two fields consistent.
 
 ## Inspecting a metabolite
 
@@ -257,14 +257,14 @@ print(pgi.check_mass_balance())
 {}
 ```
 
-An empty dictionary means that the reaction balances. Each entry maps an element, or `charge`, to the difference between the two sides, so the result gives the size of an imbalance as well as its presence. cobrapy reports the charge in the same dictionary and omits what it cannot decide. An empty dictionary therefore covers both a balanced reaction and a reaction with nothing to check.
+An empty dictionary means that the reaction balances. Each entry maps an element, or `charge`, to the difference between the two sides, so the result gives the size of an imbalance as well as its presence. cobrapy reports the charge in the same dictionary and omits what it cannot determine. An empty dictionary therefore covers both a balanced reaction and a reaction with nothing to check.
 :::
 ::::
 
 :::{admonition} Troubleshooting
 :class: warning
 
-- A lookup fails. Identifiers are case-sensitive and carry the compartment suffix (`G6P_c`). Neither toolbox returns a placeholder for an identifier that is absent: `getIndexes` raises the error `Could not find object 'X' in the model`, and `get_by_id` raises `KeyError`.
+- A lookup fails. Identifiers are case-sensitive and have the compartment suffix (`G6P_c`). Neither toolbox returns a placeholder for an identifier that is absent: `getIndexes` raises the error `Could not find object 'X' in the model`, and `get_by_id` raises `KeyError`.
 - The model loads and does not grow. In `smallYeast.yml` every uptake reaction is closed (`glcIN` has bounds `[0 0]`). [Growth media and conditions](media.md) opens a medium.
 - Gene identifiers differ between the model and a FASTA file. RAVEN stores the systematic name (`YBR196C`) as the identifier and the standard name (`PGI1`) as the gene name, and the two are not interchangeable.
 :::

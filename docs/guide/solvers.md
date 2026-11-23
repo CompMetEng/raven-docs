@@ -1,6 +1,6 @@
 # Solvers and configuration
 
-Most simulations on this site solve a linear program (LP). Gap-filling, minimal media with a minimum number of components, `solveLP` with `minFlux` set to 3, and ftINIT solve mixed-integer linear programs (MILPs). The quadratic MOMA in [Deletions and essentiality](deletions.md) solves a quadratic program (QP). The solvers that can handle each problem type depend on the solver and on the toolbox.
+Most simulations on this site solve a linear program (LP). Gap-filling, minimal media with a minimum number of components, `solveLP` with `minFlux` set to 3, and ftINIT solve mixed-integer linear programs (MILPs). The quadratic MOMA in [Deletions and essentiality](deletions.md) solves a quadratic program (QP). The solvers that can solve each problem type depend on the solver and on the toolbox.
 
 ## Functions
 
@@ -10,6 +10,10 @@ Most simulations on this site solve a linear program (LP). Gap-filling, minimal 
 | `checkRaven` | no equivalent | test the solver |
 | `solveLP` | `Model.optimize` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | solve and return a solution object |
 | `optimizeProb` | `Model.solver` {bdg-link-secondary}`cobrapy <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/index.html>` | solve a problem that the toolbox built |
+| no equivalent | `switch_to_scipy`, `repair_scipy_problem` | use the scipy (HiGHS) solver on a model of any size |
+| no equivalent | `fast_solver_while_building`, `edit_on_fast_solver` | build and edit a large model on GLPK, then return to scipy |
+| no equivalent | `optimize_model` | solve and return a solution with its status when the problem is infeasible, on every solver |
+| no equivalent | `constraint_shadow_prices` | shadow prices of named constraints, on every solver |
 
 ## Setup
 
@@ -39,7 +43,7 @@ model.reactions.get_by_id("o2IN").upper_bound = 1000.0
 :::
 ::::
 
-The sign convention is the opposite of the one in yeast-GEM, where uptake is a negative flux through an exchange reaction. A model carries the convention of its author, and the direction in which the equation is written decides which bound opens the reaction. [Growth media and conditions](media.md) works with the other convention.
+The sign convention is the opposite of the one in yeast-GEM, where uptake is a negative flux through an exchange reaction. A model uses the convention of its author, and the direction in which the equation is written determines which bound opens the reaction. [Growth media and conditions](media.md) works with the other convention.
 
 ## Solver in use
 
@@ -78,7 +82,7 @@ cobrapy has two levels. `Configuration()` holds the default for models created a
 
 ## Changing the solver
 
-Both toolboxes ship with GLPK, which solves LPs and MILPs and therefore runs every example on this site except the quadratic MOMA. RAVEN warns when it sends a MILP to GLPK and recommends Gurobi. GLPK handles problems of the size of these examples, but gap-filling and ftINIT on a genome-scale model take much longer than with Gurobi, which is free for academic use. A QP needs a solver that supports QPs, such as Gurobi or CPLEX. RAVEN has no function that solves a QP.
+Both toolboxes include GLPK, which solves LPs and MILPs and therefore runs every example on this site except the quadratic MOMA. RAVEN warns when it sends a MILP to GLPK and recommends Gurobi. GLPK solves problems of the size of these examples, but gap-filling and ftINIT on a genome-scale model take much longer than with Gurobi, which is free for academic use. A QP needs a solver that supports QPs, such as Gurobi or CPLEX. RAVEN has no function that solves a QP.
 
 ::::{tab-set}
 :::{tab-item} Ⓜ️ MATLAB
@@ -88,7 +92,7 @@ Both toolboxes ship with GLPK, which solves LPs and MILPs and therefore runs eve
 setRavenSolver('glpk');     % 'gurobi', 'scip', or 'cobra' to hand over to the COBRA Toolbox
 ```
 
-The accepted values are `'glpk'`, `'gurobi'`, `'scip'` and `'cobra'`. `'glpk'` uses the binaries that ship with RAVEN and needs no further installation. `'gurobi'` needs Gurobi on the MATLAB path, and `'scip'` needs the SCIP MATLAB interface. `'cobra'` translates the problem to the format of the COBRA Toolbox and uses the solver last selected with `changeCobraSolver`. It requires an initialised COBRA Toolbox, which `setRavenSolver` checks, and it raises an error without storing a preference that cannot work.
+The accepted values are `'glpk'`, `'gurobi'`, `'scip'` and `'cobra'`. `'glpk'` uses the binaries that RAVEN includes and needs no further installation. `'gurobi'` needs Gurobi on the MATLAB path, and `'scip'` needs the SCIP MATLAB interface. `'cobra'` translates the problem to the format of the COBRA Toolbox and uses the solver last selected with `changeCobraSolver`. It requires an initialised COBRA Toolbox, which `setRavenSolver` checks, and it raises an error without storing a preference that cannot work.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -104,9 +108,59 @@ Assigning to `model.solver` rebuilds the problem of this model. Assigning to `Co
 :::
 ::::
 
+## The scipy solver
+
+The scipy interface of optlang solves with HiGHS, which ships with SciPy, so a Python environment has a solver without a further installation. cobrapy selects it with `model.solver = "scipy"`. Its interface behaves differently from the others in three ways that matter for a model of genome-scale size:
+
+- It numbers the variables of the problem by column, and after a variable is removed some names keep an old column. Fluxes are then read from the wrong columns, or raise an `IndexError`, and a later removal deletes the wrong column of the matrix. Removals run when the next problem is built, so the error appears in code that removed nothing itself.
+- It stores the coefficient matrix densely and copies it for every added or removed variable or constraint. Building or editing a model of thousands of reactions takes hours.
+- After a solve that finds no optimum it returns no values, and `Model.optimize` fails with a `TypeError` instead of returning a solution with a status.
+
+`switch_to_scipy` moves a model to a solver that does not have these problems: a sparse problem that numbers the columns correctly, keeps the coefficients in dictionaries and gives HiGHS a sparse matrix, and returns NaN values with the status after a solve without an optimum. A model that is already on the scipy solver and is edited directly is repaired with `repair_scipy_problem`, before the first removal. `edit_on_fast_solver` runs structural edits on GLPK inside a `with` block and converts the model back, and `fast_solver_while_building` makes GLPK the default solver for the models that are created inside the block.
+
+`optimize_model` is `Model.optimize` for every solver: when the solver reports a status that is not optimal, it returns a solution with that status and NaN values, where Gurobi and the scipy interface raise an error. `constraint_shadow_prices` returns the shadow prices of named constraints, such as the balance of a metabolite, on every solver, including the scipy interface, which raises for the duals that cobrapy reads.
+
+::::{tab-set}
+:::{tab-item} Ⓜ️ MATLAB
+:sync: matlab
+
+RAVEN solves through `solveLP` with GLPK, Gurobi or SCIP and has no scipy solver. A failed solve returns `sol.stat` of `-1`, as shown under Failed solves below.
+:::
+:::{tab-item} 🐍 Python
+:sync: python
+
+```python
+from raven_toolbox.utils.solver import (
+    constraint_shadow_prices, optimize_model, switch_to_scipy,
+)
+
+fast = model.copy()
+switch_to_scipy(fast)
+print("solver:", fast.solver.__class__.__module__)
+print(f"growth: {optimize_model(fast).objective_value:.4f} /h")
+price = constraint_shadow_prices(fast, ["GLC_c"])
+print(f"shadow price of the glucose balance: {price[0]:.4f}")
+
+with fast:
+    fast.reactions.get_by_id("biomassOUT").lower_bound = 1.0
+    fast.reactions.get_by_id("glcIN").bounds = (0, 0)
+    print("infeasible:", optimize_model(fast).status)
+```
+
+```text
+solver: optlang.scipy_interface
+growth: 0.1222 /h
+shadow price of the glucose balance: -0.1222
+infeasible: infeasible
+```
+
+`switch_to_scipy` keeps the objective and its direction. The balance of a metabolite is `S v = 0`, and its shadow price is the change of the optimum when the right-hand side rises by one unit, which is one unit more of the metabolite that the model has to make. A negative price means that growth falls for each unit that has to be made, and it rises by the same amount for each unit that is supplied. In this model the price of the glucose balance equals the growth per unit of glucose, which is the growth rate with a glucose uptake of 1.
+:::
+::::
+
 ## Solution objects
 
-The two solution objects carry the same information under different names.
+The two solution objects contain the same information under different names.
 
 | MATLAB `solveLP` | cobrapy `Solution` | Meaning |
 |---|---|---|
@@ -136,7 +190,7 @@ stat 1: Optimal solution found
 growth 0.1222 /h
 ```
 
-`solveLP` builds a problem struct in the COBRA format and passes it to `optimizeProb`, which calls the selected solver. `optimizeProb` is called directly to solve a problem that the toolbox built, such as the MILPs inside gap-filling. It takes two name-value arguments: `'params'`, a struct that is passed to the solver, and `'verbose'`, which shows the progress of a MILP. RAVEN handles one field of `params` itself and does not pass it on. `maxRatio` applies to LPs, splits badly scaled columns through auxiliary metabolites before solving and leaves the feasible region unchanged.
+`solveLP` builds a problem struct in the COBRA format and passes it to `optimizeProb`, which calls the selected solver. `optimizeProb` is called directly to solve a problem that the toolbox built, such as the MILPs inside gap-filling. It takes two name-value arguments: `'params'`, a struct that is passed to the solver, and `'verbose'`, which shows the progress of a MILP. RAVEN uses one field of `params` itself and does not pass it on. `maxRatio` applies to LPs, splits badly scaled columns through auxiliary metabolites before solving and leaves the feasible region unchanged.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -212,5 +266,5 @@ An infeasible model is over-constrained, and no solution satisfies the constrain
 ## See also
 
 - [Simulating growth with FBA](fba.md): the solve.
-- [Growth media and conditions](media.md): the constraints that decide whether a problem is feasible.
+- [Growth media and conditions](media.md): the constraints that determine whether a problem is feasible.
 - [Installation](../installation/index.md): installation and test of a solver.

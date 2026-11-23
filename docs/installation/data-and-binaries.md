@@ -1,6 +1,6 @@
 # Download data and binaries
 
-Neither toolbox ships the large files that it needs. The KEGG reference data, the libraries of profile hidden Markov models (HMMs) and the executables of BLAST+, DIAMOND and HMMER are fetched on first use from a shared, checksummed release and cached locally. The sections below describe what is fetched, where it is kept and how each step is overridden.
+Neither toolbox includes the large files that it needs. The KEGG reference data, the libraries of profile hidden Markov models (HMMs) and the executables of BLAST+, DIAMOND and HMMER are fetched on first use from a shared, checksummed release and cached locally. The sections below describe what is fetched, where it is kept and how each step is overridden.
 
 Both toolboxes read from the same [`toolbox-assets`](https://github.com/CompMetEng/toolbox-assets) repository, so RAVEN and raven-toolbox download the same files.
 
@@ -8,8 +8,8 @@ Both toolboxes read from the same [`toolbox-assets`](https://github.com/CompMetE
 
 | Artefact | Download size | Needed for |
 |---|---|---|
-| KEGG core bundle (reference model and the tables of KOs, reactions and organism genes) | 49 MB | [Reconstruction from KEGG](../guide/kegg.md), both methods |
-| KEGG HMM library, one per domain | 135 MB for eukaryotes, 155 MB for prokaryotes | a KEGG draft for an organism that is not in KEGG |
+| KEGG core bundle (reference model and the tables of KOs, reactions and organism genes) | 51 MB | [Reconstruction from KEGG](../guide/kegg.md), both methods |
+| KEGG HMM library, one per domain | 140 MB for eukaryotes, 159 MB for prokaryotes | a KEGG draft for an organism that is not in KEGG |
 | KEGG taxonomy | 0.2 MB | phylogenetic weighting of KO assignments |
 | BLAST+ (`blastp`, `makeblastdb`) | 13 to 35 MB per platform | [Reconstruction from homology](../guide/homology.md) |
 | DIAMOND | 3 to 9 MB per platform | the faster homology method |
@@ -102,7 +102,7 @@ For data artefacts, an explicit directory replaces the cache. `get_kegg_model_fo
 
 ## Platform support
 
-Every tool is invoked as a subprocess, so the availability of a native build for the platform decides the support. The bundles in `toolbox-assets` are built for Linux on x86-64, macOS on Apple silicon (arm64) and Windows on x86-64. Intel Macs and Linux on arm64 have no bundle, and the table applies to the three bundle platforms.
+Every tool is invoked as a subprocess, so the availability of a native build for the platform determines the support. The bundles in `toolbox-assets` are built for Linux on x86-64, macOS on Apple silicon (arm64) and Windows on x86-64. Intel Macs and Linux on arm64 have no bundle, and the table applies to the three bundle platforms.
 
 | Tool | Linux | macOS | Windows |
 |---|---|---|---|
@@ -133,3 +133,4 @@ On Windows, homology reconstruction and the KEGG query path run natively, becaus
 - [Reconstruction from homology](../guide/homology.md): the workflow that needs BLAST+ or DIAMOND.
 - [RAVEN (MATLAB)](raven.md) and [raven-toolbox (Python)](python.md).
 - [Update the KEGG assets](updating-kegg-assets.md): how the maintainers publish the assets of a new KEGG release.
+- [Update the binary bundles](updating-binaries.md): how the maintainers publish the BLAST+, DIAMOND and HMMER bundles.

@@ -311,7 +311,7 @@ medium = getMinimalMedium(model, 'minGrowth', 0.9 * sol.f);
 
 The candidates are the exchange reactions with `lb < 0`, so a nutrient that the model cannot take up is never proposed. `minGrowth` defaults to 10 % of the optimum under the current bounds, a limit loose enough that most components drop out, and it is set explicitly when the question concerns a given growth rate. `verbose` set to `false` suppresses the table and returns the identifiers.
 
-Of the 16 open uptakes, 14 are kept. Water and H+ are dropped because other reactions supply them. `getMinimalMedium` solves a mixed-integer linear programme (MILP) that minimises the number of open uptakes. The GLPK that ships with RAVEN solves it as well, with a warning that recommends Gurobi. `minimal_medium` of cobrapy solves by default an LP that minimises the summed uptake flux (in mmol/gDW/h, all metabolites weighted equally), so it returns rates.
+Of the 16 open uptakes, 14 are kept. Water and H+ are dropped because other reactions supply them. `getMinimalMedium` solves a mixed-integer linear programme (MILP) that minimises the number of open uptakes. The GLPK that is included with RAVEN solves it as well, with a warning that recommends Gurobi. `minimal_medium` of cobrapy solves by default an LP that minimises the summed uptake flux (in mmol/gDW/h, all metabolites weighted equally), so it returns rates.
 :::
 :::{tab-item} 🐍 Python
 :sync: python
