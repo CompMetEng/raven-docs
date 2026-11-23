@@ -134,6 +134,7 @@ Reading Human-GEM from the Systems Biology Markup Language (SBML) file alone tak
 
 - `prep_init_model` takes the argument `processes`, which defaults to 1, and its `simplify_model` passes follow `cobra.Configuration().processes`, which starts worker processes by default. The Python run above used `processes = 1`. Where worker processes are not permitted (a locked-down Windows machine, some continuous integration (CI) runners), the default fails with `PermissionError: [WinError 5] Access is denied`, and `processes = 1` removes the parallelism and allows the run to finish.
 - `essential_cache_path` caches the slow search for task-essential reactions, so a second preparation of the same template skips it.
+- `solve_time_limit` (seconds, default none) limits each solve of that search. The `time_limit` of the ftINIT steps does not cover it. On GLPK each knock-out solve of Human-GEM takes several seconds and the growth tasks of its task list need over 100 solves each, so the search ran for about 2 hours there; Gurobi is much faster. With `verbose=True`, a progress line appears every 25 knock-out solves. A solve that reaches the limit does not count its reaction as essential, and one warning per task gives how many were cut off.
 :::
 ::::
 
