@@ -93,7 +93,7 @@ html_theme_options = {
         "image_dark": "_static/raven-logo-white.png",
     },
     "announcement": (
-        "This site documents RAVEN <strong>3.0.0b2</strong> "
+        "This site documents RAVEN <strong>3.0.0b3</strong> "
         "(MATLAB and Python), a pre-release version. The API may still "
         "change before the stable 3.0.0 release."
     ),
