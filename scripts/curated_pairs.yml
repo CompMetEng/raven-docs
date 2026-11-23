@@ -225,7 +225,7 @@ not_ported:
   splitProbForConditioning: >-
     Improves LP numerical conditioning by splitting wide-ratio columns
     before solving; cobrapy and the solvers it wraps (through optlang)
-    handle numerical scaling internally, with no equivalent public option.
+    scale the problem internally, with no equivalent public option.
   permuteModel: >-
     Reorders the parallel arrays of a RAVEN MATLAB struct; a cobra.Model has
     no comparable field-order concept to reorder.
