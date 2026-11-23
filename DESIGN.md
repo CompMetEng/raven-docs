@@ -234,7 +234,7 @@ Generated from source, organised so each function is shown for both languages.
 
 ### 4.7 Navigation, footer, links and citations
 
-- **Root toctree.** Installation, Guide, API reference, Migration, Parameter tuning, Release notes, Citations, Maintenance. The navbar label of `migrate.md` is "Migration".
+- **Root toctree.** Installation, Guide, API reference, Migration, Citations, Parameter tuning, Release notes, Maintenance. The navbar label of `migrate.md` is "Migration".
 - **Guide index.** The purpose, then the table of pages, then notes (example data). It carries no admonition about the release state and no statement about pages that do not exist. The text on executed examples and on the cobrapy badge is on their own pages, in the *Background* group of the guide with the YAML format and the example data.
 - **Footer.** One line on every page: the lab link (`https://www.kerkhovenlab.eu`) with its mark `docs/_static/lab-favicon.svg`, and a link to the sibling site (gecko-docs) with its icon. The footer holds nothing else; source, licence, DOI, help and citations stay on one page each.
 - **Links to the sibling site.** Through the intersphinx inventory of gecko-docs. `conf.py` adds the inventory only when it can be fetched; a site that is not reachable leaves a note in the log and does not fail the strict build.

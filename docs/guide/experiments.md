@@ -1,6 +1,6 @@
 # Comparing a model with measured conditions
 
-A model is tested against an experiment by setting what the experiment controlled, solving the model, and comparing what it predicts with what was measured. The experiments functions do this for a set of conditions, each with a measured growth rate and measured exchange fluxes, and reduce the comparison to one number. That number, the distance, is what a calibration minimises, for example the tuning of *k*{sub}`cat`s in an enzyme-constrained model, and it is also a way to compare two versions of a model.
+A model is tested against an experiment by setting what the experiment controlled, solving the model, and comparing what it predicts with what was measured. The experiments functions do this for a set of conditions, each with a measured growth rate and measured exchange fluxes, and reduce the comparison to one number. That number, the distance, is what a calibration minimises, for example the tuning of *k*{sub}`cat` values in an enzyme-constrained model, and it is also a way to compare two versions of a model.
 
 Two kinds of conditions are scored. A **flux condition** limits the uptake of the carbon source to its measured rate, and the growth rate and the measured exchange fluxes of the model are compared with the measurements. A **maximum-growth condition** leaves the uptake of the carbon source unlimited, and only the maximal growth rate of the model is compared with the measured growth rate. The two kinds are stored in two files with the same layout.
 

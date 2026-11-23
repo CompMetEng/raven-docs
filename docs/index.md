@@ -214,8 +214,8 @@ installation/index
 guide/index
 api/index
 migrate
+references
 parameter-tuning/index
 release-notes/index
-references
 maintenance
 ```
