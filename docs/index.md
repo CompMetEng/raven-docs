@@ -189,12 +189,23 @@ The changes of each release of RAVEN and raven-toolbox.
 
 ## Help
 
-Bug reports and feature requests go to the issue tracker of the toolbox concerned, and questions to its discussions.
+::::{grid} 1 2 2 2
 
-| Repository | Issues | Discussions |
-|---|---|---|
-| RAVEN (MATLAB) | [Issues](https://github.com/CompMetEng/RAVEN/issues) | [Discussions](https://github.com/CompMetEng/RAVEN/discussions) |
-| raven-toolbox (Python) | [Issues](https://github.com/CompMetEng/raven-toolbox/issues) | [Discussions](https://github.com/CompMetEng/raven-toolbox/discussions) |
+:::{grid-item-card} {octicon}`bug` Report a bug or request a feature
+Open an issue in the repository of the implementation that it concerns.
+
+- [RAVEN (MATLAB) issues](https://github.com/CompMetEng/RAVEN/issues)
+- [raven-toolbox (Python) issues](https://github.com/CompMetEng/raven-toolbox/issues)
+:::
+
+:::{grid-item-card} {octicon}`comment-discussion` Ask a usage question
+Start a discussion in the repository of the implementation that it concerns.
+
+- [RAVEN (MATLAB) discussions](https://github.com/CompMetEng/RAVEN/discussions)
+- [raven-toolbox (Python) discussions](https://github.com/CompMetEng/raven-toolbox/discussions)
+:::
+
+::::
 
 ```{toctree}
 :hidden:

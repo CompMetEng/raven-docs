@@ -80,7 +80,7 @@ The home page has a hero (logo, the tag "MATLAB & Python" and a tagline that nam
 - **Key features.** Six cards, each linking into the guide, with one sentence pattern.
 - **Quick start.** One example in both languages, MATLAB first, with a sentence that says what it does and where its data is (a link to `docs/data/yeast-GEM.yml`), and the unit `h-1`.
 - **Documentation.** Cards for the guide, the API reference, Installation, MATLAB and Python, Migration and Release notes, and the comparison of RAVEN and raven-toolbox, each with one sentence.
-- **Help.** One table with the two repositories as rows and Issues and Discussions as columns, as text links.
+- **Help.** Two cards, one to report a bug or request a feature and one to ask a usage question, each with a link per repository.
 
 The home page makes clear that both a MATLAB and a Python version exist and that the site documents both. It holds no papers, no citation block, no source code section, no licence text and no DOI: the papers, the citation paragraph and the licence are on `references.md`, which the sidebar links. The banner names the documented version, that it is a pre-release, the stable version with the way to install it, and links the upgrade page and the release notes.
 
