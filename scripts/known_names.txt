@@ -166,6 +166,7 @@ allow_net_production          # connect_blocked_reactions argument
 useModelConstraints
 maxTime                        # predictLocalization argument
 time_limit                     # predict_localization / run_init / run_ftinit argument
+solve_time_limit               # prep_init_model / find_task_essential_reactions argument
 flux_eps                       # fseof argument
 metaData                       # RAVEN YAML/model struct field, named in yaml-format.md
 givenName                      # metaData field
