@@ -126,9 +126,9 @@ html_theme_options = {
     "announcement": (
         "This site documents RAVEN <strong>3.0.0b3</strong> "
         "(MATLAB and Python), a pre-release version. The API may still "
-        "change before the stable 3.0.0 release. The stable releases are "
-        "RAVEN 2.11.4 (MATLAB, Add-Ons manager) and raven-toolbox 0.4.0 "
-        "(<code>pip install raven-toolbox</code>). "
+        "change before the stable 3.0.0 release. The latest stable version "
+        "is RAVEN <strong>2.11.4</strong>, installed with the MATLAB "
+        "Add-Ons manager. "
         '<a href="{upgrade}">Upgrade from RAVEN 2</a> | '
         '<a href="{release_notes}">Release notes</a>.'
     ),
