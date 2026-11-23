@@ -93,7 +93,7 @@ Three structural rules apply to the field-by-field description:
 | `genes` | yes | cobra core | Ordered list; `genes: []` for a model without genes. |
 | `compartments` | yes | cobra core | `!!omap` of `<code>: <full name>`. |
 | `gecko_light` | optional | GECKO | Scalar boolean. cobrapy and raven-toolbox write it at the top level, and the spelling `geckoLight` inside `metaData` is accepted on reading. |
-| `ec-rxns` | optional | GECKO | Table per reaction with kcat, source and enzymes. |
+| `ec-rxns` | optional | GECKO | Table per reaction with *k*{sub}`cat`, source and enzymes. |
 | `ec-enzymes` | optional | GECKO | Table per enzyme with MW, sequence and concentration. |
 
 cobrapy writes `id`, `name` and `version` at the root level. The RAVEN readers accept both placements, and the RAVEN writers write the `metaData` form.
