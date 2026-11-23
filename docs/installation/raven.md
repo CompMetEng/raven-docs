@@ -108,7 +108,7 @@ A successful run prints output of this form:
 *** THE RAVEN TOOLBOX ***
 
  > Installation type                    Advanced (via git)
- > Checking RAVEN release               3.0.0
+ > Checking RAVEN release               3.0.0b3
  > Checking MATLAB release              R2024b
  > Set RAVEN in MATLAB path             Pass
  > Save MATLAB path                     Pass

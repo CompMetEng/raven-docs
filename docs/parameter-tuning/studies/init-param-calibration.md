@@ -246,7 +246,7 @@ The Gurobi run of the solver benchmark at `big_m=100` kept 7324 reactions, the c
 
 ## Reproduction
 
-The commands run through the Slurm wrapper `job.sh` of `scripts/parameter_tuning/init/bigm/` as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and `PY` set. The prepared models come first:
+The commands run through the wrapper `job.sh` of `scripts/parameter_tuning/init/bigm/` as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and `PY` set. The prepared models come first:
 
 ```bash
 job.sh prep

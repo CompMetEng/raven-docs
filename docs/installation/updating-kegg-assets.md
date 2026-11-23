@@ -109,21 +109,6 @@ The table `organism_gene_ko` is sorted by `(organism, gene)`. The order places t
 
 Parquet would be smaller and typed, and MATLAB reads it natively since R2019a, but it needs the package `pyarrow` in Python. It becomes a candidate if the load time is the bottleneck and the size is not, or if either toolbox starts to read columns repeatedly. SQLite is excluded, because MATLAB needs the Database Toolbox to read it, which removes the property of the same files in both languages without extra dependencies.
 
-## Run the build on a cluster
-
-A batch job runs the build script with a time limit that covers the longest expected run. A resubmission of the same job continues where the previous job stopped. An example for Slurm:
-
-```bash
-#!/bin/bash
-#SBATCH -A <account>
-#SBATCH -n 16
-#SBATCH -t 7-00:00:00
-#SBATCH -J kegg-assets
-
-python scripts/build_kegg_artefacts.py --keggdb keggdb --out artefacts \
-    --version kegg120 --hmms --threads 16
-```
-
 ## See also
 
 - [Download data and binaries](data-and-binaries.md): what a user downloads, and where the files are cached.

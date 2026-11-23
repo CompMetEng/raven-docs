@@ -4,7 +4,7 @@ RAVEN 3 is a breaking release. A script written for RAVEN 2 can stop with an err
 
 All statements about RAVEN 2 refer to release 2.11.3. The last RAVEN 2 release, 2.11.4, differs from 2.11.3 by bug fixes in `ftINIT`, `mergeLinear`, `replaceMets`, `checkInstallation`, `importModel`, `readYAMLmodel` and `optimizeProb`. The changelog of RAVEN 3 states its changes relative to RAVEN 2.9.3, so an entry in it can describe a difference that does not exist against 2.11.3. The comparison with the Python package is in [Comparison of RAVEN and raven-toolbox](raven3-vs-raven-toolbox.md).
 
-The codebase was reorganised, functions were removed (counts per folder are in [Structure, removals and renames](raven3-migration/structure-and-renames.md)), several external dependencies were dropped, and 112 functions read their optional arguments through `parseRAVENargs`. The rationale is in the [v3 development review](https://github.com/CompMetEng/RAVEN/blob/develop/docs/v3_review.md). Scripts that call reconstruction, KEGG, localisation or gene-deletion functions need a check. The changes that can affect any script are in [Backward-incompatible changes](raven3-migration/backward-incompatible.md#backward-incompatible-changes).
+The codebase was reorganised, functions were removed (counts per folder are in [Structure, removals and renames](raven3-migration/structure-and-renames.md)), several external dependencies were dropped, and 117 functions read their optional arguments through `parseRAVENargs`. The rationale is in the [v3 development review](https://github.com/CompMetEng/RAVEN/blob/develop/docs/v3_review.md). Scripts that call reconstruction, KEGG, localisation or gene-deletion functions need a check. The changes that can affect any script are in [Backward-incompatible changes](raven3-migration/backward-incompatible.md#backward-incompatible-changes).
 
 :::{admonition} Changes to check first
 :class: warning
@@ -18,7 +18,7 @@ The codebase was reorganised, functions were removed (counts per folder are in [
 
 A RAVEN 2 function took its optional arguments by position, as in `f(model, a, b, c)`, and setting a later optional argument required every earlier one. A position N in these pages is the position among all arguments of the call, required ones included. In `f(model, a, b, c)` the model is position 1 and `a` is position 2.
 
-In RAVEN 3 the function `utils/parseRAVENargs.m` reads the arguments of 112 functions. The required leading arguments are positional parameters. The optional arguments are collected in `varargin` and can be given by position, by name or by both:
+In RAVEN 3 the function `utils/parseRAVENargs.m` reads the arguments of 117 functions. The required leading arguments are positional parameters. The optional arguments are collected in `varargin` and can be given by position, by name or by both:
 
 ```matlab
 removeReactions(model, rxnList, true, true, true)                       % positional (RAVEN 2 style)
@@ -28,7 +28,7 @@ removeReactions(model, rxnList, true, "removeUnusedComps", true)        % hybrid
 
 The first string argument that matches a parameter name, ignoring case, starts the name-value pairs. The arguments before it are positional and are assigned in the order of the `parseRAVENargs` specification of the function. When no argument matches, or the arguments from the first match on are not valid name-value pairs, all arguments are positional. More positional values than the specification has parameters raise `parseRAVENargs:tooManyArgs`. A positional argument whose value is a string equal to a parameter name has to be given in the name-value form.
 
-A positional call keeps its meaning where the parameter order is unchanged. This holds for `importModel`, `exportModel`, `exportToExcelFormat`, `removeReactions`, `addIdentifierPrefix`, `removeIdentifierPrefix` and `exportForGit`. The functions `ftINIT`, `fillGaps`, `fitTasks` and `getModelFromHomology` append new optional parameters after the RAVEN 2 ones, so their old calls also keep their meaning. A comparison of all 112 specifications with the RAVEN 2.11.3 signatures found six functions in which a positional call changes meaning or fails: `getModelFromKEGG`, `getPhylDist`, `getKEGGModelForOrganism`, `scoreModel`, `writeYAMLmodel` and `findGeneDeletions`. Each has a row in [Backward-incompatible changes](raven3-migration/backward-incompatible.md#backward-incompatible-changes).
+A positional call keeps its meaning where the parameter order is unchanged. This holds for `importModel`, `exportModel`, `exportToExcelFormat`, `removeReactions`, `addIdentifierPrefix`, `removeIdentifierPrefix` and `exportForGit`. The functions `ftINIT`, `fillGaps`, `fitTasks` and `getModelFromHomology` append new optional parameters after the RAVEN 2 ones, so their old calls also keep their meaning. A comparison of the specifications of these functions with the RAVEN 2.11.3 signatures found six functions in which a positional call changes meaning or fails: `getModelFromKEGG`, `getPhylDist`, `getKEGGModelForOrganism`, `scoreModel`, `writeYAMLmodel` and `findGeneDeletions`. Each has a row in [Backward-incompatible changes](raven3-migration/backward-incompatible.md#backward-incompatible-changes).
 
 (upgrade-checklist)=
 ## Upgrade checklist

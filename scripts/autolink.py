@@ -13,7 +13,7 @@ A Sphinx extension. On ``source-read`` it rewrites the inline code spans of
   badge; elsewhere a cobrapy name has to be dotted (``Model.optimize``) or
   snake_case (``read_sbml_model``), so ordinary words are never linked.
 
-Every span in a table row is linked, so the "Functions on this page" table
+Every span in a table row is linked, so the "Functions" table
 links each entry; in prose only the first mention of a name per section is.
 The cobrapy badge in a table row points at the first cobrapy object linked in
 that row instead of cobrapy's index page.

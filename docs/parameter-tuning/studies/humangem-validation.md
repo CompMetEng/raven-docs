@@ -137,7 +137,7 @@ Each cell line, variant and `big_m` value ran once, without repeats of the seed,
 
 ## Reproduction
 
-The numbers come from `bigm/bm.py prep`, `preptask` and `val` (raven-toolbox side), `bigm/ml_prep.m` and `bigm/ml_cell.m` (RAVEN side) and `bigm/compare.py`, which prints every table of the study. The scripts are in the raven-docs repository under `scripts/parameter_tuning/init/`. The commands run through the Slurm wrappers `job.sh` and `mljob.sh` as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `RAVEN_ROOT`, `HUMANGEM_ROOT` and `PY` set:
+The numbers come from `bigm/bm.py prep`, `preptask` and `val` (raven-toolbox side), `bigm/ml_prep.m` and `bigm/ml_cell.m` (RAVEN side) and `bigm/compare.py`, which prints every table of the study. The scripts are in the raven-docs repository under `scripts/parameter_tuning/init/`. The commands run through the wrappers `job.sh` and `mljob.sh` as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `RAVEN_ROOT`, `HUMANGEM_ROOT` and `PY` set:
 
 ```bash
 job.sh prep

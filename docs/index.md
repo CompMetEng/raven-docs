@@ -154,7 +154,7 @@ Cite the following publication when using RAVEN in research:
 
 ## Source code
 
-RAVEN is released under the GPLv3 licence at [CompMetEng/RAVEN](https://github.com/CompMetEng/RAVEN){.github}, archived at [https://doi.org/10.5281/zenodo.3689518](https://doi.org/10.5281/zenodo.3689518). raven-toolbox, the Python port, is released under the MIT licence at [CompMetEng/raven-toolbox](https://github.com/CompMetEng/raven-toolbox){.github}.
+RAVEN is released under the GPLv3 licence at [CompMetEng/RAVEN](https://github.com/CompMetEng/RAVEN){.github}, archived at [https://doi.org/10.5281/zenodo.3689518](https://doi.org/10.5281/zenodo.3689518). raven-toolbox, the Python port, is released under the GPLv3 licence at [CompMetEng/raven-toolbox](https://github.com/CompMetEng/raven-toolbox){.github}.
 
 ## Issues and discussions
 

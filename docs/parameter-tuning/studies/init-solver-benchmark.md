@@ -58,4 +58,4 @@ job.sh solver --solvers scipy
 python compare.py --out $WORK/out --shared $WORK/shared --logs $WORK/logs
 ```
 
-The first command checks the toy networks and runs in seconds. The commands of the second block are the documented invocations; `job.sh` runs `bm.py` as a Slurm job, as in the README of the folder, with the environment variables `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and `PY` set. The `big_m=100` Gurobi row is part of `bm.py solver`. The tables are computed from the outputs by `compare.py`.
+The first command checks the toy networks and runs in seconds. The commands of the second block are the documented invocations; `job.sh` runs `bm.py`, as in the README of the folder, with the environment variables `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and `PY` set. The `big_m=100` Gurobi row is part of `bm.py solver`. The tables are computed from the outputs by `compare.py`.

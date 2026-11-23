@@ -141,10 +141,29 @@ _SECTION_HEADER = re.compile(r"^([A-Z][A-Za-z -]+)\n(-{3,})$", re.M)
 _RST_ROLE = re.compile(r":(?:py:)?(?:func|class|meth|attr|mod|data|obj|exc):`~?([^`]+)`")
 
 
+# A placeholder such as <id> or <name> in help text reads as an HTML tag and
+# vanishes from the page. A URL in angle brackets (it has a colon) is an
+# autolink and stays.
+_PLACEHOLDER = re.compile(r"(?<!\\)<([A-Za-z_][\w .,-]*)>")
+_CODE_SPAN = re.compile(r"(`+)(?:.|\n)*?\1")
+
+
+def escape_placeholders(text: str) -> str:
+    """Escape <name>-like placeholders outside code spans."""
+    out, pos = [], 0
+    for m in _CODE_SPAN.finditer(text):
+        out.append(_PLACEHOLDER.sub(r"\\<\1>", text[pos:m.start()]))
+        out.append(m.group(0))
+        pos = m.end()
+    out.append(_PLACEHOLDER.sub(r"\\<\1>", text[pos:]))
+    return "".join(out)
+
+
 def myst_inline(text: str) -> str:
-    """RST roles and double-backtick literals as MyST code spans."""
+    """RST roles and double-backtick literals as MyST code spans; placeholders escaped."""
     text = _RST_ROLE.sub(lambda m: f"`{m.group(1)}`", text)
-    return re.sub(r"``([^`]+)``", r"`\1`", text)
+    text = re.sub(r"``([^`]+)``", r"`\1`", text)
+    return escape_placeholders(text)
 
 
 def split_sections(doc: str) -> list[tuple[str | None, str]]:
@@ -190,7 +209,7 @@ def render_help(doc: str, lang: str) -> list[str]:
         out += [f":::{{rubric}} {title}", ":::", ""]
         if title in PARAM_SECTIONS:
             for name, typ, desc in param_entries(body):
-                term = f"`{name}`" + (f" : *{typ}*" if typ else "")
+                term = f"`{name}`" + (f" : *{escape_placeholders(typ)}*" if typ else "")
                 lines = myst_inline(desc).splitlines() or [""]
                 out += [term, f": {lines[0]}"] + [f"  {line}" if line else "" for line in lines[1:]] + [""]
         elif title == "Examples":

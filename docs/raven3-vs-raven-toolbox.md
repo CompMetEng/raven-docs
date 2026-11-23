@@ -25,7 +25,7 @@ A model can also be exchanged by file. The function `read_matlab_model` of raven
 
 ## Name differences
 
-RAVEN uses `camelCase` and raven-toolbox uses `snake_case`. The generated mapping pairs 103 RAVEN functions with a raven-toolbox function. The rule is: rows of the mapping that have a raven-toolbox function in the second column, with the cobrapy entries excluded. Of these 103, 48 have a name whose letters differ from the RAVEN name when case and the separator `_` are ignored. Examples:
+RAVEN uses `camelCase` and raven-toolbox uses `snake_case`. The generated mapping pairs 104 RAVEN functions with a raven-toolbox function. The rule is: rows of the mapping that have a raven-toolbox function in the second column, with the cobrapy entries excluded. Of these 104, 47 have a name whose letters differ from the RAVEN name when case and the separator `_` are ignored. Examples:
 
 | RAVEN | raven-toolbox |
 |---|---|
@@ -36,7 +36,7 @@ RAVEN uses `camelCase` and raven-toolbox uses `snake_case`. The generated mappin
 
 The function `add_reactions_from_equations` takes a sequence of mappings with the keys `id`, `equation`, `name`, `bounds`, `gene_reaction_rule` and `subsystem`. This corresponds to the `equations` form of the `rxnsToAdd` struct of `addRxns`. The form of `addRxns` with `mets` and `stoichCoeffs` has no counterpart, and the metadata fields of the struct, such as `eccodes`, `rxnMiriams` and `rxnNotes`, are not keys of the mapping.
 
-The page [MATLAB vs Python](matlab-vs-python.md) is generated at build time from the sources of both implementations. It has 132 rows for 130 documented RAVEN functions (`parseGrRule` and `setExchangeBounds` have two rows each): 55 matched automatically by name, 48 from a curated list and 29 covered by cobrapy. A further 42 RAVEN functions are listed as deliberately not ported and have no counterpart, so the page accounts for 172 RAVEN functions.
+The page [MATLAB vs Python](matlab-vs-python.md) is generated at build time from the sources of both implementations. It has 133 rows for 131 documented RAVEN functions (`parseGrRule` and `setExchangeBounds` have two rows each): 57 matched automatically by name, 47 from a curated list and 29 covered by cobrapy. A further 42 RAVEN functions are listed as deliberately not ported and have no counterpart, so the page accounts for 173 RAVEN functions.
 
 ## Form of results
 

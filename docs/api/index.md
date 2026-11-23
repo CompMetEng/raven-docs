@@ -1,10 +1,12 @@
 # API reference
 
-RAVEN ships in two implementations that build the **same** genome-scale
-metabolic models with the same algorithms:
+RAVEN ships in two implementations that build genome-scale metabolic models for
+the same workflows. Some algorithms differ between them ([Tuned parameter
+defaults](../tuned-parameters.md)):
 
-- **RAVEN**: the original **MATLAB** toolbox, built on the COBRA Toolbox and
-  `libSBML`. Functions use `camelCase` names.
+- **RAVEN**: the original **MATLAB** toolbox, which runs independently of the
+  COBRA Toolbox and reads and writes SBML through `libSBML`. Functions use
+  `camelCase` names.
 - **raven-toolbox**: the **Python** port, built on cobrapy. Functions use
   `snake_case` names.
 
@@ -25,7 +27,7 @@ signature, parameters and returns:
   function that exists in both, generated at build time from both toolboxes'
   sources.
 
-Every page opens with a *Functions* table you can scan, followed by the full
+Every page opens with a *Functions* table, followed by the full
 help for each function.
 
 To move between the two implementations, use the **[MATLAB vs Python](../matlab-vs-python.md)**
@@ -34,8 +36,9 @@ links to both references.
 
 ## How the two compare
 
-The implementations are deliberately kept aligned. The main differences are
-in calling convention, not in what the functions compute:
+The implementations are kept aligned. The main differences are in calling
+convention; where a function computes a different result, the
+[comparison](../raven3-vs-raven-toolbox.md) states how:
 
 | | RAVEN (MATLAB) | raven-toolbox (Python) |
 |---|---|---|
@@ -50,7 +53,7 @@ in calling convention, not in what the functions compute:
 raven-toolbox's docstrings are NumPy-style, so they render as structured
 parameter/return tables. RAVEN's MATLAB help blocks use the toolbox's own
 indented convention, so they render as faithful help text rather than typed
-tables. The content is the same; only the formatting differs.
+tables. The content is the same; the formatting differs.
 :::
 
 Use the navigation to browse either tree, or start from the
