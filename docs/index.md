@@ -69,7 +69,7 @@ Builds a draft network from the KEGG annotation of an organism or from KEGG path
 :link: guide/fba
 :link-type: doc
 
-Runs flux balance analysis (FBA), flux variability analysis (FVA), gene and reaction deletions and flux sampling. The MATLAB toolbox solves with GLPK, Gurobi, SCIP or a COBRA Toolbox solver; raven-toolbox uses the solvers of cobrapy.
+Runs flux balance analysis, flux variability analysis, gene and reaction deletions and flux sampling.
 :::
 
 :::{grid-item-card} ftINIT
