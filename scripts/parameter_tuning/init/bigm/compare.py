@@ -3,7 +3,7 @@
 
 Reads the JSON outputs of bm.py (step0.json, scale.json, full-*.json, solver-*.json,
 val-*.json), the RAVEN reaction lists matlab-<cell>.txt and, if given, the reference
-list matlab_ref_reactions.txt and the job logs, and prints the tables of the solver benchmark, the
+list matlab_ref_reactions.txt and the run logs, and prints the tables of the solver benchmark, the
 parameter calibration and the Human-GEM validation. Every derived count (shared, only, symmetric difference) comes from
 the reaction sets, not from rounded Jaccard values. Also writes all values as JSON.
 
@@ -50,7 +50,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True, help="bm.py output folder")
     ap.add_argument("--shared", help="folder with matlab_ref_reactions.txt")
-    ap.add_argument("--logs", help="folder with the job logs (prep and RAVEN times)")
+    ap.add_argument("--logs", help="folder with the run logs (prep and RAVEN times)")
     ap.add_argument("--json", help="write all values to this JSON file")
     a = ap.parse_args()
     O = a.out  # noqa: E741

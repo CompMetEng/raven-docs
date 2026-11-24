@@ -30,7 +30,7 @@ The methods share general RAVEN functions that are not specific to either. `chec
 
 ## Reference run
 
-The outputs in this workflow come from one run made by hand. The [Executed examples](index.md#executed-examples) workflow runs the other guide pages again whenever a guide page, the example data, the runner, the workflow or a submodule changes, and once a week. It does not run the outputs here, because preparing Human-GEM took 47 minutes in MATLAB and 37 minutes in Python, and the MATLAB run produced an artefact of 174 MB, which a documentation build should not attempt. The numbers come from one run (Human-GEM `main` at commit `6812be2a`, RAVEN commit `2d0630e3`, raven-toolbox commit `94f39407`, Gurobi (MATLAB links the 13.0.1 module library; Python most likely loads the library of gurobipy 13.0.3), four cores, 2026-10-30) and are quoted with their wall-clock times for planning.
+The outputs in this workflow come from one run made by hand. The [Executed examples](executed-examples.md) workflow runs the other guide pages again whenever a guide page, the example data, the runner, the workflow or a submodule changes, and once a week. It does not run the outputs here, because preparing Human-GEM took 47 minutes in MATLAB and 37 minutes in Python, and the MATLAB run produced an artefact of 174 MB, which a documentation build should not attempt. The numbers come from one run (Human-GEM `main` at commit `6812be2a`, RAVEN commit `2d0630e3`, raven-toolbox commit `94f39407`, Gurobi (MATLAB links the 13.0.1 module library; Python most likely loads the library of gurobipy 13.0.3), four cores, 2026-10-30) and are quoted with their wall-clock times for planning. The printed output of the scoring, extraction and task-check blocks comes from a second run with the same Human-GEM commit, RAVEN commit `9b51f83`, raven-toolbox commit `ff4c3ad` and Gurobi 13.0.1 (2026-11-24).
 
 The [Human-GEM guide](https://sysbiochalmers.github.io/Human-GEM-guide/gem_extraction/) presents the same MATLAB workflow, including the comparison of the extracted models. It is maintained together with the model.
 
@@ -91,6 +91,8 @@ spont = tsv.rxns(tsv.spontaneous == 1);
 
 prepData = prepINITModel(humanGEM, tasks, 'spontRxnNames', spont, 'extComp', 'e');
 save('prepData.mat', 'prepData', '-v7.3');
+file = dir('prepData.mat');
+fprintf('prepData.mat: %.0f MB\n', file.bytes / 2^20);
 ```
 
 ```text
@@ -105,6 +107,8 @@ Human-GEM has a wrapper, `prepHumanModelForftINIT`, which reads those two files.
 <!-- run-examples: skip -->
 
 ```python
+import time
+
 import cobra
 import pandas as pd
 from cobra.io import read_sbml_model
@@ -114,7 +118,9 @@ from raven_toolbox.tasks import parse_task_list
 
 cobra.Configuration().processes = 1     # see the note below
 
+start = time.time()
 model = read_sbml_model("Human-GEM/model/Human-GEM.xml")
+print(f"load {time.time() - start:.0f}s")
 model.solver = "gurobi"
 tasks = parse_task_list("Human-GEM/data/metabolicTasks/metabolicTasks_Essential.txt")
 
@@ -122,7 +128,9 @@ tasks = parse_task_list("Human-GEM/data/metabolicTasks/metabolicTasks_Essential.
 tsv = pd.read_csv("Human-GEM/model/reactions.tsv", sep="\t")
 spont = tsv.loc[tsv["spontaneous"] == 1, "rxns"].tolist()
 
+start = time.time()
 prep = prep_init_model(model, tasks, ext_comp="e", spontaneous=spont)
+print(f"prep_init_model {time.time() - start:.0f}s")
 ```
 
 ```text
@@ -130,7 +138,7 @@ load 11s
 prep_init_model 2216s
 ```
 
-Reading Human-GEM from the Systems Biology Markup Language (SBML) file alone takes about 11 seconds, and the preparation takes 37 minutes in Python and 47 minutes in MATLAB. The two preparations were separate Slurm jobs on the same node type with four cores each. The MATLAB run used the default of `prepINITModel` for `runParallel`, which is serial, and the Python run used `processes = 1`, so the two times compare the complete runs. Two settings affect the run:
+Reading Human-GEM from the Systems Biology Markup Language (SBML) file alone takes about 11 seconds, and the preparation takes 37 minutes in Python and 47 minutes in MATLAB. The two preparations were separate jobs on the same node type with four cores each. The MATLAB run used the default of `prepINITModel` for `runParallel`, which is serial, and the Python run used `processes = 1`, so the two times compare the complete runs. Two settings affect the run:
 
 - `prep_init_model` takes the argument `processes`, which defaults to 1, and its `simplify_model` passes follow `cobra.Configuration().processes`, which starts worker processes by default. The Python run above used `processes = 1`. Where worker processes are not permitted (a locked-down Windows machine, some continuous integration (CI) runners), the default fails with `PermissionError: [WinError 5] Access is denied`, and `processes = 1` removes the parallelism and allows the run to finish.
 - `essential_cache_path` caches the slow search for task-essential reactions, so a second preparation of the same template skips it.
@@ -162,6 +170,7 @@ arrayData.genes     = tbl.gene;
 arrayData.tissues   = tbl.Properties.VariableNames(2:end)';
 arrayData.levels    = table2array(tbl(:, 2:end));
 arrayData.threshold = 1;
+fprintf('%d genes x %d samples\n', numel(arrayData.genes), size(arrayData.levels, 2));
 ```
 
 ```text
@@ -185,6 +194,10 @@ gene_scores = gene_scores_from_expression(tpm["HCT116"].to_dict(), reference=1.0
 rxn_scores = score_reactions_from_genes(model, gene_scores)
 ```
 
+```text
+18687 genes x 5 samples
+```
+
 The two steps are separate in Python. `gene_scores_from_expression` applies the rule of RAVEN (5·ln(level / reference), clamped to [−5, 10]), and `score_reactions_from_genes` maps the result through the gene rules. Any other source of gene scores (HPA through `hpa_gene_scores`, proteomics or a curated list) can therefore feed the second step.
 
 The clamp explains why two samples that differ widely can give nearly the same model:
@@ -196,7 +209,7 @@ print(gene_scores_from_expression({"a": 12.0, "b": 0.5, "c": 3.0}, reference=3.0
 ```
 
 ```text
-{'a': 6.93, 'b': -5.0, 'c': 0.0}
+{'a': 6.931471805599453, 'b': -5.0, 'c': 0.0}
 ```
 
 `b` computes to −8.96 and is returned at the floor. A gene at its reference scores zero, which is neither in nor out.
@@ -325,6 +338,7 @@ PKM  best +20.0, average +15.0
 contextModel = ftINIT(prepData, 'HCT116', [], [], ...
     'transcrData', arrayData, ...
     'INITSteps', getINITSteps([], '1+0'));
+fprintf('%d rxns, %d genes\n', numel(contextModel.rxns), numel(contextModel.genes));
 ```
 
 ```text
@@ -348,6 +362,10 @@ context = ftinit(prep, rxn_scores=rxn_scores, series="1+0", gene_scores=gene_sco
 print(len(context.reactions), "reactions,", len(context.genes), "genes")
 ```
 
+```text
+9543 reactions, 1783 genes
+```
+
 `ftinit` takes the reaction scores, so the scoring is a separate step. `gene_scores` is optional and removes negative-scoring genes from the gene rules that remain. `fill_gaps=False` skips the task repair.
 :::
 ::::
@@ -369,6 +387,70 @@ An extracted model is a hypothesis. The first check is the set of tasks that the
 ```matlab
 taskReport = checkTasks(contextModel, [], 'taskStructure', tasks);
 ```
+
+```text
+[Warning: Exchange metabolites should normally not be removed from the model
+when using checkTasks. Inputs and outputs are defined in the task file instead.
+Use importModel(file,false) to import a model with exchange metabolites
+remaining] 
+PASS: [GR] Growth on Ham's media (biomass production)
+PASS: [BS] Heme biosynthesis
+PASS: [BS] FAD synthesis from riboflavin
+PASS: [BS] Coenzyme A synthesis from pantothenate
+PASS: [BS] Thiamin phosphorylation to TPP
+PASS: [BS] Phosphatidylinositol de novo synthesis
+PASS: [BS] Phosphatidylserine de novo synthesis
+PASS: [BS] Phosphatidylethanolamine de novo synthesis
+PASS: [BS] Phosphatidylcholine de novo synthesis
+PASS: [SU] Inositol uptake
+PASS: [SU] Choline uptake
+PASS: [SU] Uptake and beta oxidation of all NEFAs
+PASS: [SU] Beta oxidation of unsaturated fatty acid (n-6) 
+PASS: [SU] Beta oxidation of unsaturated fatty acid (n-9) 
+PASS: [SU] Beta oxidation of odd-chain FA
+PASS: [SU] Beta oxidation of long-chain FA
+PASS: [SU] Beta oxidation of saturated FA
+PASS: [ER] Ubiquinol-to-ATP
+PASS: [ER] Ubiquinol-to-proton
+PASS: [ER] Krebs cycle NADH
+PASS: [ER] Oxidative decarboxylation
+PASS: [ER] Oxidative phosphorylation
+PASS: [BS] Protein synthesis from AAs
+PASS: [BS] Cholesterol de novo synthesis
+PASS: [IC] Mitochondrial succinyl-CoA de novo synthesis
+PASS: [IC] Ribose 5-phosphate de novo synthesis
+PASS: [IC] Pyruvate de novo synthesis
+PASS: [IC] Phosphoenolpyruvate de novo synthesis
+PASS: [IC] Mitochondrial oxaloacetate de novo synthesis
+PASS: [IC] Glucose 6-phosphate de novo synthesis
+PASS: [IC] Glyceraldehyde 3-phosphate de novo synthesis
+PASS: [IC] Fructose 6-phosphate de novo synthesis
+PASS: [IC] Erythrose 4-phosphate de novo synthesis
+PASS: [IC] Mitochondrial AKG de novo synthesis
+PASS: [IC] Mitochondrial acetyl-CoA de novo synthesis
+PASS: [IC] Glycerate 3-phosphate  de novo synthesis
+PASS: [SU] Valine uptake
+PASS: [SU] Tryptophan uptake
+PASS: [SU] Threonine uptake
+PASS: [SU] Phenylalanine uptake
+PASS: [SU] Methionine uptake
+PASS: [SU] Lysine uptake
+PASS: [SU] Leucine uptake
+PASS: [SU] Isoleucine uptake
+PASS: [SU] Histidine uptake
+PASS: [BS] dTTP de novo synthesis
+PASS: [BS] dGTP de novo synthesis
+PASS: [BS] dCTP de novo synthesis
+PASS: [BS] dATP de novo synthesis
+PASS: [BS] UTP de novo synthesis
+PASS: [BS] GTP de novo synthesis
+PASS: [BS] CTP de novo synthesis
+PASS: [BS] ATP de novo synthesis
+PASS: [ER] Aerobic rephosphorylation of UTP
+PASS: [ER] Aerobic rephosphorylation of CTP
+PASS: [ER] Aerobic rephosphorylation of GTP
+PASS: [ER] Aerobic rephosphorylation of ATP from glucose
+```
 :::
 :::{tab-item} 🐍 Python
 :sync: python
@@ -380,6 +462,10 @@ from raven_toolbox.tasks import check_tasks
 
 report = check_tasks(context, tasks)
 print(sum(1 for result in report if result.passed), "of", len(report), "tasks pass")
+```
+
+```text
+57 of 57 tasks pass
 ```
 :::
 ::::

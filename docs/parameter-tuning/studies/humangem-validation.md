@@ -8,7 +8,7 @@ With the task layer, the raven-toolbox models share a Jaccard index of 0.981 to 
 
 ### Software
 
-The software was Human-GEM commit `38567ab8` (v2.1.1 plus 15 commits), RAVEN commit `2d0630e3` on MATLAB 2024b, raven-toolbox commit `94f3940`, and Gurobi for both tools, with 4 cores per run. The Python runs load the Gurobi library 13.0.3 from the gurobipy wheel (most likely, because the logs print no version). The MATLAB side links to the library 13.0.1 of the Gurobi module, as the linkage of the MATLAB interface shows; MATLAB prints no version.
+The software was Human-GEM commit `38567ab8` (v2.1.1 plus 15 commits), RAVEN commit `2d0630e3` on MATLAB 2024b, raven-toolbox commit `94f3940`, and Gurobi for both tools, with 4 cores per run. The Python runs load the Gurobi library 13.0.3 from the gurobipy wheel (most likely, because the logs print no version). The MATLAB side links to the library 13.0.1 of the Gurobi installation, as the linkage of the MATLAB interface shows; MATLAB prints no version.
 
 ### Template preparation
 
@@ -137,15 +137,15 @@ Each cell line, variant and `big_m` value ran once, without repeats of the seed,
 
 ## Reproduction
 
-The numbers come from `bigm/bm.py prep`, `preptask` and `val` (raven-toolbox side), `bigm/ml_prep.m` and `bigm/ml_cell.m` (RAVEN side) and `bigm/compare.py`, which prints every table of the study. The scripts are in the raven-docs repository under `scripts/parameter_tuning/init/`. The commands run through the Slurm wrappers `job.sh` and `mljob.sh` as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `RAVEN_ROOT`, `HUMANGEM_ROOT` and `PY` set:
+The numbers come from `bigm/bm.py prep`, `preptask` and `val` (raven-toolbox side), `bigm/ml_prep.m` and `bigm/ml_cell.m` (RAVEN side) and `bigm/compare.py`, which prints every table of the study. The scripts are in the raven-docs repository under `scripts/parameter_tuning/init/`. The environment variables (`WORK`, `OUT`, `SHARED`, `TOOLBOX_ROOT`, `RAVEN_ROOT`, `HUMANGEM_ROOT`, Gurobi) and the export of the Human-GEM commit are set as in the README of that folder. The commands run from `scripts/parameter_tuning/init/bigm/`:
 
 ```bash
-job.sh prep
-job.sh preptask
-mljob.sh ml_prep
+python bm.py prep > $WORK/logs/prep.out
+python bm.py preptask > $WORK/logs/preptask.out
+matlab -batch "run('ml_prep.m')" > $WORK/logs/mlprep.out
 for c in DLD1 GBM HCT116 HELA RPE1; do
-  job.sh val --cell $c
-  mljob.sh ml_cell $c
+  python bm.py val --cell $c
+  CELL=$c matlab -batch "run('ml_cell.m')" > $WORK/logs/ml-$c.out
 done
 python compare.py --out $WORK/out --shared $WORK/shared --logs $WORK/logs
 ```

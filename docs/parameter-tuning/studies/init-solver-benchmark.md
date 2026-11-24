@@ -50,12 +50,12 @@ The table comes from `bigm/bm.py solver` and the overlap figures from `bigm/comp
 # CI parameterised tests (seconds, runs always):
 python -m pytest tests/test_init_solvers.py -v
 
-# Genome-scale benchmark (needs the prepared model from job.sh prep):
-job.sh prep
-job.sh solver --solvers gurobi,hybrid
-job.sh solver --solvers glpk
-job.sh solver --solvers scipy
+# Genome-scale benchmark (needs the prepared model from bm.py prep):
+python bm.py prep
+python bm.py solver --solvers gurobi,hybrid
+python bm.py solver --solvers glpk
+python bm.py solver --solvers scipy
 python compare.py --out $WORK/out --shared $WORK/shared --logs $WORK/logs
 ```
 
-The first command checks the toy networks and runs in seconds. The commands of the second block are the documented invocations; `job.sh` runs `bm.py` as a Slurm job, as in the README of the folder, with the environment variables `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and `PY` set. The `big_m=100` Gurobi row is part of `bm.py solver`. The tables are computed from the outputs by `compare.py`.
+The first command checks the toy networks and runs in seconds. The commands of the second block are the documented invocations; They run from `scripts/parameter_tuning/init/bigm/`, with the environment variables `WORK`, `OUT`, `SHARED`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and the Gurobi environment set as in the README of the folder. The `big_m=100` Gurobi row is part of `bm.py solver`. The tables are computed from the outputs by `compare.py`.

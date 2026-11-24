@@ -5,51 +5,12 @@ The RAVEN Toolbox runs in MATLAB and works independently. It does not require th
 ## Requirements
 
 - MATLAB. No minimum release is stated, and the code has no check that rejects an older release. `readYAMLmodel` has a fallback for releases before R2020b, `parseTaskList` calls `readcell` (R2019a) for Excel task lists, and `addIdentifierPrefix` calls `regexpPattern` (R2020b). Continuous integration tests R2024b, and older releases are not tested. No additional MathWorks toolboxes are required.
-- A linear-programming solver: [Gurobi](https://www.gurobi.com/) (free academic licence, recommended) or GLPK, which is bundled with RAVEN and needs no separate installation. See [Choosing and configuring a solver](#choosing-a-solver-matlab).
+- A linear-programming solver: [Gurobi](https://www.gurobi.com/) (free academic licence, recommended) or GLPK, which is bundled with RAVEN and needs no separate installation. See [Solver](#solver).
 - RAVEN bundles `libSBML` and the GLPK mex files for Windows, macOS and Linux. `BLAST+`, `DIAMOND` and `HMMER` are not bundled. RAVEN fetches the build for the platform on first use, so the reconstruction functions need internet access the first time they run. `downloadRavenBinaries` fetches them in advance. [Download data and binaries](data-and-binaries.md) lists the full set, the cache location and the preparation of an offline machine.
 
 ---
 
-(choosing-a-solver-matlab)=
-## Choosing and configuring a solver
-
-| Solver | LP | MILP | Relative speed | Licence |
-|---|---|---|---|---|
-| GLPK | yes | yes (RAVEN warns; slow on large problems) | 1x (baseline) | open source, bundled with RAVEN |
-| SCIP | yes | yes | 0.33x | open source; `setRavenSolver('scip')` downloads the MEX file on Windows (from the RAVEN v2.8.6 GitHub release), and macOS and Linux need a separate installation |
-| Gurobi | yes | yes | 4.2x | free academic licence |
-| COBRA Toolbox | yes | depends on the COBRA solver configured | depends on the COBRA solver configured | depends on the COBRA solver configured |
-
-The functions that solve MILPs (`getMinimalMedium`, ftINIT and some gap-filling algorithms) also run on the bundled GLPK and give a warning that recommends Gurobi. On genome-scale models GLPK can be slower than Gurobi, which runs at 4.2 times the speed of GLPK in the table.
-
-`setRavenSolver` sets the active solver and takes `'gurobi'`, `'glpk'`, `'scip'` or `'cobra'`:
-
-```matlab
-setRavenSolver('gurobi');
-```
-
-### Gurobi
-
-1. Install Gurobi 7.5 or later.
-2. Request and download a licence. A free academic licence covers most research use.
-3. Place the licence file where the installer of Gurobi says.
-4. Follow the MATLAB integration instructions of Gurobi, then run `savepath` to keep the change after a restart.
-5. Run `setRavenSolver('gurobi')`.
-
-### Solving through the COBRA Toolbox
-
-RAVEN can solve with the solver that the COBRA Toolbox has configured, in place of the bundled solvers:
-
-```matlab
-changeCobraSolver('glpk');   % or any solver the COBRA Toolbox supports
-setRavenSolver('cobra');
-```
-
-`ravenCobraWrapper` converts a model between the RAVEN struct and the COBRA Toolbox structure ([COBRA Toolbox conversion](../raven3-vs-raven-toolbox/what-each-has.md#cobra-toolbox-conversion)).
-
----
-
-## Installation
+## Install
 
 :::{admonition} Installing 3.0.0b3
 :class: warning
@@ -60,11 +21,11 @@ This site documents RAVEN 3.0.0b3, a pre-release. The Add-Ons manager and the no
 ::::{tab-set}
 :::{tab-item} {octicon}`plug;1em` Add-Ons manager
 
-The installation runs from within MATLAB and needs no separate download. The installed version is the latest stable release (RAVEN 2.x), which is older than 3.0.0b3, as the warning at the start of the [Installation](#installation) section states.
+The installation runs from within MATLAB and needs no separate download. The installed version is the latest stable release (RAVEN 2.x), which is older than 3.0.0b3, as the warning at the start of the [Install](#install) section states.
 
 1. Open the Home tab and select Add-Ons, then Get Add-Ons.
 2. Search for RAVEN Toolbox and select Add, then Add to MATLAB.
-3. [Verify the installation](#verification).
+3. [Verify the installation](#verify).
 
 When MATLAB does not load the toolbox after step 2, `matlab.addons.enableAddon("RAVEN")` enables it.
 :::
@@ -74,7 +35,7 @@ This method suits offline and managed environments. The [RAVEN releases page](ht
 
 1. Download [the 3.0.0b3 archive](https://github.com/CompMetEng/RAVEN/archive/refs/tags/3.0.0b3.zip), which works without git.
 2. Extract it to any location.
-3. In MATLAB, add the RAVEN folder to the path (`pathtool`) and [verify](#verification).
+3. In MATLAB, add the RAVEN folder to the path (`pathtool`) and [verify](#verify).
 :::
 :::{tab-item} {octicon}`git-branch;1em` Clone with git
 
@@ -87,14 +48,14 @@ git fetch --depth=1 origin tag 3.0.0b3
 git checkout 3.0.0b3
 ```
 
-Afterwards, add the RAVEN folder to the MATLAB path and [verify](#verification).
+Afterwards, add the RAVEN folder to the MATLAB path and [verify](#verify).
 :::
 ::::
 
 ---
 
 (verify)=
-## Verification
+## Verify
 
 In the MATLAB command window:
 
@@ -108,7 +69,7 @@ A successful run prints output of this form:
 *** THE RAVEN TOOLBOX ***
 
  > Installation type                    Advanced (via git)
- > Checking RAVEN release               3.0.0
+ > Checking RAVEN release               3.0.0b3
  > Checking MATLAB release              R2024b
  > Set RAVEN in MATLAB path             Pass
  > Save MATLAB path                     Pass
@@ -143,7 +104,7 @@ MATLAB can report that it could not save the path, which is common on shared or 
 
 ---
 
-## Upgrading
+## Upgrade
 
 ::::{tab-set}
 :::{tab-item} {octicon}`plug;1em` Add-Ons manager
@@ -169,7 +130,7 @@ git pull origin develop
 
 ---
 
-## Removal
+## Remove
 
 ::::{tab-set}
 :::{tab-item} {octicon}`plug;1em` Add-Ons manager
@@ -195,6 +156,45 @@ removeRavenFromPath         % clear RAVEN from the MATLAB path
 The cloned RAVEN folder is then deleted from disk.
 :::
 ::::
+
+---
+
+(choosing-a-solver-matlab)=
+## Solver
+
+| Solver | LP | MILP | Relative speed | Licence |
+|---|---|---|---|---|
+| GLPK | yes | yes (RAVEN warns; slow on large problems) | 1x (baseline) | open source, bundled with RAVEN |
+| SCIP | yes | yes | 0.33x | open source; `setRavenSolver('scip')` downloads the MEX file on Windows (from the RAVEN v2.8.6 GitHub release), and macOS and Linux need a separate installation |
+| Gurobi | yes | yes | 4.2x | free academic licence |
+| COBRA Toolbox | yes | depends on the COBRA solver configured | depends on the COBRA solver configured | depends on the COBRA solver configured |
+
+The functions that solve MILPs (`getMinimalMedium`, ftINIT and some gap-filling algorithms) also run on the bundled GLPK and give a warning that recommends Gurobi. On genome-scale models GLPK can be slower than Gurobi, which runs at 4.2 times the speed of GLPK in the table.
+
+`setRavenSolver` sets the active solver and takes `'gurobi'`, `'glpk'`, `'scip'` or `'cobra'`:
+
+```matlab
+setRavenSolver('gurobi');
+```
+
+### Gurobi
+
+1. Install Gurobi 7.5 or later.
+2. Request and download a licence. A free academic licence covers most research use.
+3. Place the licence file where the installer of Gurobi says.
+4. Follow the MATLAB integration instructions of Gurobi, then run `savepath` to keep the change after a restart.
+5. Run `setRavenSolver('gurobi')`.
+
+### Solving through the COBRA Toolbox
+
+RAVEN can solve with the solver that the COBRA Toolbox has configured, in place of the bundled solvers:
+
+```matlab
+changeCobraSolver('glpk');   % or any solver the COBRA Toolbox supports
+setRavenSolver('cobra');
+```
+
+`ravenCobraWrapper` converts a model between the RAVEN struct and the COBRA Toolbox structure ([COBRA Toolbox conversion](../raven3-vs-raven-toolbox/what-each-has.md#cobra-toolbox-conversion)).
 
 ---
 

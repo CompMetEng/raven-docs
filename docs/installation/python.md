@@ -19,7 +19,7 @@ raven-toolbox fetches KEGG data and the reconstruction binaries (BLAST+, DIAMOND
 
 ---
 
-## Installation
+## Install
 
 The release documented on this site, 3.0.0b3, is a pre-release. PyPI also holds the stable release 0.4.0, and `pip` selects that release unless `--pre` is given.
 
@@ -44,7 +44,7 @@ pip install -e .
 
 ---
 
-## Verification
+## Verify
 
 ```python
 import raven_toolbox
@@ -55,7 +55,7 @@ The import package is `raven_toolbox` with an underscore, and the PyPI distribut
 
 ---
 
-## Upgrading
+## Upgrade
 
 ::::{tab-set}
 :::{tab-item} {octicon}`package;1em` From PyPI
@@ -74,7 +74,7 @@ git pull origin develop
 
 ---
 
-## Removal
+## Remove
 
 ```bash
 pip uninstall raven-toolbox
@@ -82,7 +82,7 @@ pip uninstall raven-toolbox
 
 ---
 
-## Solver configuration
+## Solver
 
 raven-toolbox uses the solver interface of cobrapy:
 

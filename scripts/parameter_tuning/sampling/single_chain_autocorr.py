@@ -29,7 +29,7 @@ on a fresh copy of the model and times it, which is the warmup-point part of
 Inputs: the SBML model file; ``--out`` directory for the JSON summary and the
 per-reaction TSV (and, with ``--save-samples``, the sample matrix as .npz).
 
-Command line used (one Slurm job per thinning):
+Command line (one run per thinning):
     python single_chain_autocorr.py --model docs/data/yeast-GEM.xml \
         --thinning 20 --n-samples 300 --warmup 1000 --seed 0 --time-warmup \
         --out results/

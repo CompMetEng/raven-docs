@@ -1,7 +1,8 @@
-"""Link function names on the guide pages to their API reference.
+"""Link function names on the pages to their API reference.
 
 A Sphinx extension. On ``source-read`` it rewrites the inline code spans of
-``guide/*`` pages, outside fenced code, headings and existing links:
+every page except the generated API pages and the release notes, outside
+fenced code, headings and existing links:
 
 * a MATLAB function becomes a link to its entry in the generated MATLAB API
   pages (``api/matlab/<folder>.md``);
@@ -13,7 +14,7 @@ A Sphinx extension. On ``source-read`` it rewrites the inline code spans of
   badge; elsewhere a cobrapy name has to be dotted (``Model.optimize``) or
   snake_case (``read_sbml_model``), so ordinary words are never linked.
 
-Every span in a table row is linked, so the "Functions on this page" table
+Every span in a table row is linked, so the "Functions" table
 links each entry; in prose only the first mention of a name per section is.
 The cobrapy badge in a table row points at the first cobrapy object linked in
 that row instead of cobrapy's index page.
@@ -81,14 +82,14 @@ class Linker:
                         best[key] = rank
         return {key: url for key, (_n, _f, url) in best.items()}
 
-    def target(self, token: str, in_badged_row: bool) -> tuple[str, str] | None:
+    def target(self, token: str, in_badged_row: bool, up: str = "../") -> tuple[str, str] | None:
         """(kind, href) for a code span, or None to leave it as it is."""
         if token in _NOT_LINKED:
             return None
         if token in self.matlab:
-            return "matlab", f"../api/matlab/{self.matlab[token]}.md#{slug(token)}"
+            return "matlab", f"{up}api/matlab/{self.matlab[token]}.md#{slug(token)}"
         if token in self.python:
-            return "python", f"../api/python/{self.python[token]}.md#{slug(token)}"
+            return "python", f"{up}api/python/{self.python[token]}.md#{slug(token)}"
         if not _IDENT.match(token):
             return None
         bare = token.removeprefix("cobra.")
@@ -98,7 +99,7 @@ class Linker:
                 return "cobrapy", url
         return None
 
-    def link_page(self, text: str) -> str:
+    def link_page(self, text: str, up: str = "../") -> str:
         out: list[str] = []
         in_fence = False
         seen: set[str] = set()
@@ -114,10 +115,10 @@ class Linker:
                 seen = set()
                 out.append(line)
                 continue
-            out.append(self._link_line(line, seen))
+            out.append(self._link_line(line, seen, up))
         return "\n".join(out)
 
-    def _link_line(self, line: str, seen: set[str]) -> str:
+    def _link_line(self, line: str, seen: set[str], up: str = "../") -> str:
         if "`" not in line:
             return line
         in_table = line.lstrip().startswith("|")
@@ -128,7 +129,7 @@ class Linker:
             raw = m.group(1)
             token = raw.strip()
             token = token[:-2] if token.endswith("()") else token
-            found = self.target(token, badged)
+            found = self.target(token, badged, up)
             if found is None:
                 return m.group(0)
             kind, href = found
@@ -159,11 +160,11 @@ def setup(app):
     state: dict[str, Linker] = {}
 
     def on_source_read(app, docname, source):
-        if not docname.startswith("guide/"):
+        if docname.startswith(("api/", "release-notes/")):
             return
         if "linker" not in state:
             state["linker"] = Linker(_cobra_inventory(app))
-        source[0] = state["linker"].link_page(source[0])
+        source[0] = state["linker"].link_page(source[0], "../" * docname.count("/"))
 
     def on_build_finished(app, exception):
         if "linker" in state:

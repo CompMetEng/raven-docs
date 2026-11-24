@@ -3,7 +3,7 @@
 Loads the base PrepData, scores every Hart2015 cell line as estimateEssentialGenes.py
 does, applies ftinit's private _nudge_scores and group_rxn_scores with the step-1
 ignore mask, and prints the negative-score count, the share in tied blocks and the
-three largest blocks. Needs the Human-GEM 1ea27d8b code/test on PYTHONPATH (env.sh).
+three largest blocks. Needs the Human-GEM 1ea27d8b code/test on PYTHONPATH.
 Command line: python ties.py <prep-base.pkl>
 """
 

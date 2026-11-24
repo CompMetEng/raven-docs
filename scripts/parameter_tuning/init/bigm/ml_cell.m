@@ -1,6 +1,6 @@
 % RAVEN ftINIT for one Hart2015 cell line ($CELL) on $SHARED/matlab_prepData.mat,
 % default settings (series 1+1), transcrData threshold 1. Writes the reaction ids to
-% $OUT/matlab-<CELL>.txt. Command line: sbatch ... mljob.sh ml_cell <CELL>
+% $OUT/matlab-<CELL>.txt. Command line: CELL=<CELL> matlab -batch "run('ml_cell.m')"
 run(fullfile(fileparts(mfilename('fullpath')),'ml_common.m'));
 HGD = getenv('HUMANGEM_ROOT'); cell_ = getenv('CELL');
 s = load(fullfile(getenv('SHARED'),'matlab_prepData.mat')); prepData = s.prepData;

@@ -74,20 +74,20 @@ published on Read the Docs.
 
 ### 4.1 Home (first page)
 
-- **(a)** A very brief introduction to RAVEN: what it is (reconstruction,
-  analysis and visualization of genome-scale metabolic models) and what it is
-  for.
-- **(b)** Make clear that **both a MATLAB and a Python version exist**, and that
-  this site documents both.
-- **(c)** Links to the key articles:
-  - RAVEN 2.0: Wang et al. (2018), *PLoS Comput Biol* 14(10):e1006541.
-  - RAVEN (1.0): Agren et al. (2013), *PLoS Comput Biol* 9(3):e1002980.
-  - (Add the raven-toolbox reference once published.)
+The home page has a hero (logo, the tag "MATLAB & Python" and a tagline that names both tools), the announcement banner, and then five sections with these headings, in this order:
+
+- **Installation.** Tabs with the labels `MATLAB (git)`, `MATLAB (Add-Ons)`, `Python (pip)` and `Python (git)`, MATLAB first. The git tabs say that the clone is the development version and link the tags page of the repository; the page does not state a tag. The Python tabs say why a pre-release needs `--pre`. A link leads to the Installation page.
+- **Key features.** Six cards, each linking into the guide, with one sentence pattern.
+- **Quick start.** One example in both languages, MATLAB first, with a sentence that says what it does and where its data is (a link to `docs/data/yeast-GEM.yml`), and the unit `h-1`.
+- **Documentation.** Cards for the guide, the API reference, Installation, MATLAB and Python, Migration and Release notes, and the comparison of RAVEN and raven-toolbox, each with one sentence.
+- **Help.** Two cards, one to report a bug or request a feature and one to ask a usage question, each with a link per repository.
+
+The home page makes clear that both a MATLAB and a Python version exist and that the site documents both. It holds no papers, no citation block, no source code section, no licence text and no DOI: the papers, the citation paragraph and the licence are on `references.md`, which the sidebar links. The banner names the documented version, that it is a pre-release, the stable version with the way to install it, and links the upgrade page and the release notes.
 
 ### 4.2 Installation
 
-An **Installation** section with an overview page and a **separate page per
-version**:
+An **Installation** section at the root of the sidebar, before the Guide, with an overview page and a **separate page per
+version**. The two version pages share the sub-headings Requirements, Install, Verify, Upgrade, Remove and Solver. The pages for maintainers (assets and binaries, KEGG assets) are not in the Installation toctree; `maintenance.md` lists them.
 
 - **RAVEN (MATLAB).** Requirements, then the **three install methods**: the
   MATLAB Add-Ons manager, a release download, and `git clone`, plus
@@ -96,7 +96,7 @@ version**:
 - **Python (raven-toolbox).** Requirements, `pip install raven-toolbox`,
   development install, verifying, **upgrading** and **removing**, and solver
   configuration via cobrapy.
-- A shared **Choosing a solver** table lives on the overview page.
+- A shared **Choosing a solver** table lives on the overview page. Each site gives one sentence of reason for its advice on GLPK, and the table names every solver the guide documents.
 
 ### 4.3 MATLAB vs Python versions
 
@@ -157,7 +157,7 @@ Conventions:
   reference (`scripts/autolink.py` adds the links at build time: every name in
   the table and the first mention per section in the prose); setup; two to five numbered steps, each with a tabbed code block and
   its real output; "Troubleshooting"; "See also".
-- **cobrapy is marked, three ways**: a badge in the function table linking to
+- **cobrapy is marked, three ways** (the page `docs/guide/cobrapy.md` explains the badge; the guide index does not): a badge in the function table linking to
   cobrapy's docs, an explicit import in the snippet
   (`from cobra.io import read_sbml_model`), and a line of prose wherever the
   MATLAB tab would make a cobrapy call look like RAVEN's. A reader who thinks
@@ -179,6 +179,8 @@ reconstruction of *H. polymorpha* (`hanpo-GEM`), MATLAB only.
 See §4.5.
 
 #### 4.4.4 Executed examples
+
+The guide has a page of its own, `docs/guide/executed-examples.md`, that describes this; the guide index does not.
 
 Every snippet in the user guide is run on each commit and compared with the
 output printed beneath it, in **both** languages (`scripts/run_examples.py`,
@@ -230,6 +232,16 @@ Generated from source, organised so each function is shown for both languages.
 - **MATLAB**: functions organised **by subfolder** (RAVEN's modular
   categories: `reconstruction`, `manipulation`, `analysis`, …).
 
+### 4.7 Navigation, footer, links and citations
+
+- **Root toctree.** Installation, Guide, API reference, Migration, Citations, Parameter tuning, Release notes, Maintenance. The navbar label of `migrate.md` is "Migration".
+- **Guide index.** The purpose, then the table of pages, then notes (example data). It carries no admonition about the release state and no statement about pages that do not exist. The text on executed examples and on the cobrapy badge is on their own pages, in the *Background* group of the guide with the YAML format and the example data.
+- **Footer.** One line on every page: the lab link (`https://www.kerkhovenlab.eu`) with its mark `docs/_static/lab-favicon.svg`, and a link to the sibling site (gecko-docs) with its icon. The footer holds nothing else; source, licence, DOI, help and citations stay on one page each.
+- **Links to the sibling site.** Through the intersphinx inventory of gecko-docs. `conf.py` adds the inventory only when it can be fetched; a site that is not reachable leaves a note in the log and does not fail the strict build.
+- **Citations.** `references.md` holds the papers and a short paragraph on citation: the Python package raven-toolbox with its version, and RAVEN 3 with the RAVEN 2.0 paper.
+- **Troubleshooting.** The form is the warning admonition at the end of a page. A row or item carries the error identifier where the function raises one (`RAVEN:badInput`), so a search for the identifier finds the page. There is no page of common errors.
+- **Layout CSS.** raven-docs uses the default theme layout. gecko-docs widens the page for its workflow diagrams; the difference is deliberate and does not belong in the shared stylesheet.
+
 ## 5. Conventions
 
 - **Code tabs.** `sphinx-design` tabs labelled "MATLAB" / "Python", **linked**
@@ -239,6 +251,7 @@ Generated from source, organised so each function is shown for both languages.
 - **Naming.** MATLAB `camelCase` ↔ Python `snake_case`; the two are paired by
   normalised name in the API generator. The Python package is **raven-toolbox**.
 - **Citations / attribution.** Neutral; no AI-authorship attribution anywhere.
+- **Unit strings.** One form per quantity across the site: a growth rate is written `h-1`.
 
 ## 6. Open questions
 
@@ -303,3 +316,4 @@ into the relevant section above.)*
 - **Remembered code tab language:** the language of the code tabs (MATLAB or Python) is remembered in `localStorage` by `docs/_static/language-sync.js`, so it applies to every tab on a page, to the next pages, to new browser tabs and to later visits, and the install tabs follow it. sphinx-design alone keeps the choice in `sessionStorage` for one browser tab.
 - **Broken links and code owner:** `.github/workflows/link-issue.yml` checks the external links every Wednesday and keeps one open issue labelled `broken-links` with the broken ones; it closes the issue when none is broken. `.github/CODEOWNERS` names `@edkerk` as the owner of the repository, who is asked to review every pull request.
 - **Rules for every session:** `CLAUDE.md` holds the baseline rules of the `craft` plugin, `.claude/settings.json` enables the `craft` and `docs-site` plugins and turns on the hooks in `.githooks`, and `.github/workflows/repo-hygiene.yml` runs `.github/scripts/repo_hygiene.py` on every pull request. They refuse a tool author, trailer, mention, branch name or pull request footer.
+- **Landing page, navigation and footer.** The home page has the sections of §4.1 and no paper, citation, licence or source code text; `references.md` holds the papers, the citation paragraph and the licence. Installation is at the root of the sidebar, the navbar label is "Migration", the guide index follows the order of §4.7, and the footer holds the lab link and the sibling site. Links to gecko-docs go through its intersphinx inventory, which a missing site does not turn into a build failure. The Troubleshooting form (admonition) and the "Purpose" column of the function tables are kept.

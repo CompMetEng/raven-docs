@@ -48,13 +48,13 @@ Known metabolic behaviour of the target organism improves the quality of the mod
 
 ## Installing RAVEN
 
-After obtaining the software and files, install RAVEN ([Installing RAVEN](../installation/raven.md)). `pathtool` adds the RAVEN folder to the MATLAB path, and RAVEN bundles libSBML. Gurobi is added to the path by its own MATLAB integration ([RAVEN (MATLAB)](../installation/raven.md#choosing-and-configuring-a-solver)), and verify the installation with:
+After obtaining the software and files, install RAVEN ([Installing RAVEN](../installation/raven.md)). `pathtool` adds the RAVEN folder to the MATLAB path, and RAVEN bundles libSBML. Gurobi is added to the path by its own MATLAB integration ([RAVEN (MATLAB)](../installation/raven.md#solver)), and verify the installation with:
 
 ```matlab
 checkRaven
 ```
 
-[Installing RAVEN](../installation/raven.md#verification) shows the output of a successful run.
+[Installing RAVEN](../installation/raven.md#verify) shows the output of a successful run.
 
 :::{admonition} Troubleshooting
 :class: warning

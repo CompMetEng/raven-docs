@@ -1,5 +1,11 @@
 # Citations
 
+## Citation of the toolboxes
+
+Work that uses RAVEN or raven-toolbox cites the RAVEN 2.0 paper below. The paper describes RAVEN 2; no paper describes RAVEN 3 or raven-toolbox. The text names the toolbox that ran the analysis and its version: `checkRaven` prints the version of RAVEN, and `raven_toolbox.__version__` the version of the Python package. The releases of RAVEN are archived on Zenodo ([10.5281/zenodo.3689518](https://doi.org/10.5281/zenodo.3689518)), which allows citing the version used. Work that uses ftINIT also cites the ftINIT paper.
+
+RAVEN and raven-toolbox are released under the GPLv3 licence.
+
 ## RAVEN
 
 > Wang H, Marcišauskas S, Sánchez BJ, Domenzain I, Hermansson D, Agren R,

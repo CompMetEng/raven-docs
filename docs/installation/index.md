@@ -28,7 +28,10 @@ Both versions need a linear-programming solver:
 |---|---|---|
 | Gurobi | Free academic | Genome-scale models, ftINIT, gap-filling, and in MATLAB the legacy tINIT method (recommended) |
 | GLPK   | Open source   | Small and medium models, and getting started |
+| HiGHS  | Open source   | LP in Python through the scipy interface of cobrapy, which ships with SciPy |
 | SCIP   | Open source   | MILP problems (MATLAB); `setRavenSolver('scip')` downloads the binary on Windows |
+
+GLPK is bundled with both toolboxes, so the guide examples run without a further installation. On a genome-scale model a MILP on GLPK is much slower than on Gurobi and warns in MATLAB (`RAVEN:glpkMILP`), so Gurobi is recommended for ftINIT and gap-filling ([Gap-filling](../guide/gap-filling.md)).
 
 In MATLAB, `setRavenSolver('gurobi')` selects the active solver. In raven-toolbox, the solver is configured through cobrapy (`cobra.Configuration`).
 
@@ -37,7 +40,4 @@ In MATLAB, `setRavenSolver('gurobi')` selects the active solver. In raven-toolbo
 
 raven
 python
-data-and-binaries
-updating-kegg-assets
-updating-binaries
 ```

@@ -1,7 +1,7 @@
 % RAVEN template preparation for the Human-GEM validation.
 % Reads $HUMANGEM_ROOT/model/Human-GEM.yml, runs prepHumanModelForftINIT with the
 % essential tasks and reactions.tsv, writes $SHARED/matlab_ref_reactions.txt and
-% $SHARED/matlab_prepData.mat. Command line: sbatch ... mljob.sh ml_prep
+% $SHARED/matlab_prepData.mat. Command line: matlab -batch "run('ml_prep.m')"
 run(fullfile(fileparts(mfilename('fullpath')),'ml_common.m'));
 HGD = getenv('HUMANGEM_ROOT');
 tic; model = readYAMLmodel(fullfile(HGD,'model','Human-GEM.yml')); fprintf('read %d rxns %.0fs\n', numel(model.rxns), toc);

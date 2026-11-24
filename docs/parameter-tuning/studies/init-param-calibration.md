@@ -246,15 +246,15 @@ The Gurobi run of the solver benchmark at `big_m=100` kept 7324 reactions, the c
 
 ## Reproduction
 
-The commands run through the Slurm wrapper `job.sh` of `scripts/parameter_tuning/init/bigm/` as in the README of that folder, with `WORK`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and `PY` set. The prepared models come first:
+The commands run `bm.py` in `scripts/parameter_tuning/init/bigm/`, with `WORK`, `OUT`, `SHARED`, `TOOLBOX_ROOT`, `HUMANGEM_ROOT` and the Gurobi environment set as in the README of that folder. The prepared models come first:
 
 ```bash
-job.sh prep
-job.sh step0 --cell HCT116
-job.sh scale --cell HCT116
-job.sh full --gap 0.003 --big-m 1000 --tag g003-bm1000
-job.sh full --gap 0.003 --big-m 100  --scale off --tag g003-bm100-scaleoff
-job.sh full --gap 0.001 --big-m 100  --noabs --tag noabs-g0.001-bm100
+python bm.py prep
+python bm.py step0 --cell HCT116
+python bm.py scale --cell HCT116
+python bm.py full --gap 0.003 --big-m 1000 --tag g003-bm1000
+python bm.py full --gap 0.003 --big-m 100  --scale off --tag g003-bm100-scaleoff
+python bm.py full --gap 0.001 --big-m 100  --noabs --tag noabs-g0.001-bm100
 python summ.py $WORK/out
 python compare.py --out $WORK/out --shared $WORK/shared --logs $WORK/logs
 ```
