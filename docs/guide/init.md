@@ -91,6 +91,8 @@ spont = tsv.rxns(tsv.spontaneous == 1);
 
 prepData = prepINITModel(humanGEM, tasks, 'spontRxnNames', spont, 'extComp', 'e');
 save('prepData.mat', 'prepData', '-v7.3');
+file = dir('prepData.mat');
+fprintf('prepData.mat: %.0f MB\n', file.bytes / 2^20);
 ```
 
 ```text
@@ -105,6 +107,8 @@ Human-GEM has a wrapper, `prepHumanModelForftINIT`, which reads those two files.
 <!-- run-examples: skip -->
 
 ```python
+import time
+
 import cobra
 import pandas as pd
 from cobra.io import read_sbml_model
@@ -114,7 +118,9 @@ from raven_toolbox.tasks import parse_task_list
 
 cobra.Configuration().processes = 1     # see the note below
 
+start = time.time()
 model = read_sbml_model("Human-GEM/model/Human-GEM.xml")
+print(f"load {time.time() - start:.0f}s")
 model.solver = "gurobi"
 tasks = parse_task_list("Human-GEM/data/metabolicTasks/metabolicTasks_Essential.txt")
 
@@ -122,7 +128,9 @@ tasks = parse_task_list("Human-GEM/data/metabolicTasks/metabolicTasks_Essential.
 tsv = pd.read_csv("Human-GEM/model/reactions.tsv", sep="\t")
 spont = tsv.loc[tsv["spontaneous"] == 1, "rxns"].tolist()
 
+start = time.time()
 prep = prep_init_model(model, tasks, ext_comp="e", spontaneous=spont)
+print(f"prep_init_model {time.time() - start:.0f}s")
 ```
 
 ```text
@@ -162,6 +170,7 @@ arrayData.genes     = tbl.gene;
 arrayData.tissues   = tbl.Properties.VariableNames(2:end)';
 arrayData.levels    = table2array(tbl(:, 2:end));
 arrayData.threshold = 1;
+fprintf('%d genes x %d samples\n', numel(arrayData.genes), size(arrayData.levels, 2));
 ```
 
 ```text
@@ -329,6 +338,7 @@ PKM  best +20.0, average +15.0
 contextModel = ftINIT(prepData, 'HCT116', [], [], ...
     'transcrData', arrayData, ...
     'INITSteps', getINITSteps([], '1+0'));
+fprintf('%d rxns, %d genes\n', numel(contextModel.rxns), numel(contextModel.genes));
 ```
 
 ```text
