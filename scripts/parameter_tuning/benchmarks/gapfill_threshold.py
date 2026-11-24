@@ -12,8 +12,8 @@ The result lists the reactions added to fill the gap at each threshold.
 
 Solver: Gurobi. Output: log and the JSON file given by ``--out``.
 
-Command line (see sbatch_sweep.sh):
-    $BENCH_PY gapfill_threshold.py --out $OUT/gapfill_threshold.json
+Command line:
+    python gapfill_threshold.py --out $OUT/gapfill_threshold.json
 """
 
 import argparse

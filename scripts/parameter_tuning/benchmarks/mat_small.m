@@ -6,12 +6,12 @@
 % the model, solves it, then removeGenes(m,{'b1779'},'removeBlockedRxns',rb) for rb
 % false and true, printing reactions left, growth and GAPD bounds. The previous
 % ravenPath preference is restored at the end.
-% Command line (see sbatch_mat_small.sh):
+% Command line:
 %   matlab -nodisplay -nosplash -batch "run('<scripts>/mat_small.m')"
 R = getenv('R');
 hadPref = ispref('RAVEN','ravenPath');
 if hadPref, oldPref = getpref('RAVEN','ravenPath'); end
-restoredefaultpath; addpath(genpath(R)); addpath(fullfile(getenv('EBROOTGUROBI'),'matlab'));
+restoredefaultpath; addpath(genpath(R)); addpath(fullfile(getenv('GUROBI_HOME'),'matlab'));
 setpref('RAVEN','ravenPath',R);
 root = findRAVENroot();
 assert(isequal(strip(root,'right',filesep), strip(R,'right',filesep)), 'root mismatch %s', root);

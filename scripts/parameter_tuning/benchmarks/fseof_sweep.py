@@ -26,9 +26,9 @@ Outputs in ``--outdir``: sweep_summary.tsv (one row per run), sweep_targets.tsv
 (targets of the first run of each configuration, with slope, r, std, in-default flag),
 sweep.json (summary, versions, input checksum).
 
-Command line (see sbatch_sweep.sh):
-    $BENCH_PY fseof_sweep.py --outdir $OUT --repeats 3
-with PYTHONPATH=<raven-toolbox checkout>/src (env_py.sh).
+Command line:
+    python fseof_sweep.py --outdir $OUT --repeats 3
+with PYTHONPATH=<raven-toolbox checkout>/src.
 """
 
 import argparse

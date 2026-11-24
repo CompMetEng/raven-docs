@@ -13,7 +13,7 @@ Environment:
   OUT, SHARED    override the two folders.
   PYTHONPATH     must contain $TOOLBOX_ROOT/src (raven-toolbox 94f3940).
 
-Subcommands (one per job, see job.sh):
+Subcommands (one per run):
   prep                   cleaned Human-GEM -> prep_init_model(no tasks, scale=True)
                          -> SHARED/prep_notask.pkl, SHARED/ref_reactions.json
   preptask               same with metabolicTasks_Essential.txt -> SHARED/prep_task.pkl

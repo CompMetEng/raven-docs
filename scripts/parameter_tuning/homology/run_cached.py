@@ -5,7 +5,7 @@ The study driver (``fetch``, ``align``, ``score``) downloads UniProt proteomes a
 UniProt-to-KEGG id tables through its ``_stream`` function, and ``score`` repeats
 those downloads. This wrapper loads the driver unchanged and replaces ``_stream``
 with a disk cache, so every UniProt table is downloaded once, recorded (URL, time,
-UniProt release headers) and reused offline by later jobs.
+UniProt release headers) and reused offline by later runs.
 
 Extra subcommand ``prefetch --out W`` wraps the driver: it calls the driver's
 ``_uniprot_keys`` for every proteome and its ``_oma_truth`` for every OMA target, so

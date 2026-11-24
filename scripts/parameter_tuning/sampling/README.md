@@ -8,41 +8,85 @@ Scripts for the sampling convergence page of the parameter-tuning documentation:
 | --- | --- |
 | `STUDY` | this folder |
 | `RAVEN_TOOLBOX_DIR` | raven-toolbox checkout (`94f3940`) |
-| `PY` | Python interpreter with cobra 0.32.1 and gurobipy |
 | `DATA` | folder for chain pickles, sample matrices and logs |
 | `Y4105` | yeast-GEM v9.1.1, 4105 reactions (S3, S4, S6) |
 | `Y4102` | yeast-GEM v9.1.0, 4102 reactions (S1, S7) |
 | `ECORE` | `cobra/data/textbook.xml.gz`, e_coli_core with 95 reactions (S2, S5) |
-| `GUROBI_HOME` | Gurobi installation; its `gurobi.lic` is used |
+| `GRB_LICENSE_FILE` | Gurobi 13.0.1 licence file; the library must be on `LD_LIBRARY_PATH` |
 
-The module names in the job files are site-specific; other systems need an equivalent environment. Every job uses 12 cores (the post-hoc job uses 1). S6 needs about 32 GB.
+Python needs cobra 0.32.1, optlang 1.9.1 and gurobipy 13.0.3. Every run uses 12 cores (the post-hoc run uses 1); memory is 32 GB for S2 to S7 and 16 GB for S1.
 
 ## Commands
 
 ```bash
-export STUDY=... RAVEN_TOOLBOX_DIR=... PY=... DATA=... Y4105=... Y4102=... ECORE=... GUROBI_HOME=...
-J="sbatch -A <account>"
+export STUDY=... RAVEN_TOOLBOX_DIR=... DATA=... Y4105=... Y4102=... ECORE=...
+export GRB_LICENSE_FILE=... LD_LIBRARY_PATH=<Gurobi>/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$RAVEN_TOOLBOX_DIR/src
+cd $STUDY
+
+# R-hat run: rhat TAG MODEL ARGS...
+rhat() { tag=$1; model=$2; shift 2
+  out=$DATA/$tag; mkdir -p $out $DATA/logs
+  python env_report.py $model
+  python $RAVEN_TOOLBOX_DIR/scripts/analyze_sampling_convergence.py --model $model --out $out "$@" | tee $DATA/logs/$tag.analysis.txt
+  wall=$(grep -o '[0-9.]*s wall' $DATA/logs/$tag.analysis.txt | head -1 | tr -d 's wall')
+  python summarize_chains.py --pickle $(ls $out/chains_*.pkl) \
+      --analysis-script $RAVEN_TOOLBOX_DIR/scripts/analyze_sampling_convergence.py \
+      --tag $tag --out results/ --wall-s ${wall:-nan} > /dev/null; }
+
 W="--n-chains 4 --n-samples 300 --thinning 100 --warmup 1000"
-$J --export=ALL,TAG=S2_ecore_achr_m4_n300_t100,MODELVAR=ECORE,ARGS="$W" $STUDY/jobs/rhat.sbatch
-$J --export=ALL,TAG=S3_yeast4105_achr_m4_n300_t100,MODELVAR=Y4105,ARGS="$W" $STUDY/jobs/rhat.sbatch
-$J --export=ALL,TAG=S4_yeast4105_achr_m4_n100_t300,MODELVAR=Y4105,ARGS="--n-chains 4 --n-samples 100 --thinning 300 --warmup 1000" $STUDY/jobs/rhat.sbatch
-$J --export=ALL,TAG=S5_ecore_chrr_m4_n300_t100,MODELVAR=ECORE,ARGS="--method chrr $W" $STUDY/jobs/rhat.sbatch
-$J --export=ALL,TAG=S6_yeast4105_chrr_m2_n20_t100,MODELVAR=Y4105,ARGS="--method chrr --n-chains 2 --n-samples 20 --thinning 100 --warmup 1000" --mem=32G $STUDY/jobs/rhat.sbatch
-for t in 20 100 500; do $J --export=ALL,THIN=$t $STUDY/jobs/s1.sbatch; done
-$J $STUDY/jobs/s1_seeds.sbatch
-$J $STUDY/jobs/s7.sbatch
-$J $STUDY/jobs/posthoc.sbatch   # after S2, S5 and S7
+rhat S2_ecore_achr_m4_n300_t100 $ECORE $W
+rhat S3_yeast4105_achr_m4_n300_t100 $Y4105 $W
+rhat S4_yeast4105_achr_m4_n100_t300 $Y4105 --n-chains 4 --n-samples 100 --thinning 300 --warmup 1000
+rhat S5_ecore_chrr_m4_n300_t100 $ECORE --method chrr $W
+rhat S6_yeast4105_chrr_m2_n20_t100 $Y4105 --method chrr --n-chains 2 --n-samples 20 --thinning 100 --warmup 1000
+
+# S1: one ACHR chain per thinning
+python env_report.py $Y4102
+for t in 20 100 500; do
+  python single_chain_autocorr.py --model $Y4102 --thinning $t --n-samples 300 --warmup 1000 --seed 0 \
+      --time-warmup --out results/ --save-samples $DATA/s1_t$t.npz
+done
+
+# S1 seed spread: seeds 1 to 3 at each thinning (rho only, wall times are not comparable with the timed seed-0 runs)
+for seed in 1 2 3; do for t in 20 100 500; do
+  python single_chain_autocorr.py --model $Y4102 --thinning $t --n-samples 300 --warmup 1000 --seed $seed \
+      --out $DATA/s1_seeds > /dev/null
+done; done
+python - <<'PY'
+import json, glob, os
+rows = []
+for f in sorted(glob.glob(os.environ["DATA"] + "/s1_seeds/*.json")) + sorted(glob.glob("results/s1_achr_t*_seed0.json")):
+    d = json.load(open(f))
+    rows.append([d["thinning"], d["seed"], d["n_nonconstant"], d["rho_mean_pearson"], d["rho_median_pearson"],
+                 d["rho_mean_acf"], d["rho_median_acf"], d["ess_from_mean_rho"], d["ess_from_median_rho"], d["t_total_s"]])
+rows.sort()
+with open("results/s1_seed_spread.tsv", "w") as fh:
+    fh.write("thinning\tseed\tn_nonconstant\trho_mean_pearson\trho_median_pearson\trho_mean_acf\trho_median_acf\tess_from_mean_rho\tess_from_median_rho\tt_total_s\n")
+    for r in rows:
+        fh.write("\t".join(str(round(x, 4)) if isinstance(x, float) else str(x) for x in r) + "\n")
+PY
+
+# S7
+python env_report.py $Y4102
+python random_objective_bounds.py --model $Y4102 --n-samples 200 --seed 0 --n-proc 12 --n-probe 50 \
+    --out results/ --save-samples $DATA/s7_false.npz
+
+# post-hoc checks, after S2, S5 and S7
+python posthoc_checks.py --achr-pickle $(ls $DATA/S2_ecore_achr_m4_n300_t100/chains_*.pkl) \
+    --chrr-pickle $(ls $DATA/S5_ecore_chrr_m4_n300_t100/chains_*.pkl) --s7-npz $DATA/s7_false.npz \
+    --model $Y4102 --out results/posthoc.json
 ```
 
-Chain seeds are 0 to m-1 (fixed in `analyze_sampling_convergence.py`). S1 and S7 use seed 0; `s1_seeds.sbatch` adds seeds 1 to 3. Logs and chain files go to `$DATA`, tables to `$STUDY/results`.
+Chain seeds are 0 to m-1 (fixed in `analyze_sampling_convergence.py`). S1 and S7 use seed 0; the seed-spread loop adds seeds 1 to 3. Logs and chain files go to `$DATA`, tables to `$STUDY/results`.
 
 ## Outputs
 
 | File | Content |
 | --- | --- |
-| `jobs/rhat.sbatch` | Runs `analyze_sampling_convergence.py`, then `summarize_chains.py`, which writes `<tag>.json` (R-hat summary) and `<tag>_rhat.tsv` (R-hat per reaction, regenerated by the run). |
+| `summarize_chains.py` | Run after `analyze_sampling_convergence.py`; writes `<tag>.json` (R-hat summary) and `<tag>_rhat.tsv` (R-hat per reaction, regenerated by the run). |
 | `single_chain_autocorr.py` | S1: lag-1 autocorrelation per reaction over reactions with a flux range above 1e-6, effective sample size n (1 - rho) / (1 + rho), wall time; writes `s1_achr_t<thinning>_n300_seed0.json` and a per-reaction table. |
-| `results/s1_seed_spread.tsv` | Mean and median rho for seeds 0 to 3 at each thinning, written by `s1_seeds.sbatch`. |
+| `results/s1_seed_spread.tsv` | Mean and median rho for seeds 0 to 3 at each thinning, written by the seed-spread step. |
 | `random_objective_bounds.py` | S7: `random_objective` with `replace_max_bound=False` (samples and reactions at the bound) and `True` (abort, probe of random objectives for unbounded status); writes `s7_random_objective_n200_seed0.json`. |
 | `posthoc_checks.py` | Reactions that ACHR leaves constant in S2 and S5 and their CHRR variation, and alternative denominators for S7; writes `results/posthoc.json`. |
 | `env_report.py` | Prints Python, package, solver, CPU and model versions into every log. |

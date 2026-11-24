@@ -2,8 +2,8 @@
 % interface, Human-GEM code. Environment: RAVEN_ROOT (RAVEN checkout, commit
 % 2d0630e3), GUROBI_HOME (Gurobi installation), HUMANGEM_ROOT (extracted Human-GEM
 % tree). The RAVEN/ravenPath preference is set to RAVEN_ROOT so that findRAVENroot
-% returns this checkout and restored by ml_restore_pref.m at the end;
-% mljob.sh also keeps the preferences in $TMPDIR.
+% returns this checkout and restored by ml_restore_pref.m at the end.
+% Setting MATLAB_PREFDIR to a scratch folder keeps the preferences of the user unchanged.
 RV = getenv('RAVEN_ROOT');
 GM = fullfile(getenv('GUROBI_HOME'), 'matlab');
 HGD = getenv('HUMANGEM_ROOT');

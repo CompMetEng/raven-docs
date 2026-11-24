@@ -13,50 +13,69 @@ Scripts for the homology cut-off page of the parameter-tuning documentation. *S.
 | SGD | `orf_trans_all.fasta.gz` of `sgd-archive.yeastgenome.org/sequence/S288C_reference/orf_protein` |
 | *H. polymorpha* | `data/genomes/hanpo.faa` of the hanpo-GEM repository (5177 sequences) |
 
-`job_fetch.sh` downloads the inputs into `homology-inputs.tar.zst` (proteomes, UniProt cache, reference tables); `job_align_score.sh` writes the hit tables to `homology-hits.tar.zst`. Download manifests with URLs, sizes and SHA-256 are in `results/inputs/`.
+The fetch step downloads the inputs (proteomes, UniProt cache, reference tables) into `homology-inputs.tar.zst`; the align and score step writes the hit tables to `homology-hits.tar.zst`. Download manifests with URLs, sizes and SHA-256 are in `results/inputs/`.
 
 | Variable | Meaning |
 | --- | --- |
 | `STUDY` | this folder |
 | `TOOLBOX_ROOT` | raven-toolbox checkout (`94f3940`) |
-| `PY` | Python interpreter with pandas |
 | `DATA` | folder of the two archives |
 | `BINARIES_CACHE` | `raven_toolbox/binaries` cache with BLAST+ 2.17.0 and DIAMOND 2.1.17 |
-| `HANPO_FAA` | `hanpo.faa` (aligner-settings job) |
-| `HOMOLOGY_SCRIPT`, `HOMOLOGY_URL_CACHE`, `HOMOLOGY_OFFLINE` | read by `run_cached.py`: path of the driver, UniProt cache folder, offline switch (set by the jobs) |
+| `HANPO_FAA` | `hanpo.faa` (aligner-settings step) |
+| `HOMOLOGY_SCRIPT`, `HOMOLOGY_URL_CACHE`, `HOMOLOGY_OFFLINE` | read by `run_cached.py`: path of the driver, UniProt cache folder, offline switch (set in the commands below) |
 
-The module names in the job files are site-specific; other systems need an equivalent environment.
+The fetch step runs on 1 core. The align and score step needs 4 cores and 16 GB, the aligner-settings step 4 cores and 8 GB. `python` needs pandas; `zstd` must be installed.
 
 ## Commands
 
 ```bash
-export STUDY=... TOOLBOX_ROOT=... PY=... DATA=... BINARIES_CACHE=... HANPO_FAA=...
-sbatch -A <account> $STUDY/job_fetch.sh
-sbatch -A <account> $STUDY/job_align_score.sh
-sbatch -A <account> $STUDY/job_aligner_settings.sh
+export STUDY=... TOOLBOX_ROOT=... DATA=... BINARIES_CACHE=... HANPO_FAA=...
+export HOMOLOGY_SCRIPT=$TOOLBOX_ROOT/scripts/homology_cutoff_kegg.py
+export PYTHONPATH=$TOOLBOX_ROOT/src
+W=$TMPDIR/homology-inputs REFS=$W/refs RES=$STUDY/results
+mkdir -p $W $DATA $RES
 ```
 
-The jobs run the following, with `W` the extracted `homology-inputs/` folder, `REFS=$W/refs`, `K118=$REFS/kegg118_organism_gene_ko_5org.tsv.gz` and `RES` the results folder. `--out` goes before the subcommand. Each `score` run writes `hitlevel_results.json` into `$W`, which the job copies to `$RES/<name>.json` with the name in the comment.
+`W` is the `homology-inputs/` folder, `REFS=$W/refs`, `K118=$REFS/kegg118_organism_gene_ko_5org.tsv.gz` and `RES` the results folder. `--out` goes before the subcommand. Each `score` run writes `hitlevel_results.json` into `$W`; copy it to `$RES/<name>.json` with the name in the comment.
+
+Fetch and pack the inputs:
 
 ```bash
-python run_cached.py --out $W fetch
-python run_cached.py prefetch --out $W                       # UniProt tables and OMA pairs
-python fetch_references.py --out $REFS --kegg118-sha256 520ba8bb09d6ca479ca1ab84ea70bf7c1d7f82d8f6406b717cee293b7c8609ca
-python run_cached.py --out $W align                          # BLAST, 4 threads, E-value 1e-4
-python run_cached.py --out $W align --aligner diamond        # DIAMOND, 4 threads, E-value 1e-3, --more-sensitive
-python run_cached.py --out $W score --beta 0.5 --gene-ko $K118                                  # kegg118_blast_b0.5
-python run_cached.py --out $W score --beta 0.5 --gene-ko $K118 --aligner diamond                # kegg118_diamond_b0.5
-python run_cached.py --out $W score --beta 1   --gene-ko $K118                                  # kegg118_blast_b1
-python run_cached.py --out $W score --beta 1   --gene-ko $K118 --aligner diamond                # kegg118_diamond_b1
-python run_cached.py --out $W score --beta 0.5 --gene-ko $K118 --reference oma                  # oma_blast_b0.5
-python run_cached.py --out $W score --beta 0.5 --gene-ko $K118 --reference oma --aligner diamond  # oma_diamond_b0.5
-python run_cached.py --out $W score --beta 0.5 --gene-ko $REFS/keggrest_organism_gene_ko_rxn.tsv.gz                    # keggrest_rxn_blast_b0.5
-python run_cached.py --out $W score --beta 0.5 --gene-ko $REFS/keggrest_organism_gene_ko_rxn.tsv.gz --aligner diamond  # keggrest_rxn_diamond_b0.5
-python run_cached.py --out $W score --beta 0.5 --gene-ko $REFS/keggrest_organism_gene_ko_all.tsv.gz                    # keggrest_all_blast_b0.5 (BLAST)
-python agreement.py --work $W --gene-ko $K118 --out $RES/agreement.tsv
-python aligner_settings.py --hanpo $HANPO_FAA --template <sgd_orf_trans_all.fasta> \
-    --bindir $BINARIES_CACHE/blast-2.17.0-linux-x86_64 --work $TMPDIR/as --out $RES/aligner_settings.json --threads 4 --single-thread-full
-python make_tables.py --res $RES > $RES/tables.md
+export HOMOLOGY_URL_CACHE=$W/uniprot_cache
+python -I $STUDY/run_cached.py --out $W fetch
+python -I $STUDY/run_cached.py prefetch --out $W                # UniProt tables and OMA pairs
+python -I $STUDY/fetch_references.py --out $REFS --kegg118-sha256 520ba8bb09d6ca479ca1ab84ea70bf7c1d7f82d8f6406b717cee293b7c8609ca
+tar -C $(dirname $W) -cf - homology-inputs | zstd -19 -T1 -q -o $DATA/homology-inputs.tar.zst -f
+```
+
+Align, score and tabulate, offline from the unpacked inputs (`zstd -dc $DATA/homology-inputs.tar.zst | tar -C $(dirname $W) -xf -`):
+
+```bash
+export HOMOLOGY_URL_CACHE=$W/uniprot_cache HOMOLOGY_OFFLINE=1
+K118=$REFS/kegg118_organism_gene_ko_5org.tsv.gz
+python -I $STUDY/run_cached.py --out $W align                   # BLAST, 4 threads, E-value 1e-4
+python -I $STUDY/run_cached.py --out $W align --aligner diamond # DIAMOND, 4 threads, E-value 1e-3, --more-sensitive
+python -I $STUDY/run_cached.py --out $W score --beta 0.5 --gene-ko $K118                                  # kegg118_blast_b0.5
+python -I $STUDY/run_cached.py --out $W score --beta 0.5 --gene-ko $K118 --aligner diamond                # kegg118_diamond_b0.5
+python -I $STUDY/run_cached.py --out $W score --beta 1   --gene-ko $K118                                  # kegg118_blast_b1
+python -I $STUDY/run_cached.py --out $W score --beta 1   --gene-ko $K118 --aligner diamond                # kegg118_diamond_b1
+python -I $STUDY/run_cached.py --out $W score --beta 0.5 --gene-ko $K118 --reference oma                  # oma_blast_b0.5
+python -I $STUDY/run_cached.py --out $W score --beta 0.5 --gene-ko $K118 --reference oma --aligner diamond  # oma_diamond_b0.5
+python -I $STUDY/run_cached.py --out $W score --beta 0.5 --gene-ko $REFS/keggrest_organism_gene_ko_rxn.tsv.gz                    # keggrest_rxn_blast_b0.5
+python -I $STUDY/run_cached.py --out $W score --beta 0.5 --gene-ko $REFS/keggrest_organism_gene_ko_rxn.tsv.gz --aligner diamond  # keggrest_rxn_diamond_b0.5
+python -I $STUDY/run_cached.py --out $W score --beta 0.5 --gene-ko $REFS/keggrest_organism_gene_ko_all.tsv.gz                    # keggrest_all_blast_b0.5 (BLAST)
+python -I $STUDY/agreement.py --work $W --gene-ko $K118 --out $RES/agreement.tsv
+python -I $STUDY/make_tables.py --res $RES > $RES/tables.md
+tar -C $W -cf - $(cd $W && ls hits_*.csv) | zstd -19 -T4 -q -f -o $DATA/homology-hits.tar.zst
+```
+
+The aligner settings (thread test, single-thread full directions, E-value 1e-4 against 1e-5) use the SGD proteome from the inputs as template:
+
+```bash
+zcat $REFS/sgd_orf_trans_all.fasta.gz > $TMPDIR/sce_sgd.fasta
+python -I $STUDY/aligner_settings.py --hanpo $HANPO_FAA --template $TMPDIR/sce_sgd.fasta \
+    --bindir $BINARIES_CACHE/blast-2.17.0-linux-x86_64 --work $TMPDIR/as \
+    --out $RES/aligner_settings.json --threads 4 --single-thread-full
 ```
 
 ## Outputs

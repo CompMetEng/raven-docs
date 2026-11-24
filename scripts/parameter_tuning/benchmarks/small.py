@@ -14,9 +14,9 @@ Solver: Gurobi through optlang (``model.solver = "gurobi"``).
 Inputs: the SBML files in the ``cobra/data`` folder of the running cobra, unzipped to
 ``$TMPDIR``. Output: log on stdout and the JSON file given by ``--out``.
 
-Command line (see sbatch_small.sh):
-    $BENCH_PY small.py --out $OUT/small.json --repeats 3
-with PYTHONPATH=<raven-toolbox checkout>/src (env_py.sh).
+Command line:
+    python small.py --out $OUT/small.json --repeats 3
+with PYTHONPATH=<raven-toolbox checkout>/src.
 """
 
 import argparse
