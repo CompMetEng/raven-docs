@@ -6,7 +6,7 @@
     <img class="site-logo-dark" src="_static/raven-logo-white.png" alt="RAVEN">
     <p class="site-tag">MATLAB &amp; Python</p>
   </div>
-  <p class="site-tagline">A toolkit for building, curating, and simulating genome-scale metabolic models, available as the MATLAB toolbox RAVEN and the Python package raven-toolbox, which is built on cobrapy. This site documents both.</p>
+  <p class="site-tagline">A toolkit for building, curating, and simulating genome-scale metabolic models, available for MATLAB and Python. This site documents both.</p>
 </div>
 
 ## Installation
